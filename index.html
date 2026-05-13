@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Orbit — AI Workflow Tool</title>
+<!-- PWA -->
+<link rel="manifest" href="/orbit/manifest.json">
+<meta name="theme-color" content="#4f46e5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Orbit">
+<link rel="apple-touch-icon" href="/orbit/icon.svg">
+<link rel="icon" type="image/svg+xml" href="/orbit/icon.svg">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
@@ -4479,5 +4488,19 @@ window.addEventListener('load',()=>{ requestAnimationFrame(applyIcons); });
   </div>
 </div>
 
+<script>
+/* ── Service Worker registratie ── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('/orbit/sw.js', {scope:'/orbit/'})
+      .then(reg=>{
+        console.log('[Orbit SW] Geregistreerd, scope:', reg.scope);
+        /* check voor updates elke keer dat de app geladen wordt */
+        reg.update();
+      })
+      .catch(err=>console.warn('[Orbit SW] Registratie mislukt:', err));
+  });
+}
+</script>
 </body>
 </html>

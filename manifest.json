@@ -1,0 +1,41 @@
+{
+  "name": "Orbit — AI Workflow",
+  "short_name": "Orbit",
+  "description": "Jouw persoonlijke AI-werkplanner voor taken, notities, doelen en weekplanning.",
+  "start_url": "/orbit/",
+  "scope": "/orbit/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1e1b4b",
+  "theme_color": "#4f46e5",
+  "lang": "nl",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/orbit/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/orbit/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nieuwe Taak",
+      "short_name": "Taak",
+      "url": "/orbit/?view=new-task",
+      "icons": [{ "src": "/orbit/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Notities",
+      "short_name": "Notities",
+      "url": "/orbit/?view=notes",
+      "icons": [{ "src": "/orbit/icon.svg", "sizes": "any" }]
+    }
+  ]
+}
