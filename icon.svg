@@ -1,18 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- Paarse achtergrond -->
-  <rect width="512" height="512" rx="90" fill="#1e1b4b"/>
-  <!-- Orbit logo — exact zelfde als in de app, geschaald naar 512x512 -->
-  <!-- Schaal: 100→380px (3.8x), offset: 66px zodat het gecentreerd staat -->
-  <g transform="translate(66,66) scale(3.8)" fill="white" stroke="white">
-    <!-- Achterste boog van de orbit -->
-    <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
-    <!-- Hoofdring (de O) -->
-    <circle cx="50" cy="50" r="31" fill="none" stroke="white" stroke-width="10.5"/>
-    <!-- Voorste boog van de orbit -->
-    <path d="M 88 23 A 47 13 -35 0 1 12 77" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
-    <!-- Grote stip linksonder -->
-    <circle cx="12" cy="77" r="8" fill="white"/>
-    <!-- Kleine stip rechtsboven -->
-    <circle cx="88" cy="23" r="5" fill="white"/>
-  </g>
+  <rect width="512" height="512" rx="110" fill="#4f46e5"/>
+  <!-- Achterste helft van de ring (achter de planeet) -->
+  <path d="M 128 210 A 145 55 -20 0 1 384 302" fill="none" stroke="white" stroke-width="30" stroke-linecap="round" opacity="0.5"/>
+  <!-- Planeet -->
+  <circle cx="256" cy="256" r="100" fill="white"/>
+  <!-- Voorste helft van de ring (voor de planeet) -->
+  <path d="M 128 210 A 145 55 -20 0 0 384 302" fill="none" stroke="white" stroke-width="30" stroke-linecap="round"/>
 </svg>
