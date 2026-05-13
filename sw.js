@@ -1,10 +1,10 @@
 /* Orbit Service Worker — cache-first met network fallback */
-const CACHE_NAME = 'orbit-v2';
+const CACHE_NAME = 'orbit-v3';
 const CORE_URLS = [
   '/orbit/',
   '/orbit/index.html',
   '/orbit/manifest.json',
-  '/orbit/icon.svg'
+  '/orbit/icon2.svg'
 ];
 
 self.addEventListener('install', event => {
