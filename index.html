@@ -363,6 +363,11 @@ const ICONS={
   manage:    {em:'⚙️', lu:'sliders-horizontal',ma:'tune',          ph:'sliders-horizontal'},
   history:   {em:'🕐', lu:'history',         ma:'history',         ph:'clock-counter-clockwise'},
   orbit:     {em:'⭕', lu:'orbit',           ma:'workspaces',      ph:'circle-dashed'},
+  cloud:     {em:'☁️', lu:'cloud',           ma:'cloud',           ph:'cloud'},
+  cloudup:   {em:'⬆️', lu:'cloud-upload',    ma:'cloud_upload',    ph:'cloud-arrow-up'},
+  clouddown: {em:'⬇️', lu:'cloud-download',  ma:'cloud_download',  ph:'cloud-arrow-down'},
+  eye:       {em:'👁️', lu:'eye',             ma:'visibility',      ph:'eye'},
+  import:    {em:'📥', lu:'log-in',          ma:'login',           ph:'sign-in'},
   // ── Formulier-labels ──
   palette:   {em:'🎨', lu:'palette',         ma:'palette',         ph:'palette'},
   clipboard: {em:'📋', lu:'clipboard-list',  ma:'assignment',      ph:'clipboard-text'},
@@ -2278,13 +2283,55 @@ function vSettings(){
         <div class="flex items-center gap-3"><span class="text-xl">${ic('doc',18)}</span><div><div class="font-bold text-sm">Gegevens & Export</div><div class="text-xs text-gray-500">${S.tasks.length} opdrachten · alles opgeslagen in je browser</div></div></div>
         <span id="acc-ic-data" class="text-gray-400 text-xs ml-4">▼</span>
       </button>
-      <div id="acc-body-data" class="hidden border-t border-gray-100 p-5 space-y-3">
+      <div id="acc-body-data" class="hidden border-t border-gray-100 p-5 space-y-5">
+        <input type="file" id="orbit-import-file" class="hidden" accept=".json" onchange="handleImport(this)">
+
+        <!-- Stats -->
         <div class="text-sm text-gray-600">Opdrachten: <strong>${S.tasks.length}</strong> · Leerdoelen: <strong>${S.goals.length}</strong> · Notities: <strong>${S.notes.length}</strong> · Promptbibliotheek: <strong>${S.promptLib.length}</strong></div>
-        <div class="flex gap-3 flex-wrap">
-          <button class="btn bs" onclick="exportAll()">📤 Exporteer alles (JSON)</button>
-          <button class="btn bs" style="color:#ef4444" onclick="if(confirm('Alle opdrachten wissen?')){S.tasks=[];saveT();nav('dashboard')}">🗑️ Wis opdrachten</button>
+
+        <!-- Local Backup -->
+        <div class="rounded-xl border border-gray-200 p-4 space-y-3">
+          <div class="flex items-center gap-2 font-semibold text-sm text-gray-700">${ic('doc',15)} Lokale back-up</div>
+          <p class="text-xs text-gray-500">Download een JSON-bestand met al je data (opdrachten, notities, doelen, prompts, instellingen). Bewaar dit ergens veilig.</p>
+          <div class="flex gap-2 flex-wrap">
+            <button class="btn bs" onclick="exportAll()">${ic('cloudup',13)} Exporteer alles (JSON)</button>
+            <button class="btn bs" onclick="importFromFile()">${ic('clouddown',13)} Importeer JSON</button>
+          </div>
         </div>
-        <div class="text-xs text-gray-400">Alles wordt lokaal opgeslagen in je browser (localStorage). Gebruik "Exporteer" voor een back-up.</div>
+
+        <!-- GitHub Sync -->
+        <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 space-y-3">
+          <div class="flex items-center gap-2 font-semibold text-sm text-indigo-700">${ic('cloud',15)} GitHub Sync</div>
+          <p class="text-xs text-gray-600">Sla je backup automatisch op in je privé GitHub-repo <code class="bg-white px-1 rounded text-indigo-600">orbit-data</code>. Zo ben je nooit je data kwijt.</p>
+
+          <!-- Token input -->
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-600">GitHub Personal Access Token (PAT)</label>
+            <div class="flex gap-1">
+              <input id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                class="inp flex-1 text-xs font-mono" style="height:34px;padding:0 10px"
+                value="${localStorage.getItem('pb_gh_token')||''}">
+              <button class="btn bs px-3" style="height:34px" onclick="toggleGhTokenVis()" title="Toon/verberg">${ic('eye',13)}</button>
+              <button class="btn" style="height:34px;background:var(--p);color:#fff;border-radius:8px;padding:0 12px;font-size:12px" onclick="saveGhToken()">Opslaan</button>
+            </div>
+            <p class="text-xs text-gray-400">
+              Maak een token via <a href="https://github.com/settings/tokens/new?scopes=repo&description=Orbit+Backup" target="_blank" class="underline text-indigo-500">GitHub → Settings → Tokens</a> · Kies scope: <strong>repo</strong>
+            </p>
+          </div>
+
+          <!-- Sync buttons -->
+          <div class="flex gap-2 flex-wrap items-center">
+            <button id="gh-sync-btn" class="btn" style="background:var(--p);color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px" onclick="syncToGitHub()">${ic('cloudup',13)} Backup naar GitHub</button>
+            <button id="gh-restore-btn" class="btn bs" style="display:flex;align-items:center;gap:6px;font-size:12px" onclick="restoreFromGitHub()">${ic('clouddown',13)} Herstel van GitHub</button>
+          </div>
+          <div class="text-xs text-gray-400">Laatste sync: <span id="gh-last-sync">${localStorage.getItem('pb_last_sync')||'nog nooit'}</span></div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="pt-1">
+          <button class="btn bs text-xs" style="color:#ef4444" onclick="if(confirm('Alle opdrachten permanent wissen?')){S.tasks=[];saveT();nav('dashboard')}">${ic('trash',13)} Wis alle opdrachten</button>
+        </div>
+        <div class="text-xs text-gray-400">Alles wordt lokaal opgeslagen in je browser (localStorage). Gebruik export of GitHub Sync als back-up.</div>
       </div>
     </div>
   </div>`;
@@ -2299,7 +2346,106 @@ async function testGem(){
   try{const r=await callGemini('Reply with exactly: OK','test');toast('✅ Werkt! Antwoord: '+r.trim().slice(0,20));localStorage.setItem('pb_gemini',k);}
   catch(e){S.geminiKey=orig;toast('❌ '+e.message,5000);}
 }
-function exportAll(){const b=new Blob([JSON.stringify({tasks:S.tasks,promptLib:S.promptLib,exported:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='promptbuilder_export.json';document.body.appendChild(a);a.click();document.body.removeChild(a);toast('✅ Geëxporteerd!');}
+/* ── BACKUP & SYNC ───────────────────────────────────────── */
+const GH_BACKUP_REPO='karambaboy123/orbit-data';
+const GH_BACKUP_FILE='orbit-backup.json';
+
+function getFullExportData(){
+  return {
+    version:2, exported:new Date().toISOString(),
+    tasks:S.tasks, goals:S.goals, notes:S.notes,
+    promptLib:S.promptLib, templates:S.templates, presets:S.presets,
+    theme:_curTheme, font:_curFont, iconStyle:_iconStyle,
+  };
+}
+function exportAll(){
+  const data=getFullExportData();
+  const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download=`orbit-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast('✅ Backup gedownload!');
+}
+function importFromFile(){document.getElementById('orbit-import-file')?.click();}
+function handleImport(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      const info=`• ${data.tasks?.length||0} opdrachten\n• ${data.notes?.length||0} notities\n• ${data.templates?.length||0} sjablonen\n• ${data.presets?.length||0} presets`;
+      if(!confirm(`Importeren overschrijft je huidige data:\n\n${info}\n\nDoorgaan?`))return;
+      if(data.tasks)    {S.tasks=data.tasks;saveT();}
+      if(data.goals)    {S.goals=data.goals;localStorage.setItem('pb_goals',JSON.stringify(S.goals));}
+      if(data.notes)    {S.notes=data.notes;localStorage.setItem('pb_notes',JSON.stringify(S.notes));}
+      if(data.promptLib){S.promptLib=data.promptLib;saveL();}
+      if(data.templates){S.templates=data.templates;saveTemplates();}
+      if(data.presets)  {S.presets=data.presets;savePresets();}
+      if(data.theme)    applyTheme(data.theme);
+      if(data.font)     applyFont(data.font);
+      if(data.iconStyle){_iconStyle=data.iconStyle;saveIconStyle();}
+      render(); toast('✅ Import geslaagd!');
+    }catch(err){toast('❌ Ongeldig bestand: '+err.message,6000);}
+  };
+  reader.readAsText(file); input.value='';
+}
+function saveGhToken(){
+  const t=document.getElementById('gh-token')?.value?.trim()||'';
+  localStorage.setItem('pb_gh_token',t);
+  toast(t?'✅ Token opgeslagen!':'✅ Token gewist');
+}
+function toggleGhTokenVis(){
+  const el=document.getElementById('gh-token');if(el)el.type=el.type==='password'?'text':'password';
+}
+async function syncToGitHub(){
+  const token=localStorage.getItem('pb_gh_token');
+  if(!token){toast('⚠️ Sla eerst een GitHub token op');toggleAcc('backup');return;}
+  const btn=document.getElementById('gh-sync-btn');
+  if(btn){btn.disabled=true;btn.innerHTML=ic('cloud',13)+' Bezig...';}
+  try{
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(getFullExportData(),null,2))));
+    const headers={Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'};
+    const url=`https://api.github.com/repos/${GH_BACKUP_REPO}/contents/${GH_BACKUP_FILE}`;
+    let sha=null;
+    const getRes=await fetch(url,{headers});
+    if(getRes.ok){sha=(await getRes.json()).sha;}
+    const putRes=await fetch(url,{method:'PUT',headers,
+      body:JSON.stringify({message:`Orbit backup — ${new Date().toLocaleString('nl-NL')}`,content,...(sha?{sha}:{})})});
+    if(!putRes.ok){const e=await putRes.json();throw new Error(e.message);}
+    const now=new Date().toLocaleString('nl-NL');
+    localStorage.setItem('pb_last_sync',now);
+    const lbl=document.getElementById('gh-last-sync');if(lbl)lbl.textContent=now;
+    toast('✅ Backup opgeslagen in orbit-data repo!');
+  }catch(e){toast('❌ GitHub backup mislukt: '+e.message,7000);}
+  finally{if(btn){btn.disabled=false;btn.innerHTML=ic('cloudup',13)+' Backup naar GitHub';}}
+}
+async function restoreFromGitHub(){
+  const token=localStorage.getItem('pb_gh_token');
+  if(!token){toast('⚠️ Sla eerst een GitHub token op');return;}
+  if(!confirm('Dit vervangt al je huidige data met de GitHub backup. Doorgaan?'))return;
+  const btn=document.getElementById('gh-restore-btn');
+  if(btn){btn.disabled=true;btn.innerHTML=ic('cloud',13)+' Bezig...';}
+  try{
+    const headers={Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'};
+    const res=await fetch(`https://api.github.com/repos/${GH_BACKUP_REPO}/contents/${GH_BACKUP_FILE}`,{headers});
+    if(!res.ok)throw new Error('Geen backup gevonden in orbit-data repo');
+    const file=await res.json();
+    const raw=decodeURIComponent(escape(atob(file.content.replace(/\n/g,''))));
+    const data=JSON.parse(raw);
+    if(data.tasks)    {S.tasks=data.tasks;saveT();}
+    if(data.goals)    {S.goals=data.goals;localStorage.setItem('pb_goals',JSON.stringify(S.goals));}
+    if(data.notes)    {S.notes=data.notes;localStorage.setItem('pb_notes',JSON.stringify(S.notes));}
+    if(data.promptLib){S.promptLib=data.promptLib;saveL();}
+    if(data.templates){S.templates=data.templates;saveTemplates();}
+    if(data.presets)  {S.presets=data.presets;savePresets();}
+    if(data.theme)    applyTheme(data.theme);
+    if(data.font)     applyFont(data.font);
+    if(data.iconStyle){_iconStyle=data.iconStyle;saveIconStyle();}
+    render(); toast('✅ Data hersteld van GitHub!');
+  }catch(e){toast('❌ Herstel mislukt: '+e.message,7000);}
+  finally{if(btn){btn.disabled=false;btn.innerHTML=ic('clouddown',13)+' Herstel van GitHub';}}
+}
 
 /* ══════════════════════════════════════════════════════════
    🎯  PORTFOLIO & LEERDOELEN
