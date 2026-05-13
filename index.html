@@ -491,11 +491,17 @@ Object.entries(ICONS).forEach(([k,v])=>{
 // Helper: render a stored emoji (from template/preset data) in the current icon style
 function icData(em,sz=15){
   if(!em)return'';
+  // Direct ICONS key (e.g. 'bug', 'sparkles') — used in new preset data
+  if(ICONS[em]){
+    if(_iconStyle==='emoji')return ICONS[em].em;
+    return`<span class="ic-wrap" style="display:inline-flex;align-items:center;vertical-align:middle">${ic(em,sz)}</span>`;
+  }
+  // Emoji string — used in legacy stored data
   if(_iconStyle==='emoji')return em;
   const base=em.replace(/[︎️]/g,'').trim();
   const key=EMOJI_TO_KEY[em]||EMOJI_TO_KEY[base];
   if(key)return`<span class="ic-wrap" style="display:inline-flex;align-items:center;vertical-align:middle">${ic(key,sz)}</span>`;
-  return em; // unknown emoji → keep as-is
+  return em;
 }
 
 /* ── FONTS ──────────────────────────────────────────────── */
