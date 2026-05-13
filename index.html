@@ -1136,6 +1136,25 @@ function vNewTask(){
   return `<div class="space-y-5">
     <div><h1 class="text-2xl font-bold">✏️ Nieuwe Opdracht</h1><p class="text-gray-400 text-sm mt-0.5">Kies een sjabloon, vul je opdracht in en analyseer of stuur direct naar AI</p></div>
 
+    <!-- Snelstart templates -->
+    <div class="card p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold text-sm">⚡ Snelstart — klaar-om-te-gebruiken sjablonen</div>
+        <div class="text-xs text-gray-400">Klik → direct een checklist-opdracht aanmaken</div>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        ${QUICK_TASK_TMPLS.map(t=>`
+          <button onclick="quickStartTask('${t.id}')"
+            class="flex items-center gap-2 p-3 rounded-xl border-2 border-gray-200 hover:border-indigo-400 hover:bg-indigo-50 transition-all text-left group">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--p)18;color:var(--p)">${ic(t.ic,15)}</div>
+            <div class="min-w-0">
+              <div class="font-semibold text-xs">${t.name}</div>
+              <div class="text-xs text-gray-400 truncate">${t.desc}</div>
+            </div>
+          </button>`).join('')}
+      </div>
+    </div>
+
     <!-- Sjablonen -->
     <div class="card p-4 space-y-2">
       <div class="flex items-center justify-between">
@@ -1763,10 +1782,12 @@ Tip: vraag de AI eerst om een checklist- of takenlijst-formaat te gebruiken voor
           <select id="aio-src" class="inp"><option value="">-- AI-tool --</option><option>ChatGPT</option><option>Gemini</option><option>Claude</option><option>Copilot</option><option>Andere</option></select></div>
         <div><label class="lbl">📅 Deadline opdracht</label><input id="aio-dl" class="inp" type="date"></div>
       </div>
-      <div class="flex gap-3">
+      <div class="flex gap-3 flex-wrap">
         <button id="btn-aio" class="btn bp" onclick="processAIO()">✅ Maak Checklist</button>
-        <button class="btn bs" onclick="document.getElementById('aio-txt').value=''">Wis tekst</button>
+        <button class="btn bs" onclick="saveAIOutputAsTask()" title="Sla de AI-output op als een gewone analyseopdracht met interactieve checkboxes">💾 Sla op als Opdracht</button>
+        <button class="btn bs" onclick="document.getElementById('aio-txt').value=''">Wis</button>
       </div>
+      <div class="text-xs text-gray-400">💡 <strong>Maak Checklist</strong> = interactieve drag & drop lijst · <strong>Sla op als Opdracht</strong> = volledige analyse met checkboxes in de analyse-weergave</div>
     </div>
 
     <div class="card p-4 bg-indigo-50 border-indigo-200 text-sm text-indigo-800">
@@ -1806,6 +1827,20 @@ function extractTaken(txt){
   return taken;
 }
 
+function saveAIOutputAsTask(){
+  const txt=document.getElementById('aio-txt')?.value?.trim()||'';
+  if(!txt||txt.length<5){toast('⚠️ Voer eerst AI-output in');return;}
+  const name=document.getElementById('aio-name')?.value?.trim()||'AI Output';
+  const src=document.getElementById('aio-src')?.value||'';
+  const dl=document.getElementById('aio-dl')?.value||'';
+  const t=mkTask('task',{goal:name,source:src},name);
+  t.analysis=txt;
+  t.deadline=dl;
+  t.mode=src?'ai':'local';
+  saveT();S.tid=t.id;
+  toast('✅ Opgeslagen als opdracht!');
+  nav('analysis');
+}
 function processAIO(){
   const txt=document.getElementById('aio-txt')?.value?.trim()||'';
   if(!txt||txt.length<5){toast('⚠️ Voer een AI-reactie in');return;}
@@ -3712,8 +3747,24 @@ function vReview(){
       <div class="flex gap-2 flex-wrap">
         <button class="btn bp text-sm" onclick="copyReviewAsPrompt('${rev.id}')">📋 Kopieer als AI-prompt</button>
         <button class="btn bs text-sm" onclick="exportReviewMd('${rev.id}')">⬇️ Export .md</button>
+        <button id="gen-planning-btn" class="btn bs text-sm" onclick="generateWeekPlanning('${rev.id}')">${ic('calendar',13)} Genereer weekplanning</button>
       </div>
     </div>
+
+    <!-- Weekplanning resultaat -->
+    ${rev.planning?`<div class="card p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold text-sm flex items-center gap-2">${ic('calendar',15)} Weekplanning — ${getWeekBounds((S._reviewOffset||0)+1).label}</div>
+        <div class="flex gap-2">
+          <button class="btn bs text-xs" onclick="copyText(getReviewPlanning('${rev.id}'),'Planning gekopieerd!')">📋 Kopieer</button>
+          <button class="btn bs text-xs" onclick="savePlanningAsNote('${rev.id}')">💾 Als notitie</button>
+          <button class="btn bs text-xs" onclick="savePlanningAsTask('${rev.id}')">📋 Als checklist-taak</button>
+          <button class="btn bs text-xs" style="color:#ef4444" onclick="clearPlanning('${rev.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="prose text-sm" style="max-width:none">${DOMPurify.sanitize(marked.parse(rev.planning))}</div>
+      <div class="text-xs text-gray-400">Gegenereerd op ${rev.planningGeneratedAt?new Date(rev.planningGeneratedAt).toLocaleString('nl-NL'):''}</div>
+    </div>`:''}
   </div>`;
 }
 
@@ -3729,6 +3780,58 @@ function exportReviewMd(id){
   const week=getWeekBounds(S._reviewOffset||0);
   const md=`# 📊 Weekreview — ${week.label}\n\n## Reflectie\n\n${r.reflection||'—'}\n\n## Doelen volgende week\n\n${r.nextGoals||'—'}\n`;
   dlMd(md,'weekreview_'+r.weekStart);
+}
+function getReviewPlanning(id){const r=S.reviews.find(x=>x.id===id);return r?.planning||'';}
+function clearPlanning(id){const r=S.reviews.find(x=>x.id===id);if(r){r.planning=null;r.planningGeneratedAt=null;saveReviews();render();}}
+function savePlanningAsNote(id){
+  const r=S.reviews.find(x=>x.id===id);if(!r||!r.planning)return;
+  const week=getWeekBounds((S._reviewOffset||0)+1);
+  const n=mkNote('Weekplanning '+week.label);
+  n.body=r.planning;n.tags=['planning','weekreview'];
+  S.notes.unshift(n);saveNotes();S.nid=n.id;nav('notes');
+  toast('✅ Opgeslagen als notitie!');
+}
+function savePlanningAsTask(id){
+  const r=S.reviews.find(x=>x.id===id);if(!r||!r.planning)return;
+  const week=getWeekBounds((S._reviewOffset||0)+1);
+  const name='Weekplanning '+week.label;
+  const t=mkTask('task',{goal:name},name);
+  t.analysis=r.planning;t.tags=['planning'];
+  saveT();S.tid=t.id;toast('✅ Opgeslagen als checklist-taak!');nav('analysis');
+}
+async function generateWeekPlanning(revId){
+  const r=S.reviews.find(x=>x.id===revId);if(!r)return;
+  const nextWeek=getWeekBounds((S._reviewOffset||0)+1);
+  const today=new Date().toISOString().slice(0,10);
+  const upcoming=S.tasks.filter(t=>t.deadline&&t.deadline>=today&&t.deadline<=nextWeek.sunStr&&!t.archived);
+  const open=S.tasks.filter(t=>!t.archived&&taskPct(t)<100).slice(0,8);
+  const goals=S.goals.filter(g=>(g.level||1)<80).slice(0,4);
+  const btn=document.getElementById('gen-planning-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Bezig...';}
+  try{
+    const context=`Mijn reflectie: ${r.reflection||'—'}\nDoelen volgende week: ${r.nextGoals||'—'}\nOpen opdrachten:\n${open.map(t=>`- ${t.name||t.input?.goal||'Opdracht'} (${taskPct(t)}% af${t.deadline?', deadline '+t.deadline:''})`).join('\n')||'—'}\nDeadlines komende week:\n${upcoming.map(t=>`- ${t.name||t.input?.goal} → ${t.deadline}`).join('\n')||'Geen'}\nActieve leerdoelen:\n${goals.map(g=>`- ${g.name} (niveau ${g.level||1}/100)`).join('\n')||'Geen'}`;
+    const prompt=`Maak een concrete dag-voor-dag weekplanning voor de week van ${nextWeek.label} op basis van:\n\n${context}\n\nGeef voor maandag t/m vrijdag 2-4 concrete, uitvoerbare taken per dag. Gebruik checkboxformat (- [ ]). Houd rekening met de deadlines. Sluit af met een sectie "## Tips voor de week" met 2-3 praktische tips.\n\nFormat:\n## Weekplanning: ${nextWeek.label}\n\n### Maandag\n- [ ] ...\n\n### Dinsdag\n- [ ] ...\n\n(etc.)\n\n## Tips voor de week\n- ...`;
+    let result;
+    if(S.geminiKey){result=await callGemini(prompt,'weekplanning');}
+    else{
+      // Lokale fallback
+      const days=['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag'];
+      const all=[...upcoming,...open.filter(t=>!upcoming.includes(t))];
+      let md=`## Weekplanning: ${nextWeek.label}\n\n`;
+      days.forEach((d,i)=>{
+        md+=`### ${d}\n`;
+        const dt=all.filter((_,idx)=>idx%5===i).slice(0,3);
+        if(dt.length)dt.forEach(t=>{md+=`- [ ] ${t.name||t.input?.goal||'Taak'}${t.deadline&&t.deadline<=nextWeek.sunStr?' ⚠️ deadline!':''}\n`;});
+        else md+=`- [ ] Voortgang boeken op openstaande taken\n`;
+        md+='\n';
+      });
+      md+=`## Tips voor de week\n- Plan je zwaarste taken vroeg in de week\n- Neem elke dag een korte pauze van 15 minuten\n- Controleer dagelijks je prioriteiten`;
+      result=md;
+    }
+    r.planning=result;r.planningGeneratedAt=new Date().toISOString();
+    saveReviews();render();toast('✅ Weekplanning gegenereerd!');
+  }catch(e){toast('❌ '+e.message,5000);}
+  finally{if(btn){btn.disabled=false;btn.innerHTML=ic('calendar',13)+' Genereer weekplanning';}}
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -3876,6 +3979,35 @@ const DFLT_LAUNCH_TMPLS=[
   {id:'review',    ic:'search',   l:'Review / feedback',p:'Geef gedetailleerde, constructieve feedback op het volgende werk. Benoem sterke punten en concrete verbeterpunten:\n\n[PLAK WERK HIER]'},
 ];
 let LAUNCH_TMPLS=JSON.parse(localStorage.getItem('pb_launch_tmpls')||'null')||DFLT_LAUNCH_TMPLS.map(t=>({...t}));
+
+/* ══════════════════════════════════════════════════════════
+   QUICK START TAAK-TEMPLATES
+   ══════════════════════════════════════════════════════════ */
+const QUICK_TASK_TMPLS=[
+  {id:'hbo',         ic:'library',   name:'HBO-opdracht',   desc:'Schoolopdracht stap voor stap',    tags:['school','hbo'],
+   analysis:`## Samenvatting\nGestructureerde aanpak voor een HBO-schoolopdracht.\n\n## Subopdrachten\n1. Opdracht lezen en begrijpen\n2. Planning maken\n3. Uitwerken\n4. Controleren en inleveren\n\n## Checklist\n\n### Fase 1: Voorbereiding\n- [ ] Opdracht volledig doorlezen\n- [ ] Beoordelingscriteria bekijken\n- [ ] Vragen stellen aan docent\n- [ ] Deadline noteren\n\n### Fase 2: Planning\n- [ ] Studieplanning opstellen\n- [ ] Bronnen inventariseren\n- [ ] Taakverdeling bepalen (groepswerk)\n\n### Fase 3: Uitwerking\n- [ ] Bronnen zoeken en beoordelen\n- [ ] Eerste versie schrijven\n- [ ] Feedback vragen\n- [ ] Verwerken feedback\n\n### Fase 4: Afronding\n- [ ] Spelfouten controleren\n- [ ] Bronnenlijst opmaken (APA)\n- [ ] Lay-out controleren\n- [ ] Inleveren voor deadline\n\n## Verbeterde prompt\nAnalyseer de volgende opdracht volledig, maak een planning en geef concrete verbeterpunten.`},
+  {id:'project',     ic:'briefcase', name:'Projectplan',    desc:'Van start tot oplevering',          tags:['project'],
+   analysis:`## Samenvatting\nGestructureerd projectplan van initiatie tot oplevering.\n\n## Checklist\n\n### Fase 1: Initiatie\n- [ ] Projectdoel definiëren\n- [ ] Stakeholders in kaart brengen\n- [ ] Budget en middelen bepalen\n- [ ] Projectteam samenstellen\n\n### Fase 2: Planning\n- [ ] Scope en deliverables vastleggen\n- [ ] Tijdlijn en mijlpalen opstellen\n- [ ] Risico's identificeren\n- [ ] Communicatieplan opstellen\n\n### Fase 3: Uitvoering\n- [ ] Kickoff meeting houden\n- [ ] Taken verdelen\n- [ ] Voortgang bijhouden\n- [ ] Stakeholders informeren\n\n### Fase 4: Monitoring\n- [ ] Wekelijks voortgangsoverleg\n- [ ] Risico's bewaken\n- [ ] Kwaliteitscontrole\n\n### Fase 5: Afsluiting\n- [ ] Eindproduct opleveren\n- [ ] Evaluatie uitvoeren\n- [ ] Lessons learned documenteren`},
+  {id:'presentatie', ic:'megaphone', name:'Presentatie',    desc:'Van idee tot podium',               tags:['presentatie'],
+   analysis:`## Samenvatting\nVoorbereiding en uitvoering van een sterke presentatie.\n\n## Checklist\n\n### Fase 1: Voorbereiding\n- [ ] Doel en doelgroep bepalen\n- [ ] Kernboodschap formuleren\n- [ ] Structuur bepalen (intro-kern-conclusie)\n- [ ] Tijdsduur bewaken\n\n### Fase 2: Inhoud\n- [ ] Slides maken (1 idee per slide)\n- [ ] Visuals en grafieken toevoegen\n- [ ] Sprekersnotities schrijven\n- [ ] Bronnen verwerken\n\n### Fase 3: Oefenen\n- [ ] Hardop oefenen\n- [ ] Timen en bijstellen\n- [ ] Feedback vragen\n- [ ] Mogelijke vragen voorbereiden\n\n### Fase 4: Op de dag zelf\n- [ ] Techniek testen\n- [ ] Op tijd aanwezig\n- [ ] Rustig beginnen, oogcontact`},
+  {id:'sollicitatie',ic:'briefcase', name:'Sollicitatie',   desc:'Van cv tot aanname',                tags:['werk'],
+   analysis:`## Samenvatting\nVolledig sollicitatieproces van voorbereiding tot aanname.\n\n## Checklist\n\n### Fase 1: Voorbereiding\n- [ ] Vacature goed doorlezen\n- [ ] Bedrijf onderzoeken\n- [ ] CV bijwerken\n- [ ] LinkedIn profiel bijwerken\n\n### Fase 2: Sollicitatiebrief\n- [ ] Sterke openingszin schrijven\n- [ ] Motivatie koppelen aan functie-eisen\n- [ ] Concrete voorbeelden\n- [ ] Professionele afsluiting\n\n### Fase 3: Versturen\n- [ ] Brief en CV controleren\n- [ ] Versturen\n- [ ] Datum en contactpersoon noteren\n\n### Fase 4: Voorbereiding gesprek\n- [ ] Veelgestelde vragen voorbereiden\n- [ ] Eigen vragen opstellen\n- [ ] Kleding klaarleggen\n- [ ] Route plannen\n\n### Fase 5: Na het gesprek\n- [ ] Bedankmail sturen\n- [ ] Reflecteren\n- [ ] Follow-up plannen`},
+  {id:'onderzoek',   ic:'search',    name:'Onderzoek',      desc:'Structureel onderzoek doen',        tags:['onderzoek','school'],
+   analysis:`## Samenvatting\nGestructureerd onderzoeksproces van vraagstelling tot rapport.\n\n## Checklist\n\n### Fase 1: Vraagstelling\n- [ ] Hoofdvraag formuleren\n- [ ] Deelvragen opstellen\n- [ ] Afbakening bepalen\n\n### Fase 2: Methode\n- [ ] Onderzoeksmethode kiezen\n- [ ] Bronnen selecteren\n- [ ] Planning opstellen\n\n### Fase 3: Dataverzameling\n- [ ] Literatuuronderzoek\n- [ ] Primair onderzoek (indien van toepassing)\n- [ ] Data ordenen\n\n### Fase 4: Analyse\n- [ ] Data analyseren\n- [ ] Verbanden identificeren\n- [ ] Conclusies trekken\n\n### Fase 5: Rapportage\n- [ ] Inleiding schrijven\n- [ ] Resultaten presenteren\n- [ ] Conclusie en aanbevelingen\n- [ ] Bronnenlijst maken`},
+  {id:'examen',      ic:'clipboard', name:'Examen',         desc:'Gestructureerd studeren',           tags:['school','studie'],
+   analysis:`## Samenvatting\nGestructureerde examenvoorbereiding.\n\n## Checklist\n\n### Fase 1: Inventarisatie\n- [ ] Alle examenstof inventariseren\n- [ ] Leerstof verzamelen\n- [ ] Examendatum noteren\n- [ ] Beschikbare studietijd berekenen\n\n### Fase 2: Planning\n- [ ] Studieplanning per dag maken\n- [ ] Moeilijkste onderwerpen eerst\n- [ ] Herhaalblokken inplannen\n\n### Fase 3: Studeren\n- [ ] Samenvatting per hoofdstuk\n- [ ] Flashcards of mindmaps\n- [ ] Oefenvragen maken\n- [ ] Stof herhalen\n\n### Fase 4: Vlak voor examen\n- [ ] Alles doornemen\n- [ ] Goed slapen\n- [ ] Materiaal klaarleggen\n- [ ] Op tijd aanwezig`},
+];
+function quickStartTask(id){
+  const tmpl=QUICK_TASK_TMPLS.find(t=>t.id===id);if(!tmpl)return;
+  const name=prompt(`Naam voor deze ${tmpl.name}:`,tmpl.name+' — '+new Date().toLocaleDateString('nl-NL'));
+  if(!name)return;
+  const t=mkTask('task',{goal:name,aud:'',tone:'',out:''},name);
+  t.analysis=tmpl.analysis;
+  t.tags=[...(tmpl.tags||[])];
+  saveT();S.tid=t.id;
+  toast('✅ Taak aangemaakt van sjabloon!');
+  nav('analysis');
+}
 const saveLaunchTmpls=()=>localStorage.setItem('pb_launch_tmpls',JSON.stringify(LAUNCH_TMPLS));
 
 // Beheer state
