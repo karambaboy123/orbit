@@ -40,7 +40,10 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--txt)}
 .theme-dark{--bg:#0f172a;--card:#1e293b;--card-border:#334155;--txt:#f1f5f9;--txt2:#94a3b8;--inp-bg:#0f172a;--inp-border:#475569;--btn-s-bg:#1e293b;--btn-s-txt:#cbd5e1;--btn-s-border:#475569;--btn-s-hover:#334155;--hover-bg:#1e293b;--div-border:#334155}
 .theme-dark .bg-gray-50,.theme-dark main{background:var(--bg)!important}
 .theme-dark .bg-white{background:var(--card)!important}
-.theme-dark .bg-gray-100,.theme-dark .bg-indigo-50{background:#1e293b!important}
+.theme-dark .bg-gray-100,.theme-dark .bg-indigo-50,.theme-dark .bg-blue-50,.theme-dark .bg-amber-50,.theme-dark .bg-green-50,.theme-dark .bg-red-50{background:#1e293b!important}
+.theme-dark .border-blue-200,.theme-dark .border-amber-200,.theme-dark .border-green-200,.theme-dark .border-red-200{border-color:#334155!important}
+.theme-dark .text-blue-800,.theme-dark .text-amber-800,.theme-dark .text-amber-900,.theme-dark .text-green-800,.theme-dark .text-red-800{color:#cbd5e1!important}
+.theme-dark .text-blue-700,.theme-dark .text-amber-700,.theme-dark .text-indigo-700{color:#a5b4fc!important}
 .theme-dark .text-gray-900{color:var(--txt)!important}
 .theme-dark .text-gray-800{color:#e2e8f0!important}
 .theme-dark .text-gray-700{color:#cbd5e1!important}
@@ -90,9 +93,12 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--txt)}
 .ml{background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700}
 .ma{background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700}
 /* Preset prompt cards */
-.pp{border:2px solid #e5e7eb;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;background:#fff}
+.pp{border:2px solid #e5e7eb;border-radius:10px;padding:10px 8px;cursor:pointer;transition:all .15s;background:#fff;text-align:center;overflow:hidden;word-break:break-word}
 .pp:hover{border-color:var(--p);background:#eef2ff}
-.pp.sel{border-color:var(--p);background:#eef2ff}
+.pp.sel{border-color:var(--p);background:#eef2ff;box-shadow:0 0 0 3px var(--p)22}
+.theme-dark .pp{background:var(--card,#1e293b);border-color:#334155;color:var(--txt,#f1f5f9)}
+.theme-dark .pp:hover{border-color:var(--p);background:#0f172a}
+.theme-dark .pp.sel{border-color:var(--p);background:#0f172a;box-shadow:0 0 0 3px var(--p)33}
 /* Template pills */
 .tpl{padding:6px 14px;border-radius:20px;border:1.5px solid #e5e7eb;cursor:pointer;font-size:12px;font-weight:600;color:#6b7280;transition:all .15s;white-space:nowrap}
 .tpl:hover{border-color:var(--p);color:var(--p)}
@@ -1330,8 +1336,8 @@ function saveToLib(name,text){if(!text?.trim())return;S.promptLib.unshift({name:
 function vFileToAI(){
   const presets=S.presets;
   const presetCards=presets.map(p=>`<div class="pp${p.id===_ftaSelId?' sel':''}" id="pp-${p.id}" onclick="selectPreset('${p.id}')" title="${p.l}">
-    <div class="text-xl mb-0.5">${icData(p.ic,16)}</div>
-    <div class="font-bold text-xs leading-tight">${p.l}</div>
+    <div style="font-size:20px;line-height:1;margin-bottom:5px">${icData(p.ic,18)}</div>
+    <div style="font-size:10px;font-weight:700;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.l}</div>
   </div>`).join('');
 
   const siteButtons=SITES.map(s=>`<button onclick="launchFTA('${s.id}')" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold text-white transition-all hover:opacity-90" style="background:${s.c}">${s.l}${s.free?' 🆓':''}</button>`).join('');
@@ -1388,7 +1394,7 @@ function vFileToAI(){
         <span class="text-xs text-gray-400 ml-1">— klik op een preset of schrijf zelf</span>
       </div>
 
-      <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(80px,1fr))" id="fta-presets-grid">
+      <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(90px,1fr))" id="fta-presets-grid">
         ${presetCards}
       </div>
 
