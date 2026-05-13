@@ -2872,10 +2872,18 @@ function vPortfolio(){
 
     <!-- Stats -->
     <div class="grid grid-cols-4 gap-3">
-      <div class="card p-3 text-center"><div class="text-2xl font-bold text-indigo-600">${S.goals.length}</div><div class="text-xs text-gray-400">Doelen</div></div>
-      <div class="card p-3 text-center"><div class="text-2xl font-bold text-emerald-500">${S.goals.filter(g=>g.level>=80).length}</div><div class="text-xs text-gray-400">Expert (80+)</div></div>
-      <div class="card p-3 text-center"><div class="text-2xl font-bold text-indigo-500">${avgLevel}</div><div class="text-xs text-gray-400">Gemiddeld niveau</div></div>
-      <div class="card p-3 text-center"><div class="text-2xl font-bold text-orange-400">${S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0)}</div><div class="text-xs text-gray-400">Groeimomenten</div></div>
+${(()=>{
+        const experts=S.goals.filter(g=>g.level>=80).length;
+        const growth=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
+        const avgClr=avgLevel>=80?'#10b981':avgLevel>=50?'#f59e0b':avgLevel>=25?'#f97316':'#ef4444';
+        const expertClr=experts===0?'#6b7280':experts>=3?'#a855f7':experts>=1?'#10b981':'#10b981';
+        const expertLabel=experts===0?'🏆 Expert (80+)':experts>=5?'🔥 Expert (80+)':'⭐ Expert (80+)';
+        return`
+        <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:var(--p)">${S.goals.length}</div><div class="text-xs text-gray-400">Doelen</div></div>
+        <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:${expertClr}">${experts}</div><div class="text-xs text-gray-400">${expertLabel}</div></div>
+        <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:${avgClr}">${avgLevel}</div><div class="text-xs text-gray-400">Gemiddeld niveau</div></div>
+        <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:${growth>20?'#a855f7':growth>5?'#f59e0b':'#6b7280'}">${growth}</div><div class="text-xs text-gray-400">Groeimomenten</div></div>`;
+      })()}
     </div>
 
     ${pickerHTML}
