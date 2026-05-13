@@ -682,6 +682,11 @@ function nav(v,tid=null){
 
 /* ── RENDER ─────────────────────────────────────────────── */
 function render(){
+  // Onthoud welke accordions open zijn zodat ze na re-render open blijven
+  const _openAccs=[...document.querySelectorAll('[id^="acc-body-"]')]
+    .filter(el=>!el.classList.contains('hidden'))
+    .map(el=>el.id.replace('acc-body-',''));
+
   const el=document.getElementById('main');
   switch(S.view){
     case 'home':        el.innerHTML=vHome(); break;
@@ -700,9 +705,15 @@ function render(){
     default: el.innerHTML=vDash();
   }
   renderHist();
-  // Apply icon style after DOM is ready
+  // Apply icon style after DOM is ready + herstel open accordions
   requestAnimationFrame(()=>{
     applyIcons();
+    // Herstel open accordions na re-render
+    _openAccs.forEach(id=>{
+      const b=document.getElementById('acc-body-'+id);
+      const arrow=document.getElementById('acc-ic-'+id);
+      if(b){b.classList.remove('hidden');if(arrow)arrow.textContent='▲';}
+    });
     // Activate any data-lucide icons baked into template strings (e.g. ic() calls)
     if(_iconStyle==='lu'&&typeof lucide!=='undefined'){
       setTimeout(()=>{try{lucide.createIcons();}catch(e){}},16);
