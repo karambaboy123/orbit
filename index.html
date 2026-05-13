@@ -187,12 +187,12 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--txt)}
     <div class="ni" data-ic="checklist" data-label="AI → Checklist" onclick="S.tid=null;nav('ai-checklist')" id="nav-ai-checklist">📥 AI → Checklist</div>
     <div class="ni" data-ic="launcher" data-label="AI Launcher" onclick="nav('launcher')" id="nav-launcher">🌐 AI Launcher</div>
     <div class="border-t border-indigo-800 my-2"></div>
-    <div class="text-indigo-500 text-xs font-semibold px-2 py-1 uppercase tracking-wider">Persoonlijk</div>
+    <div class="nav-section-lbl text-xs font-semibold px-2 py-1 uppercase tracking-wider">Persoonlijk</div>
     <div class="ni" data-ic="portfolio" data-label="Portfolio & Doelen" onclick="nav('portfolio')" id="nav-portfolio">🎯 Portfolio & Doelen</div>
     <div class="ni" data-ic="notes" data-label="Notities" onclick="nav('notes')" id="nav-notes">📓 Notities</div>
     <div class="ni" data-ic="review" data-label="Weekreview" onclick="nav('review')" id="nav-review">📊 Weekreview</div>
     <div class="border-t border-indigo-800 my-2"></div>
-    <div class="text-indigo-500 text-xs font-semibold px-2 py-1 uppercase tracking-wider">Opdrachten</div>
+    <div class="nav-section-lbl text-xs font-semibold px-2 py-1 uppercase tracking-wider">Opdrachten</div>
     <div id="hist"></div>
   </nav>
   <div class="p-2.5 border-t border-indigo-800 space-y-1">
@@ -276,7 +276,7 @@ const MODE_DEFAULTS={
   light:      {p:'#4f46e5',pd:'#3730a3',sb:'#1e1b4b',navTxt:'#a5b4fc',navHover:'#e0e7ff',heading:'#1e1b4b',bg:'#f9fafb',card:'#ffffff',cardBorder:'#e5e7eb',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#1e1b4b',iconTxt:'#ffffff'},
   dark:       {p:'#818cf8',pd:'#6366f1',sb:'#0f172a',navTxt:'#94a3b8',navHover:'#e2e8f0',heading:'#818cf8',bg:'#0f172a', card:'#1e293b',cardBorder:'#334155',txt:'#f1f5f9',txt2:'#94a3b8',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#818cf8',iconTxt:'#ffffff'},
   'mono-light':{p:'#374151',pd:'#1f2937',sb:'#111827',navTxt:'#9ca3af',navHover:'#e5e7eb',heading:'#111827',bg:'#f9fafb',card:'#ffffff',cardBorder:'#d1d5db',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#111827',iconTxt:'#ffffff'},
-  'mono-dark': {p:'#71717a',pd:'#52525b',sb:'#09090b',navTxt:'#a1a1aa',navHover:'#f4f4f5',heading:'#fafafa',bg:'#09090b', card:'#27272a',cardBorder:'#3f3f46',txt:'#fafafa',txt2:'#a1a1aa',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#fafafa',iconTxt:'#ffffff'},
+  'mono-dark': {p:'#ffffff',pd:'#e4e4e7',sb:'#111111',navTxt:'#a1a1aa',navHover:'#ffffff',heading:'#ffffff',bg:'#0d0d0d', card:'#1c1c1c',cardBorder:'#2e2e2e',txt:'#f4f4f5',txt2:'#a1a1aa',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#ffffff',iconTxt:'#111111'},
 };
 // Migrate from old pb_theme if needed
 let _baseMode=(()=>{
@@ -315,6 +315,7 @@ function applyTheme(mode){
   else document.body.classList.remove('theme-dark');
   document.querySelectorAll('#sidebar .border-indigo-800').forEach(el=>{el.style.borderColor=c.navTxt+'33';});
   document.querySelectorAll('#sidebar .text-indigo-500').forEach(el=>{el.style.color=c.navTxt+'aa';});
+  document.querySelectorAll('.nav-section-lbl').forEach(el=>{el.style.color=c.navTxt;el.style.opacity='0.5';});
   const tb=document.getElementById('sb-toggle');
   if(tb){tb.style.background=c.sb;tb.style.color=c.navHover;}
   requestAnimationFrame(applyIcons);
@@ -801,7 +802,7 @@ function render(){
 function renderHist(){
   const el=document.getElementById('hist'); if(!el)return;
   const active=S.tasks.filter(t=>!t.archived);
-  if(!active.length){el.innerHTML='<div class="text-xs px-2 py-1" style="color:var(--nav-txt);font-family:var(--font-family)">Geen opdrachten</div>';return;}
+  if(!active.length){el.innerHTML='<div style="font-size:11.5px;padding:5px 8px;border-radius:7px;color:var(--nav-txt);opacity:0.55;font-style:italic">Geen opdrachten</div>';return;}
   el.innerHTML=active.slice(0,8).map(t=>{
     const lbl=(t.name||t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,22);
     const ic=t.type==='ai-checklist'?'📥':t.type==='prompt'?'⚡':t.type==='file-ai'?'📤':'✏️';
