@@ -247,49 +247,76 @@ let _ntSelTmplId=S.templates[0]?.id||'blank';
 let _editingPresetId=null;
 let _editingTmplId=null;
 
-/* ── THEMES ─────────────────────────────────────────────── */
-const THEMES=[
-  // id, label, icon, primary, primaryDark, sidebar, dark, navTxt, navHover, headingColor
-  {id:'default',  l:'Indigo Classic', ic:'🔵', p:'#4f46e5', pd:'#3730a3', sb:'#1e1b4b', dark:false, navTxt:'#a5b4fc', navHover:'#e0e7ff', heading:'#1e1b4b'},
-  {id:'dark',     l:'Dark Mode',      ic:'🌙', p:'#818cf8', pd:'#6366f1', sb:'#0f172a', dark:true,  navTxt:'#94a3b8', navHover:'#e2e8f0', heading:'#818cf8'},
-  {id:'midnight', l:'Midnight',       ic:'🌌', p:'#a78bfa', pd:'#7c3aed', sb:'#0a0a1a', dark:true,  navTxt:'#c4b5fd', navHover:'#ede9fe', heading:'#a78bfa'},
-  {id:'ocean',    l:'Ocean',          ic:'🌊', p:'#0891b2', pd:'#0e7490', sb:'#0c4a6e', dark:false, navTxt:'#7dd3fc', navHover:'#bae6fd', heading:'#0c4a6e'},
-  {id:'forest',   l:'Forest',         ic:'🌲', p:'#16a34a', pd:'#15803d', sb:'#14532d', dark:false, navTxt:'#86efac', navHover:'#bbf7d0', heading:'#14532d'},
-  {id:'sunset',   l:'Sunset',         ic:'🌅', p:'#ea580c', pd:'#c2410c', sb:'#7c2d12', dark:false, navTxt:'#fdba74', navHover:'#fed7aa', heading:'#7c2d12'},
-  {id:'violet',   l:'Violet',         ic:'💜', p:'#7c3aed', pd:'#6d28d9', sb:'#2e1065', dark:false, navTxt:'#c4b5fd', navHover:'#ddd6fe', heading:'#2e1065'},
-  {id:'rose',     l:'Rose Gold',      ic:'🌸', p:'#e11d48', pd:'#be123c', sb:'#881337', dark:false, navTxt:'#fda4af', navHover:'#fecdd3', heading:'#881337'},
-  {id:'arctic',   l:'Arctic',         ic:'❄️', p:'#0284c7', pd:'#0369a1', sb:'#0369a1', dark:false, navTxt:'#7dd3fc', navHover:'#bae6fd', heading:'#0c4a6e'},
-  {id:'ember',    l:'Ember',          ic:'🔥', p:'#d97706', pd:'#b45309', sb:'#451a03', dark:false, navTxt:'#fcd34d', navHover:'#fde68a', heading:'#451a03'},
-  {id:'teal',     l:'Teal',           ic:'🌿', p:'#0d9488', pd:'#0f766e', sb:'#134e4a', dark:false, navTxt:'#5eead4', navHover:'#99f6e4', heading:'#134e4a'},
-  {id:'neon',     l:'Neon Night',     ic:'⚡', p:'#10b981', pd:'#059669', sb:'#022c22', dark:true,  navTxt:'#34d399', navHover:'#6ee7b7', heading:'#10b981'},
-];
-let _curTheme=localStorage.getItem('pb_theme')||'default';
+/* ── THEME SYSTEM (Light / Dark + kleur-aanpassing) ─────── */
+const MODE_DEFAULTS={
+  light:{p:'#4f46e5',pd:'#3730a3',sb:'#1e1b4b',navTxt:'#a5b4fc',navHover:'#e0e7ff',heading:'#1e1b4b'},
+  dark: {p:'#818cf8',pd:'#6366f1',sb:'#0f172a',navTxt:'#94a3b8',navHover:'#e2e8f0',heading:'#818cf8'},
+};
+// Migrate from old pb_theme if needed
+let _baseMode=(()=>{
+  const s=localStorage.getItem('pb_base_mode');
+  if(s)return s;
+  const old=localStorage.getItem('pb_theme')||'';
+  return['dark','midnight','neon'].includes(old)?'dark':'light';
+})();
+let _curTheme=_baseMode; // backward-compat alias
+let _customColors=JSON.parse(localStorage.getItem('pb_custom_colors')||'null');
 
-function applyTheme(id){
-  const t=THEMES.find(x=>x.id===id)||THEMES[0];
-  _curTheme=id;
-  localStorage.setItem('pb_theme',id);
+function _getActiveColors(){
+  return Object.assign({},MODE_DEFAULTS[_baseMode]||MODE_DEFAULTS.light,_customColors||{});
+}
+function applyTheme(mode){
+  if(mode)_baseMode=mode;
+  _curTheme=_baseMode;
+  localStorage.setItem('pb_base_mode',_baseMode);
+  const c=_getActiveColors();
   const r=document.documentElement;
-  r.style.setProperty('--p',t.p);
-  r.style.setProperty('--pd',t.pd);
-  r.style.setProperty('--sb',t.sb);
-  r.style.setProperty('--nav-txt',t.navTxt||'#a5b4fc');
-  r.style.setProperty('--nav-hover',t.navHover||'#e0e7ff');
-  r.style.setProperty('--heading-color',t.heading||t.p);
-  // dark mode toggle
-  if(t.dark){document.body.classList.add('theme-dark');}
-  else{document.body.classList.remove('theme-dark');}
-  // sidebar dividers + section labels follow sidebar bg
-  document.querySelectorAll('#sidebar .border-indigo-800').forEach(el=>{el.style.borderColor=t.navTxt+'33';});
-  document.querySelectorAll('#sidebar .text-indigo-500').forEach(el=>{el.style.color=t.navTxt+'aa';});
-  // sidebar toggle button color
+  r.style.setProperty('--p',c.p);
+  r.style.setProperty('--pd',c.pd);
+  r.style.setProperty('--sb',c.sb);
+  r.style.setProperty('--nav-txt',c.navTxt);
+  r.style.setProperty('--nav-hover',c.navHover);
+  r.style.setProperty('--heading-color',c.heading);
+  if(_baseMode==='dark')document.body.classList.add('theme-dark');
+  else document.body.classList.remove('theme-dark');
+  document.querySelectorAll('#sidebar .border-indigo-800').forEach(el=>{el.style.borderColor=c.navTxt+'33';});
+  document.querySelectorAll('#sidebar .text-indigo-500').forEach(el=>{el.style.color=c.navTxt+'aa';});
   const tb=document.getElementById('sb-toggle');
-  if(tb){tb.style.background=t.sb;tb.style.color=t.navHover;}
-  // re-apply icons so nav items refresh with new theme nav colors
+  if(tb){tb.style.background=c.sb;tb.style.color=c.navHover;}
   requestAnimationFrame(applyIcons);
 }
-// Apply on load
-applyTheme(_curTheme);
+function setBaseMode(mode){
+  _baseMode=mode;_customColors=null;
+  localStorage.setItem('pb_base_mode',mode);
+  localStorage.removeItem('pb_custom_colors');
+  applyTheme();render();
+}
+function setCustomColor(key,val){
+  _customColors=_customColors||{};
+  _customColors[key]=val;
+  if(key==='p'){
+    const h=val.replace('#','');
+    const dr=n=>Math.min(255,Math.max(0,Math.round(parseInt(h.slice(n,n+2),16)*0.82))).toString(16).padStart(2,'0');
+    _customColors.pd='#'+dr(0)+dr(2)+dr(4);
+  }
+  if(key==='sb'){
+    // auto-derive navTxt as light tint of sidebar
+    const h=val.replace('#','');
+    const lr=n=>Math.min(255,Math.round(parseInt(h.slice(n,n+2),16)*1.0+120)).toString(16).padStart(2,'0');
+    _customColors.navHover='#'+lr(0)+lr(2)+lr(4);
+  }
+  localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));
+  applyTheme();
+  const lbl=document.getElementById('clr-lbl-'+key);
+  if(lbl)lbl.textContent=val.toUpperCase();
+}
+function resetCustomColors(){
+  _customColors=null;
+  localStorage.removeItem('pb_custom_colors');
+  applyTheme();render();
+  toast('✅ Kleuren gereset naar standaard');
+}
+applyTheme();
 
 /* ══════════════════════════════════════════════════════════
    ICON SYSTEM
@@ -612,9 +639,9 @@ function toggleSidebar(){
   } else {
     sb.classList.add('sb-closed');
     tb.classList.remove('hidden');
-    // style toggle button with current theme
-    const t=THEMES.find(x=>x.id===_curTheme)||THEMES[0];
-    if(tb){tb.style.background=t.sb;tb.style.color=t.navHover;}
+    // style toggle button with current colors
+    const c=_getActiveColors();
+    if(tb){tb.style.background=c.sb;tb.style.color=c.navHover;}
   }
 }
 // Apply sidebar state on load
@@ -625,8 +652,8 @@ function toggleSidebar(){
     if(sb)sb.classList.add('sb-closed');
     if(tb){
       tb.classList.remove('hidden');
-      const t=THEMES.find(x=>x.id===_curTheme)||THEMES[0];
-      tb.style.background=t.sb;tb.style.color=t.navHover;
+      const c=_getActiveColors();
+      tb.style.background=c.sb;tb.style.color=c.navHover;
     }
   }
 })();
@@ -2031,10 +2058,10 @@ function vSettings(){
       </div>
     </div>`).join('');
 
-  const curTheme=THEMES.find(x=>x.id===_curTheme)||THEMES[0];
+  const _ac=_getActiveColors();
 
   return `<div class="space-y-3">
-    <div class="mb-2"><h1 class="text-2xl font-bold">⚙️ Instellingen</h1><p class="text-gray-400 text-sm mt-0.5">Klik op een sectie om hem te openen of sluiten</p></div>
+    <div class="mb-2"><h1 class="text-2xl font-bold">${ic('wrench',20)} Instellingen</h1><p class="text-gray-400 text-sm mt-0.5">Klik op een sectie om hem te openen of sluiten</p></div>
 
     <!-- Accordion 0: Design / Thema -->
     <div class="card overflow-hidden">
@@ -2042,29 +2069,66 @@ function vSettings(){
         <div class="flex items-center gap-3">
           <span class="text-xl">${ic('palette',18)}</span>
           <div>
-            <div class="font-bold text-sm">Design & Thema</div>
-            <div class="text-xs text-gray-500">Actief: <strong>${curTheme.ic} ${curTheme.l}</strong> — kies een ander kleurschema</div>
+            <div class="font-bold text-sm">Design & Kleuren</div>
+            <div class="text-xs text-gray-500">Modus: <strong>${_baseMode==='dark'?'🌙 Dark':'☀️ Light'}</strong>${_customColors?'  · <span style="color:var(--p)">●</span> Aangepaste kleuren actief':''}</div>
           </div>
         </div>
         <span id="acc-ic-design" class="text-gray-400 text-xs ml-4">▼</span>
       </button>
-      <div id="acc-body-design" class="hidden border-t border-gray-100 p-5 space-y-4">
-        <div class="grid grid-cols-3 gap-3">
-          ${THEMES.map(t=>`<div onclick="applyTheme('${t.id}');render()"
-            class="cursor-pointer rounded-xl p-3 border-2 transition-all hover:shadow-md ${_curTheme===t.id?'border-indigo-500 shadow-md':'border-gray-200'}"
-            style="${_curTheme===t.id?'border-color:'+t.p:''}">
-            <div class="flex items-center gap-2 mb-2">
-              <span style="width:18px;height:18px;border-radius:50%;background:${t.p};display:inline-block;flex-shrink:0;box-shadow:0 0 0 3px ${t.p}22"></span>
-              <span style="width:14px;height:14px;border-radius:4px;background:${t.sb};display:inline-block;flex-shrink:0"></span>
-              <span class="text-sm">${t.ic}</span>
-            </div>
-            <div class="font-semibold text-xs">${t.l}</div>
-            ${t.dark?'<div class="text-xs text-gray-400 mt-0.5">🌙 Donker</div>':''}
-            ${_curTheme===t.id?`<div class="text-xs font-bold mt-1" style="color:${t.p}">✓ Actief</div>`:''}
-          </div>`).join('')}
+      <div id="acc-body-design" class="hidden border-t border-gray-100 p-5 space-y-5">
+
+        <!-- Light / Dark toggle -->
+        <div>
+          <div class="font-semibold text-sm mb-2">Modus</div>
+          <div class="flex gap-3">
+            <button onclick="setBaseMode('light')"
+              class="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 border-2 font-semibold text-sm transition-all
+                     ${_baseMode==='light'?'border-indigo-500 bg-indigo-50 text-indigo-700':'border-gray-200 text-gray-500 hover:border-gray-300'}">
+              ${ic('sun',16)} Light
+              ${_baseMode==='light'?'<span class="text-indigo-500 font-bold ml-1">✓</span>':''}
+            </button>
+            <button onclick="setBaseMode('dark')"
+              class="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 border-2 font-semibold text-sm transition-all
+                     ${_baseMode==='dark'?'border-indigo-500 bg-indigo-50 text-indigo-700':'border-gray-200 text-gray-500 hover:border-gray-300'}">
+              ${ic('moon',16)} Dark
+              ${_baseMode==='dark'?'<span class="text-indigo-500 font-bold ml-1">✓</span>':''}
+            </button>
+          </div>
         </div>
-        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-xs text-indigo-700">
-          💡 <strong>Tip:</strong> Dark Mode en Neon Night geven een donkere achtergrond. De andere thema's veranderen de accentkleur en sidebar.
+
+        <!-- Color customizer -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="font-semibold text-sm">Kleuren aanpassen</div>
+            ${_customColors?`<button onclick="resetCustomColors()" class="text-xs text-red-500 hover:text-red-700 font-medium">${ic('trash',11)} Resetten</button>`:''}
+          </div>
+          <div class="space-y-3">
+            ${[
+              {key:'p',      label:'Accentkleur',    hint:'Knoppen, actieve nav, badges'},
+              {key:'sb',     label:'Zijbalk',        hint:'Achtergrond van de sidebar'},
+              {key:'navTxt', label:'Nav tekst',      hint:'Tekst & iconen in de sidebar'},
+              {key:'heading',label:'Koptekst',       hint:'H1/H2 titels in de app'},
+            ].map(({key,label,hint})=>{
+              const cur=_ac[key]||'#000000';
+              return `<div class="flex items-center gap-3">
+                <div style="width:36px;height:36px;border-radius:10px;background:${cur};border:2px solid rgba(0,0,0,.1);flex-shrink:0;cursor:pointer;overflow:hidden;position:relative">
+                  <input type="color" value="${cur}" oninput="setCustomColor('${key}',this.value)"
+                    style="position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);border:none;cursor:pointer;opacity:0.01">
+                  <div style="position:absolute;inset:0;border-radius:8px;background:${cur}"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium">${label}</div>
+                  <div class="text-xs text-gray-400">${hint}</div>
+                </div>
+                <div class="text-xs font-mono text-gray-500 flex-shrink-0 flex items-center gap-1">
+                  <span id="clr-lbl-${key}">${cur.toUpperCase()}</span>
+                  <input type="color" value="${cur}" oninput="setCustomColor('${key}',this.value)"
+                    style="width:22px;height:22px;border:none;border-radius:6px;cursor:pointer;padding:1px;background:transparent">
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+          <p class="text-xs text-gray-400 mt-3">Klik op het kleurvak of het kleine kleurwiel rechts om een kleur te kiezen.</p>
         </div>
 
         <!-- ── Icoonstijl kiezer ── -->
@@ -2355,7 +2419,7 @@ function getFullExportData(){
     version:2, exported:new Date().toISOString(),
     tasks:S.tasks, goals:S.goals, notes:S.notes,
     promptLib:S.promptLib, templates:S.templates, presets:S.presets,
-    theme:_curTheme, font:_curFont, iconStyle:_iconStyle,
+    theme:_baseMode, font:_curFont, iconStyle:_iconStyle, customColors:_customColors||undefined,
   };
 }
 function exportAll(){
@@ -2382,6 +2446,7 @@ function handleImport(input){
       if(data.promptLib){S.promptLib=data.promptLib;saveL();}
       if(data.templates){S.templates=data.templates;saveTemplates();}
       if(data.presets)  {S.presets=data.presets;savePresets();}
+      if(data.customColors!==undefined){_customColors=data.customColors;localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));}
       if(data.theme)    applyTheme(data.theme);
       if(data.font)     applyFont(data.font);
       if(data.iconStyle){_iconStyle=data.iconStyle;saveIconStyle();}
@@ -2439,6 +2504,7 @@ async function restoreFromGitHub(){
     if(data.promptLib){S.promptLib=data.promptLib;saveL();}
     if(data.templates){S.templates=data.templates;saveTemplates();}
     if(data.presets)  {S.presets=data.presets;savePresets();}
+    if(data.customColors!==undefined){_customColors=data.customColors;localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));}
     if(data.theme)    applyTheme(data.theme);
     if(data.font)     applyFont(data.font);
     if(data.iconStyle){_iconStyle=data.iconStyle;saveIconStyle();}
