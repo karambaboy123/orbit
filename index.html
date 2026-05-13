@@ -197,7 +197,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--txt)}
   </nav>
   <div class="p-2.5 border-t border-indigo-800 space-y-1">
     <div class="ni" data-ic="settings" data-label="Instellingen" onclick="nav('settings')" id="nav-settings">⚙️ Instellingen</div>
-    <div class="text-center" style="font-size:9px;color:#4338ca;padding:4px 0;letter-spacing:0.03em">✦ Gemaakt door Karam &amp; Claude Code ✦</div>
+    <div class="text-center" style="font-size:9px;color:var(--nav-txt);opacity:.6;padding:4px 0;letter-spacing:0.03em;font-family:var(--font-family)">✦ Gemaakt door Karam &amp; Claude Code ✦</div>
   </div>
 </aside>
 
@@ -273,8 +273,10 @@ let _noteMdMode=localStorage.getItem('pb_note_md_mode')||'edit';
 
 /* ── THEME SYSTEM (Light / Dark + kleur-aanpassing) ─────── */
 const MODE_DEFAULTS={
-  light:{p:'#4f46e5',pd:'#3730a3',sb:'#1e1b4b',navTxt:'#a5b4fc',navHover:'#e0e7ff',heading:'#1e1b4b',bg:'#f9fafb',card:'#ffffff',txt:'#111827',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#1e1b4b'},
-  dark: {p:'#818cf8',pd:'#6366f1',sb:'#0f172a',navTxt:'#94a3b8',navHover:'#e2e8f0',heading:'#818cf8',bg:'#0f172a', card:'#1e293b', txt:'#f1f5f9', logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#818cf8'},
+  light:      {p:'#4f46e5',pd:'#3730a3',sb:'#1e1b4b',navTxt:'#a5b4fc',navHover:'#e0e7ff',heading:'#1e1b4b',bg:'#f9fafb',card:'#ffffff',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#1e1b4b'},
+  dark:       {p:'#818cf8',pd:'#6366f1',sb:'#0f172a',navTxt:'#94a3b8',navHover:'#e2e8f0',heading:'#818cf8',bg:'#0f172a', card:'#1e293b', txt:'#f1f5f9',txt2:'#94a3b8',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#818cf8'},
+  'mono-light':{p:'#374151',pd:'#1f2937',sb:'#111827',navTxt:'#9ca3af',navHover:'#e5e7eb',heading:'#111827',bg:'#f9fafb',card:'#ffffff',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#111827'},
+  'mono-dark': {p:'#e5e7eb',pd:'#d1d5db',sb:'#0a0a0a',navTxt:'#6b7280',navHover:'#e5e7eb',heading:'#f9fafb',bg:'#0a0a0a', card:'#171717', txt:'#f9fafb',txt2:'#9ca3af',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#e5e7eb'},
 };
 // Migrate from old pb_theme if needed
 let _baseMode=(()=>{
@@ -306,7 +308,8 @@ function applyTheme(mode){
   r.style.setProperty('--txt',c.txt);
   r.style.setProperty('--logo-color',c.logoColor||'rgba(255,255,255,0.95)');
   r.style.setProperty('--home-logo-color',c.homeLogoColor||'#1e1b4b');
-  if(_baseMode==='dark')document.body.classList.add('theme-dark');
+  r.style.setProperty('--txt2',c.txt2||'#6b7280');
+  if(_baseMode==='dark'||_baseMode==='mono-dark')document.body.classList.add('theme-dark');
   else document.body.classList.remove('theme-dark');
   document.querySelectorAll('#sidebar .border-indigo-800').forEach(el=>{el.style.borderColor=c.navTxt+'33';});
   document.querySelectorAll('#sidebar .text-indigo-500').forEach(el=>{el.style.color=c.navTxt+'aa';});
@@ -361,6 +364,8 @@ function loadColorPreset(id){
   if(id==='__save'){saveColorPreset();return;}
   if(id==='light'){setBaseMode('light');return;}
   if(id==='dark'){setBaseMode('dark');return;}
+  if(id==='mono-light'){setBaseMode('mono-light');return;}
+  if(id==='mono-dark'){setBaseMode('mono-dark');return;}
   const preset=_colorPresets.find(p=>p.id===id);
   if(!preset)return;
   _baseMode=preset.mode||'light';
@@ -794,7 +799,7 @@ function render(){
 function renderHist(){
   const el=document.getElementById('hist'); if(!el)return;
   const active=S.tasks.filter(t=>!t.archived);
-  if(!active.length){el.innerHTML='<div class="text-indigo-600 text-xs px-2 py-1">Geen opdrachten</div>';return;}
+  if(!active.length){el.innerHTML='<div class="text-xs px-2 py-1" style="color:var(--nav-txt);font-family:var(--font-family)">Geen opdrachten</div>';return;}
   el.innerHTML=active.slice(0,8).map(t=>{
     const lbl=(t.name||t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,22);
     const ic=t.type==='ai-checklist'?'📥':t.type==='prompt'?'⚡':t.type==='file-ai'?'📤':'✏️';
@@ -1050,7 +1055,7 @@ function vHome(){
     </div>
 
     <!-- ── Footer ── -->
-    <div class="text-center text-xs pb-4" style="color:var(--txt2);opacity:.5">
+    <div class="text-center text-xs pb-4" style="color:var(--txt2);opacity:.6;font-family:var(--font-family)">
       ✦ Orbit — Gemaakt door Karam &amp; Claude Code ✦
     </div>
   </div>`;
@@ -2207,7 +2212,7 @@ function vSettings(){
           <span class="text-xl">${ic('palette',18)}</span>
           <div>
             <div class="font-bold text-sm">Design & Kleuren</div>
-            <div class="text-xs text-gray-500">Modus: <strong>${_baseMode==='dark'?'🌙 Dark':'☀️ Light'}</strong>${_customColors?'  · <span style="color:var(--p)">●</span> Aangepaste kleuren actief':''}</div>
+            <div class="text-xs text-gray-500">Modus: <strong>${{light:'☀️ Indigo Licht',dark:'🌙 Indigo Donker','mono-light':'⬜ Mono Licht','mono-dark':'⬛ Mono Donker'}[_baseMode]||_baseMode}</strong>${_customColors?'  · <span style="color:var(--p)">●</span> Aangepaste kleuren actief':''}</div>
           </div>
         </div>
         <span id="acc-ic-design" class="text-gray-400 text-xs ml-4">▼</span>
@@ -2219,8 +2224,10 @@ function vSettings(){
           <div class="font-semibold text-sm mb-2">Kleurschema</div>
           <div class="flex gap-2">
             <select class="inp flex-1" onchange="loadColorPreset(this.value)">
-              <option value="light" ${_baseMode==='light'&&!_customColors?'selected':''}>☀️ Light — standaard licht</option>
-              <option value="dark"  ${_baseMode==='dark' &&!_customColors?'selected':''}>🌙 Dark — standaard donker</option>
+              <option value="light"       ${_baseMode==='light'      &&!_customColors?'selected':''}>☀️ Indigo Licht — blauw/paars</option>
+              <option value="dark"        ${_baseMode==='dark'       &&!_customColors?'selected':''}>🌙 Indigo Donker — blauw/paars</option>
+              <option value="mono-light"  ${_baseMode==='mono-light' &&!_customColors?'selected':''}>⬜ Mono Licht — zwart, wit &amp; grijs</option>
+              <option value="mono-dark"   ${_baseMode==='mono-dark'  &&!_customColors?'selected':''}>⬛ Mono Donker — zwart, wit &amp; grijs</option>
               ${_colorPresets.length?`<option disabled value="--">──── Opgeslagen ────</option>`:''}
               ${_colorPresets.map(p=>`<option value="${p.id}" ${JSON.stringify(_customColors)===JSON.stringify(p.colors)&&_baseMode===p.mode?'selected':''}>${p.name}</option>`).join('')}
               <option disabled value="--">──────────────────</option>
