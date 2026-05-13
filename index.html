@@ -175,7 +175,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--txt)}
   <!-- Search button -->
   <div class="px-2.5 pt-2 pb-1">
     <button onclick="openSearch()" style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid rgba(99,102,241,0.3);background:rgba(255,255,255,0.06);color:var(--nav-txt);font-size:12px;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-      <span>🔍</span><span style="flex:1;text-align:left">Zoeken...</span><span style="font-size:10px;opacity:.6;background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px">Ctrl+K</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span style="flex:1;text-align:left">Zoeken...</span><span style="font-size:10px;opacity:.6;background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px">Ctrl+K</span>
     </button>
   </div>
   <nav class="flex-1 p-2.5 space-y-0.5">
@@ -273,10 +273,10 @@ let _noteMdMode=localStorage.getItem('pb_note_md_mode')||'edit';
 
 /* ── THEME SYSTEM (Light / Dark + kleur-aanpassing) ─────── */
 const MODE_DEFAULTS={
-  light:      {p:'#4f46e5',pd:'#3730a3',sb:'#1e1b4b',navTxt:'#a5b4fc',navHover:'#e0e7ff',heading:'#1e1b4b',bg:'#f9fafb',card:'#ffffff',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#1e1b4b'},
-  dark:       {p:'#818cf8',pd:'#6366f1',sb:'#0f172a',navTxt:'#94a3b8',navHover:'#e2e8f0',heading:'#818cf8',bg:'#0f172a', card:'#1e293b', txt:'#f1f5f9',txt2:'#94a3b8',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#818cf8'},
-  'mono-light':{p:'#374151',pd:'#1f2937',sb:'#111827',navTxt:'#9ca3af',navHover:'#e5e7eb',heading:'#111827',bg:'#f9fafb',card:'#ffffff',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#111827'},
-  'mono-dark': {p:'#e5e7eb',pd:'#d1d5db',sb:'#0a0a0a',navTxt:'#6b7280',navHover:'#e5e7eb',heading:'#f9fafb',bg:'#0a0a0a', card:'#171717', txt:'#f9fafb',txt2:'#9ca3af',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#e5e7eb'},
+  light:      {p:'#4f46e5',pd:'#3730a3',sb:'#1e1b4b',navTxt:'#a5b4fc',navHover:'#e0e7ff',heading:'#1e1b4b',bg:'#f9fafb',card:'#ffffff',cardBorder:'#e5e7eb',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#1e1b4b',iconTxt:'#ffffff'},
+  dark:       {p:'#818cf8',pd:'#6366f1',sb:'#0f172a',navTxt:'#94a3b8',navHover:'#e2e8f0',heading:'#818cf8',bg:'#0f172a', card:'#1e293b',cardBorder:'#334155',txt:'#f1f5f9',txt2:'#94a3b8',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#818cf8',iconTxt:'#ffffff'},
+  'mono-light':{p:'#374151',pd:'#1f2937',sb:'#111827',navTxt:'#9ca3af',navHover:'#e5e7eb',heading:'#111827',bg:'#f9fafb',card:'#ffffff',cardBorder:'#d1d5db',txt:'#111827',txt2:'#6b7280',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#111827',iconTxt:'#ffffff'},
+  'mono-dark': {p:'#71717a',pd:'#52525b',sb:'#09090b',navTxt:'#a1a1aa',navHover:'#f4f4f5',heading:'#fafafa',bg:'#09090b', card:'#27272a',cardBorder:'#3f3f46',txt:'#fafafa',txt2:'#a1a1aa',logoColor:'rgba(255,255,255,0.95)',homeLogoColor:'#fafafa',iconTxt:'#ffffff'},
 };
 // Migrate from old pb_theme if needed
 let _baseMode=(()=>{
@@ -309,6 +309,8 @@ function applyTheme(mode){
   r.style.setProperty('--logo-color',c.logoColor||'rgba(255,255,255,0.95)');
   r.style.setProperty('--home-logo-color',c.homeLogoColor||'#1e1b4b');
   r.style.setProperty('--txt2',c.txt2||'#6b7280');
+  r.style.setProperty('--card-border',c.cardBorder||'#e5e7eb');
+  r.style.setProperty('--icon-txt',c.iconTxt||'#ffffff');
   if(_baseMode==='dark'||_baseMode==='mono-dark')document.body.classList.add('theme-dark');
   else document.body.classList.remove('theme-dark');
   document.querySelectorAll('#sidebar .border-indigo-800').forEach(el=>{el.style.borderColor=c.navTxt+'33';});
@@ -1042,8 +1044,8 @@ function vHome(){
         ${features.map(f=>`
           <div onclick="nav('${f.view}')"
                class="card cursor-pointer hover:shadow-md transition-all group border border-transparent hover:border-[var(--p)] rounded-xl p-5 flex gap-4 items-start">
-            <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-bold"
-                 style="background:var(--p);box-shadow:0 2px 8px color-mix(in srgb,var(--p) 40%,transparent)">
+            <div class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-bold"
+                 style="background:var(--p);color:var(--icon-txt,#fff);box-shadow:0 2px 8px color-mix(in srgb,var(--p) 40%,transparent)">
               ${ic(f.ic,18)}
             </div>
             <div class="flex-1 min-w-0">
@@ -1095,8 +1097,8 @@ function vDash(){
     <!-- Tag filter bar -->
     ${allTaskTags.length?`<div class="flex flex-wrap gap-1 items-center">
       <span class="text-xs text-gray-400 font-semibold mr-1">Filter:</span>
-      <button onclick="_dashTag='';render()" class="text-xs px-2 py-0.5 rounded-full border ${!_dashTag?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">Alle</button>
-      ${allTaskTags.map(tg=>`<button onclick="_dashTag='${tg}';render()" class="text-xs px-2 py-0.5 rounded-full border ${_dashTag===tg?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">${tg}</button>`).join('')}
+      <button onclick="_dashTag='';render()" class="text-xs px-2 py-0.5 rounded-full border" style="${!_dashTag?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">Alle</button>
+      ${allTaskTags.map(tg=>`<button onclick="_dashTag='${tg}';render()" class="text-xs px-2 py-0.5 rounded-full border" style="${_dashTag===tg?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">${tg}</button>`).join('')}
     </div>`:''}
 
     <!-- Active tasks -->
@@ -1455,7 +1457,7 @@ function vFileToAI(){
     <!-- Stap 1: Document -->
     <div class="card p-5 space-y-4">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">1</div>
+        <div class="w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0" style="background:var(--p);color:var(--icon-txt,#fff)">1</div>
         <div class="font-bold">Document invoeren</div>
       </div>
 
@@ -1496,7 +1498,7 @@ function vFileToAI(){
     <!-- Stap 2: Instructie -->
     <div class="card p-5 space-y-4">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">2</div>
+        <div class="w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0" style="background:var(--p);color:var(--icon-txt,#fff)">2</div>
         <div class="font-bold">Instructie kiezen</div>
         <span class="text-xs text-gray-400 ml-1">— klik op een preset of schrijf zelf</span>
       </div>
@@ -1517,7 +1519,7 @@ function vFileToAI(){
     <!-- Stap 3: Kopiëren -->
     <div class="card p-5 space-y-4">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">3</div>
+        <div class="w-6 h-6 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0" style="background:var(--p);color:var(--icon-txt,#fff)">3</div>
         <div class="font-bold">Kopiëren & naar AI sturen</div>
       </div>
 
@@ -2775,8 +2777,8 @@ function vPortfolio(){
     <div>
       <!-- Category tabs -->
       <div class="flex flex-wrap gap-1.5 mb-3">
-        <button onclick="_pgPickerCat='';render()" class="text-xs px-2.5 py-1 rounded-full border ${!_pgPickerCat?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">Alle</button>
-        ${PRESET_GOALS.map(pg=>`<button onclick="_pgPickerCat='${pg.cat}';render()" class="text-xs px-2.5 py-1 rounded-full border ${_pgPickerCat===pg.cat?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">${pg.cat}</button>`).join('')}
+        <button onclick="_pgPickerCat='';render()" class="text-xs px-2.5 py-1 rounded-full border" style="${!_pgPickerCat?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">Alle</button>
+        ${PRESET_GOALS.map(pg=>`<button onclick="_pgPickerCat='${pg.cat}';render()" class="text-xs px-2.5 py-1 rounded-full border" style="${_pgPickerCat===pg.cat?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">${pg.cat}</button>`).join('')}
       </div>
       <!-- Preset list -->
       <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pb-1">
@@ -2986,8 +2988,8 @@ function vPortfolio(){
     <!-- Filter -->
     ${S.goals.length>3?`<div class="flex flex-wrap gap-2 items-center">
       <span class="text-xs text-gray-500 font-semibold">Filter:</span>
-      <button onclick="S._goalCat='';nav('portfolio')" class="text-xs px-3 py-1 rounded-full border ${!catFilter?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-600 border-gray-200'}">Alle</button>
-      ${GOAL_CATS.filter(c=>S.goals.some(g=>g.category===c)).map(c=>`<button onclick="S._goalCat='${c}';nav('portfolio')" class="text-xs px-3 py-1 rounded-full border ${catFilter===c?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-600 border-gray-200'}">${c}</button>`).join('')}
+      <button onclick="S._goalCat='';nav('portfolio')" class="text-xs px-3 py-1 rounded-full border" style="${!catFilter?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">Alle</button>
+      ${GOAL_CATS.filter(c=>S.goals.some(g=>g.category===c)).map(c=>`<button onclick="S._goalCat='${c}';nav('portfolio')" class="text-xs px-3 py-1 rounded-full border" style="${catFilter===c?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">${c}</button>`).join('')}
     </div>`:''}
 
     <!-- Doelen grid -->
