@@ -1921,6 +1921,7 @@ function vAIChecklistResult(t){
           onchange="setDeadline('${t.id}',this.value)" title="Deadline opdracht">
         <button class="btn bs text-xs" onclick="S.tid=null;nav('ai-checklist')">↩ Nieuwe</button>
         <button class="btn bs text-xs" onclick="dlMd(aioToMd('${t.id}'),'${t.name||'checklist'}')">⬇️ .md</button>
+        <button class="btn bs text-xs" onclick="exportChecklistPDF('${t.id}')">📄 PDF</button>
         <button class="btn bs text-xs" onclick="archiveTask('${t.id}');S.tid=null;nav('dashboard')" title="Archiveren">📦</button>
         <button class="btn bs text-xs" style="color:#ef4444" onclick="delTask('${t.id}')">🗑️</button>
       </div>
@@ -2078,6 +2079,7 @@ function vAnalysis(){
       ${improved?`<button class="btn bg" onclick="copyPrompt('${improved.replace(/'/g,"\\'")}')">📋 Kopieer prompt</button>`:''}
       <button class="btn bs" onclick="copyText(getTask()?.analysis||'','Analyse gekopieerd!')">📄 Kopieer alles</button>
       <button class="btn bs" onclick="dlMd(getTask()?.analysis||'','${lbl}')">⬇️ .md</button>
+      <button class="btn bs" onclick="exportTaskPDF('${t.id}')">📄 PDF</button>
       ${improved?`<button class="btn bs" onclick="saveToLib('${lbl.replace(/'/g,"\\'")}',extractPrompt(getTask()?.analysis||''))">💾 Opslaan in bibliotheek</button>`:''}
       <button class="btn bs" onclick="nav('launcher')">🌐 AI Launcher</button>
       <button class="btn bs" onclick="archiveTask(S.tid);nav('dashboard')" title="Archiveer deze opdracht">📦 Archiveer</button>
@@ -2778,6 +2780,7 @@ function vPortfolio(){
       <div class="flex gap-2 flex-wrap">
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-analyse')">🔬 Groei analyseren</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-maker')">📄 Portfolio maken</button>
+        <button class="btn bs text-sm" onclick="exportPortfolioPDF()">📄 PDF exporteren</button>
         <button class="btn bp text-sm" onclick="_pgPickerOpen=!_pgPickerOpen;render()">➕ Nieuw doel</button>
       </div>
     </div>
@@ -4150,6 +4153,73 @@ function exportTaskPDF(id){
   const tagStr=(t.tags||[]).length?' · Tags: '+t.tags.join(', '):'';
   const html=`<h1>${t.name||t.input?.goal||'Opdracht'}</h1><div class="meta">Aangemaakt: ${new Date(t.createdAt).toLocaleDateString('nl-NL')}${tagStr}</div>${t.analysis?DOMPurify.sanitize(marked.parse(t.analysis)):'<p>Nog geen analyse beschikbaar.</p>'}`;
   exportPDF(t.name||'Opdracht',html);
+}
+function exportChecklistPDF(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  const order=getCheckOrder(t);
+  const taskKeys=order.filter(e=>!e.startsWith('__phase__'));
+  const done=taskKeys.filter(k=>t.checks[k]).length;
+  const total=taskKeys.length;
+  const pct=total?Math.round(done/total*100):0;
+  let taskNum=0;
+  let rows='';
+  order.forEach(entry=>{
+    if(entry.startsWith('__phase__')){
+      rows+=`<h2 style="margin-top:20px;margin-bottom:6px;color:#1e1b4b;font-size:15px">${entry.slice(9)}</h2>`;
+    } else {
+      taskNum++;
+      const isChecked=t.checks[entry];
+      const lbl=t.checkLabels[entry]||'';
+      const date=t.checkDates[entry]?`<span style="color:#9ca3af;font-size:11px;margin-left:8px">📅 ${t.checkDates[entry]}</span>`:'';
+      rows+=`<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px solid #f3f4f6">
+        <span style="font-size:16px;flex-shrink:0;margin-top:1px">${isChecked?'☑':'☐'}</span>
+        <span style="${isChecked?'text-decoration:line-through;color:#9ca3af':''}">${taskNum}. ${lbl}</span>${date}
+      </div>`;
+    }
+  });
+  const dl=t.deadline?`<span>Deadline: ${new Date(t.deadline+'T12:00:00').toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</span> · `:'';
+  const html=`
+    <h1>${t.name||'Checklist'}</h1>
+    <div class="meta">${dl}${done}/${total} afgerond (${pct}%)${t.input?.source?' · Bron: '+t.input.source:''}</div>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:#166534">Voortgang: ${pct}% voltooid — ${done} van ${total} taken afgerond</div>
+      <div style="height:8px;background:#d1fae5;border-radius:4px;margin-top:6px">
+        <div style="height:100%;width:${pct}%;background:#10b981;border-radius:4px"></div>
+      </div>
+    </div>
+    ${rows}`;
+  exportPDF(t.name||'Checklist',html);
+}
+function exportPortfolioPDF(){
+  const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))].sort();
+  let html=`<h1>Portfolio — Leerdoelen</h1>
+    <div class="meta">Geëxporteerd: ${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})} · ${S.goals.length} doelen</div>`;
+  const lvlLabel=l=>l>=90?'Expert':l>=70?'Gevorderd':l>=40?'Gemiddeld':l>=20?'Beginner':'Start';
+  const lvlColor=l=>l>=90?'#7c3aed':l>=70?'#2563eb':l>=40?'#0891b2':l>=20?'#16a34a':'#6b7280';
+  cats.forEach(cat=>{
+    const goals=S.goals.filter(g=>(g.category||'Overig')===cat);
+    html+=`<h2 style="margin-top:24px;padding-bottom:4px;border-bottom:2px solid #e5e7eb">${cat}</h2>`;
+    goals.forEach(g=>{
+      const done=g.milestones.filter(m=>m.done).length,tot=g.milestones.length;
+      const pct=tot?Math.round(done/tot*100):0;
+      const lv=g.level||1;
+      const color=lvlColor(lv);
+      html+=`<div style="margin:10px 0;padding:12px;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;gap:16px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px">${g.name}</div>
+          ${tot>0?`<div style="font-size:12px;color:#6b7280;margin-top:2px">${done}/${tot} mijlpalen afgerond</div>`:''}
+          <div style="height:6px;background:#f3f4f6;border-radius:3px;margin-top:6px">
+            <div style="height:100%;width:${lv}%;background:${color};border-radius:3px"></div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:22px;font-weight:800;color:${color}">${lv}</div>
+          <div style="font-size:10px;color:${color};font-weight:600">${lvlLabel(lv)}</div>
+        </div>
+      </div>`;
+    });
+  });
+  exportPDF('Portfolio',html);
 }
 
 /* ── GLOBAL SEARCH ──────────────────────────────────────── */
