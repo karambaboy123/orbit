@@ -252,7 +252,23 @@ function doSearch(q){
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();_searchOpen?closeSearch():openSearch();}
   if(e.key==='Escape'&&_searchOpen){closeSearch();}
+  if(e.key==='Escape'&&window.innerWidth<768&&document.getElementById('sidebar')?.classList.contains('mobile-open')){closeMobileSidebar();}
 });
+
+/* ── MOBILE SIDEBAR ─────────────────────────────────────── */
+function isMobile(){return window.innerWidth<768;}
+function openMobileSidebar(){
+  document.getElementById('sidebar').classList.add('mobile-open');
+  document.body.classList.add('mob-sb-open');
+  const ov=document.getElementById('mobile-overlay');
+  if(ov)ov.style.display='block';
+}
+function closeMobileSidebar(){
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.body.classList.remove('mob-sb-open');
+  const ov=document.getElementById('mobile-overlay');
+  if(ov)ov.style.display='none';
+}
 
 /* ── OFFLINE INDICATOR ──────────────────────────────────── */
 function _setOfflineUI(isOnline){

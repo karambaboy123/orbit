@@ -27,6 +27,10 @@
 </head>
 <body class="h-screen overflow-hidden" style="background:var(--bg);color:var(--txt)">
 <div id="toast"></div>
+<!-- Hamburger — alleen zichtbaar op mobiel -->
+<button id="mobile-menu-btn" onclick="openMobileSidebar()" title="Menu openen" style="position:fixed;top:10px;left:10px;z-index:75;width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;align-items:center;justify-content:center;background:var(--sb);color:var(--nav-hover);box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:19px;line-height:1">☰</button>
+<!-- Overlay — sluit sidebar bij klik buiten -->
+<div id="mobile-overlay" onclick="closeMobileSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:70"></div>
 <!-- Sidebar open-button (zichtbaar als sidebar dicht is) -->
 <button id="sb-toggle" class="sb-toggle-btn hidden" onclick="toggleSidebar()" title="Zijbalk openen">
   <svg viewBox="0 0 100 100" width="20" height="20" xmlns="http://www.w3.org/2000/svg" style="color:currentColor">
@@ -60,7 +64,7 @@
         <div class="text-white font-bold text-sm tracking-wide">Orbit</div>
         <div class="text-xs font-medium tracking-widest" style="color:var(--nav-txt);opacity:.8;font-size:8.5px;letter-spacing:.12em">AI WORKFLOW TOOL</div>
       </div>
-      <button onclick="toggleSidebar()" title="Zijbalk verbergen" style="background:none;border:none;cursor:pointer;padding:3px;opacity:.6;color:var(--nav-hover);font-size:15px;line-height:1;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">◀</button>
+      <button onclick="window.innerWidth<768?closeMobileSidebar():toggleSidebar()" title="Zijbalk verbergen" style="background:none;border:none;cursor:pointer;padding:3px;opacity:.6;color:var(--nav-hover);font-size:15px;line-height:1;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">◀</button>
     </div>
   </div>
   <!-- Search button -->

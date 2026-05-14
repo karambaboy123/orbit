@@ -4,6 +4,7 @@ function nav(v,tid=null){
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
   const el=document.getElementById('nav-'+v); if(el)el.classList.add('active');
   render(); document.querySelector('#main').parentElement.scrollTop=0;
+  if(window.innerWidth<768&&typeof closeMobileSidebar==='function')closeMobileSidebar();
   if(typeof helpCheckFirstVisit==='function')helpCheckFirstVisit(v);
 }
 

@@ -2,7 +2,7 @@
 function mkTaskCard(t,today,archived=false){
   const pct=taskPct(t), done=taskDoneCount(t), tot=taskTotalCount(t);
   const lbl=t.name||(t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,40);
-  const ic=t.type==='ai-checklist'?'📥':t.type==='prompt'?'⚡':t.type==='file-ai'?'📤':'✏️';
+  const typeKey=t.type==='ai-checklist'?'checklist':t.type==='prompt'?'prompt':t.type==='file-ai'?'upload':'edit';
   const date=new Date(t.createdAt).toLocaleDateString('nl-NL',{day:'2-digit',month:'short'});
   const dlColor=t.deadline&&t.deadline<today?'text-red-500 font-bold':'text-gray-400';
   const dlLabel=t.deadline?new Date(t.deadline+'T12:00:00').toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}):'Geen deadline';
@@ -10,7 +10,7 @@ function mkTaskCard(t,today,archived=false){
   const openView=t.type==='ai-checklist'?`S.tid='${t.id}';nav('ai-checklist','${t.id}')`:`nav('analysis','${t.id}')`;
   return `<div class="card p-4 hover:shadow-md transition-shadow${archived?' opacity-60':''}">
     <div class="flex items-start gap-3">
-      <span class="text-xl mt-0.5">${ic}</span>
+      <span class="text-xl mt-0.5">${ic(typeKey,16)}</span>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 mb-1">
           <input class="font-semibold text-sm text-gray-900 bg-transparent border-none outline-none flex-1 truncate cursor-text"
