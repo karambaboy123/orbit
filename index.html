@@ -90,6 +90,7 @@
     <div id="hist"></div>
   </nav>
   <div class="p-2.5 border-t border-indigo-800 space-y-1">
+    <div class="ni" data-ic="question" data-label="Hulp" onclick="nav('help')" id="nav-help">❓ Hulp</div>
     <div class="ni" data-ic="settings" data-label="Instellingen" onclick="nav('settings')" id="nav-settings">⚙️ Instellingen</div>
     <div class="text-center" style="font-size:9px;color:var(--nav-txt);opacity:.6;padding:4px 0;letter-spacing:0.03em;font-family:var(--font-family)">✦ Gemaakt door Karam &amp; Claude Code ✦</div>
   </div>
@@ -108,6 +109,7 @@
 <script src="js/utils.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/backup.js"></script>
+<script src="js/help.js"></script>
 <script src="js/views/home.js"></script>
 <script src="js/views/dash.js"></script>
 <script src="js/views/new-task.js"></script>
@@ -172,6 +174,30 @@
     </div>
   </div>
 </div>
+
+<!-- ── HELP SYSTEEM ────────────────────────────────────── -->
+<!-- Backdrop — klik sluit paneel -->
+<div id="help-backdrop" class="hidden fixed inset-0" onclick="helpClose()" style="background:rgba(0,0,0,.45);z-index:55"></div>
+
+<!-- Zijpaneel -->
+<div id="help-panel" class="fixed top-0 right-0 h-full flex flex-col" style="width:320px;background:var(--card);border-left:1px solid var(--card-border);box-shadow:-6px 0 32px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:60">
+  <!-- Header -->
+  <div class="flex items-center justify-between px-5 py-4 flex-shrink-0" style="border-bottom:1px solid var(--card-border)">
+    <div class="font-bold text-sm" style="color:var(--txt)">Hulp</div>
+    <button onclick="helpClose()" style="background:none;border:none;cursor:pointer;padding:4px 6px;font-size:20px;line-height:1;color:var(--txt);opacity:.4;transition:opacity .15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.4">×</button>
+  </div>
+  <!-- Body (gevuld door helpShow()) -->
+  <div id="help-panel-body" class="flex-1 overflow-y-auto p-5"></div>
+  <!-- Footer -->
+  <div class="px-5 py-3 flex-shrink-0" style="border-top:1px solid var(--card-border)">
+    <button onclick="nav('help');helpClose()" class="btn bs text-xs w-full flex items-center justify-center gap-1.5">
+      Alles bekijken →
+    </button>
+  </div>
+</div>
+
+<!-- FAB: contextuele hulp voor huidige pagina -->
+<button id="help-fab" data-ic="question" data-label="" data-ic-size="18" onclick="helpShow()" title="Hulp voor deze pagina" style="position:fixed;bottom:24px;right:24px;z-index:40;width:42px;height:42px;border-radius:50%;background:var(--p);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(99,102,241,.4);font-size:20px;transition:transform .15s,box-shadow .15s" onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 6px 22px rgba(99,102,241,.55)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(99,102,241,.4)'">❓</button>
 
 <script>
 /* ── Service Worker registratie ── */

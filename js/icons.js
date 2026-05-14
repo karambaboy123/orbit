@@ -225,8 +225,8 @@ function applyIcons(){
 
   // ── 1. Sidebar nav items (data-ic based — always reliable) ──
   document.querySelectorAll('[data-ic]').forEach(el=>{
-    const key=el.dataset.ic, lbl=el.dataset.label||'';
-    el.innerHTML=(isEmoji?(ICONS[key]?.em||''):ic(key,14))+' '+lbl;
+    const key=el.dataset.ic, lbl=el.dataset.label||'', sz=parseInt(el.dataset.icSize||'14');
+    el.innerHTML=(isEmoji?(ICONS[key]?.em||''):ic(key,sz))+(lbl?' '+lbl:'');
   });
 
   if(isEmoji){

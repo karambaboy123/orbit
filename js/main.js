@@ -4,6 +4,7 @@ function nav(v,tid=null){
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
   const el=document.getElementById('nav-'+v); if(el)el.classList.add('active');
   render(); document.querySelector('#main').parentElement.scrollTop=0;
+  if(typeof helpCheckFirstVisit==='function')helpCheckFirstVisit(v);
 }
 
 /* ── RENDER ─────────────────────────────────────────────── */
@@ -28,6 +29,7 @@ function render(){
     case 'goal-detail': el.innerHTML=vGoalDetail(); break;
     case 'notes':       el.innerHTML=vNotes(); bindNoteEditor(); break;
     case 'review':      el.innerHTML=vReview(); break;
+    case 'help':        el.innerHTML=vHelp(); break;
     default: el.innerHTML=vDash();
   }
   renderHist();
