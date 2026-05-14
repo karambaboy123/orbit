@@ -1,0 +1,65 @@
+/* ── NAVIGATE ───────────────────────────────────────────── */
+function nav(v,tid=null){
+  S.view=v; if(tid!==null)S.tid=tid;
+  document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
+  const el=document.getElementById('nav-'+v); if(el)el.classList.add('active');
+  render(); document.querySelector('#main').parentElement.scrollTop=0;
+}
+
+/* ── RENDER ─────────────────────────────────────────────── */
+function render(){
+  // Onthoud welke accordions open zijn zodat ze na re-render open blijven
+  const _openAccs=[...document.querySelectorAll('[id^="acc-body-"]')]
+    .filter(el=>!el.classList.contains('hidden'))
+    .map(el=>el.id.replace('acc-body-',''));
+
+  const el=document.getElementById('main');
+  switch(S.view){
+    case 'home':        el.innerHTML=vHome(); break;
+    case 'dashboard':   el.innerHTML=vDash(); break;
+    case 'new-task':    el.innerHTML=vNewTask(); break;
+    case 'prompt-gen':  el.innerHTML=vPromptGen(); break;
+    case 'file-to-ai':  el.innerHTML=vFileToAI(); ftaSetup(); break;
+    case 'ai-checklist':el.innerHTML=vAIChecklist(); break;
+    case 'launcher':    el.innerHTML=vLauncher(); break;
+    case 'analysis':    el.innerHTML=vAnalysis(); bindChecks(); break;
+    case 'settings':    el.innerHTML=vSettings(); break;
+    case 'portfolio':   el.innerHTML=vPortfolio(); break;
+    case 'goal-detail': el.innerHTML=vGoalDetail(); break;
+    case 'notes':       el.innerHTML=vNotes(); bindNoteEditor(); break;
+    case 'review':      el.innerHTML=vReview(); break;
+    default: el.innerHTML=vDash();
+  }
+  renderHist();
+  // Apply icon style after DOM is ready + herstel open accordions
+  requestAnimationFrame(()=>{
+    applyIcons();
+    // Herstel open accordions na re-render
+    _openAccs.forEach(id=>{
+      const b=document.getElementById('acc-body-'+id);
+      const arrow=document.getElementById('acc-ic-'+id);
+      if(b){b.classList.remove('hidden');if(arrow)arrow.textContent='▲';}
+    });
+    // Activate any data-lucide icons baked into template strings (e.g. ic() calls)
+    if(_iconStyle==='lu'&&typeof lucide!=='undefined'){
+      setTimeout(()=>{try{lucide.createIcons();}catch(e){}},16);
+    }
+  });
+}
+
+function renderHist(){
+  const el=document.getElementById('hist'); if(!el)return;
+  const active=S.tasks.filter(t=>!t.archived);
+  if(!active.length){el.innerHTML='<div style="font-size:11.5px;padding:5px 8px;border-radius:7px;color:var(--nav-txt);opacity:0.55;font-style:italic">Geen opdrachten</div>';return;}
+  el.innerHTML=active.slice(0,8).map(t=>{
+    const lbl=(t.name||t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,22);
+    const ic=t.type==='ai-checklist'?'📥':t.type==='prompt'?'⚡':t.type==='file-ai'?'📤':'✏️';
+    const onclick=t.type==='ai-checklist'?`S.tid='${t.id}';nav('ai-checklist','${t.id}')`:`nav('analysis','${t.id}')`;
+    return `<div class="ni text-xs ${t.id===S.tid?'active':''}" onclick="${onclick}" title="${lbl}">${ic} ${lbl}</div>`;
+  }).join('');
+}
+
+/* ── BOOT ───────────────────────────────────────────────── */
+render();nav('home');
+// Apply icons after all scripts/fonts may have loaded
+window.addEventListener('load',()=>{ requestAnimationFrame(applyIcons); });
