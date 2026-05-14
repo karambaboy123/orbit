@@ -89,10 +89,10 @@
     <div class="nav-section-lbl text-xs font-semibold px-2 py-1 uppercase tracking-wider">Opdrachten</div>
     <div id="hist"></div>
   </nav>
-  <!-- Offline indicator — alleen zichtbaar zonder internetverbinding -->
-  <div id="offline-bar" class="hidden mx-2 mb-1 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2" style="background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.25)">
-    <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:orbitPulse 2s ease-in-out infinite"></span>
-    Offline
+  <!-- Verbindingsindicator — altijd zichtbaar -->
+  <div id="connection-bar" class="mx-2 mb-1 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2" style="background:rgba(16,185,129,.1);color:#6ee7b7;border:1px solid rgba(16,185,129,.2)">
+    <span id="connection-dot" style="width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0"></span>
+    <span id="connection-txt">Online</span>
   </div>
   <div class="p-2.5 border-t border-indigo-800 space-y-1">
     <div class="ni" data-ic="question" data-label="Hulp" onclick="nav('help')" id="nav-help">❓ Hulp</div>
@@ -202,7 +202,10 @@
 </div>
 
 <!-- FAB: contextuele hulp voor huidige pagina -->
-<button id="help-fab" data-ic="question" data-label="" data-ic-size="18" onclick="helpShow()" title="Hulp voor deze pagina" style="position:fixed;bottom:24px;right:24px;z-index:40;width:42px;height:42px;border-radius:50%;background:var(--p);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(99,102,241,.4);font-size:20px;transition:transform .15s,box-shadow .15s" onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 6px 22px rgba(99,102,241,.55)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(99,102,241,.4)'">❓</button>
+<button id="help-fab" onclick="helpShow()" class="btn bs" style="position:fixed;bottom:20px;right:20px;z-index:40;border-radius:20px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,.12);padding:7px 14px">
+  <span data-ic="question" data-label="" data-ic-size="14" style="display:inline-flex;color:var(--p)">❓</span>
+  Hulp
+</button>
 
 <script>
 /* ── Service Worker registratie ── */

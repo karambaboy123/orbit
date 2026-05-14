@@ -117,6 +117,12 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--txt)}
 .tpl{padding:6px 14px;border-radius:20px;border:1.5px solid #e5e7eb;cursor:pointer;font-size:12px;font-weight:600;color:#6b7280;transition:all .15s;white-space:nowrap}
 .tpl:hover{border-color:var(--p);color:var(--p)}
 .tpl.sel{background:var(--p);color:#fff;border-color:var(--p)}
+.theme-dark .tpl{border-color:#334155;color:#94a3b8;background:transparent}
+.theme-dark .tpl:hover{border-color:var(--p);color:#a5b4fc}
+.theme-dark .tpl.sel{background:var(--p);color:#fff;border-color:var(--p)}
+.theme-mono-dark .tpl{border-color:#3f3f46;color:#a1a1aa;background:transparent}
+.theme-mono-dark .tpl:hover{border-color:var(--p);color:var(--txt)}
+.theme-mono-dark .tpl.sel{background:var(--p);color:#fff;border-color:var(--p)}
 /* Checklist item row */
 .ci-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid #e5e7eb;margin:4px 0;background:#fff;transition:background .15s,border-color .15s,opacity .15s}
 .ci-row:hover{background:#f9fafb}

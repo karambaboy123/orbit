@@ -256,8 +256,19 @@ document.addEventListener('keydown',e=>{
 
 /* ── OFFLINE INDICATOR ──────────────────────────────────── */
 function _setOfflineUI(isOnline){
-  const bar=document.getElementById('offline-bar');
-  if(bar)bar.classList.toggle('hidden',isOnline);
+  const bar=document.getElementById('connection-bar');
+  const dot=document.getElementById('connection-dot');
+  const txt=document.getElementById('connection-txt');
+  if(!bar)return;
+  if(isOnline){
+    bar.style.cssText='background:rgba(16,185,129,.1);color:#6ee7b7;border:1px solid rgba(16,185,129,.2)';
+    if(dot){dot.style.background='#10b981';dot.style.animation='';}
+    if(txt)txt.textContent='Online';
+  } else {
+    bar.style.cssText='background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.25)';
+    if(dot){dot.style.background='#ef4444';dot.style.animation='orbitPulse 2s ease-in-out infinite';}
+    if(txt)txt.textContent='Offline';
+  }
 }
 window.addEventListener('online', ()=>{
   _setOfflineUI(true);
