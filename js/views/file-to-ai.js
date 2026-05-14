@@ -207,16 +207,18 @@ function savePresetForm(){
   savePresets();_editingPresetId=null;toast('✅ Preset opgeslagen!');nav('settings');
 }
 function deletePreset(id){
-  if(!confirm('Preset verwijderen?'))return;
-  S.presets=S.presets.filter(x=>x.id!==id);
-  if(_ftaSelId===id)_ftaSelId=S.presets[0]?.id||'';
-  savePresets();toast('🗑️ Verwijderd');nav('settings');
+  orbitConfirm('Preset verwijderen?',()=>{
+    S.presets=S.presets.filter(x=>x.id!==id);
+    if(_ftaSelId===id)_ftaSelId=S.presets[0]?.id||'';
+    savePresets();toast('🗑️ Verwijderd');nav('settings');
+  },null,'Preset verwijderen');
 }
 function resetPresets(){
-  if(!confirm('Alle presets terugzetten naar standaard? Jouw aanpassingen worden gewist.'))return;
-  S.presets=DFLT_PRESETS.map(p=>({...p}));
-  _ftaSelId=S.presets[0]?.id||'';
-  savePresets();toast('✅ Presets hersteld!');nav('settings');
+  orbitConfirm('Alle presets terugzetten naar standaard? Jouw aanpassingen worden gewist.',()=>{
+    S.presets=DFLT_PRESETS.map(p=>({...p}));
+    _ftaSelId=S.presets[0]?.id||'';
+    savePresets();toast('✅ Presets hersteld!');nav('settings');
+  },null,'Presets resetten');
 }
 
 /* ── SJABLOON BEHEER ────────────────────────────────────── */
@@ -267,14 +269,16 @@ function saveTmplForm(){
   saveTemplates();_editingTmplId=null;toast('✅ Sjabloon opgeslagen!');nav('settings');
 }
 function deleteTemplate(id){
-  if(!confirm('Sjabloon verwijderen?'))return;
-  S.templates=S.templates.filter(x=>x.id!==id);
-  if(_ntSelTmplId===id)_ntSelTmplId=S.templates[0]?.id||'';
-  saveTemplates();toast('🗑️ Verwijderd');nav('settings');
+  orbitConfirm('Sjabloon verwijderen?',()=>{
+    S.templates=S.templates.filter(x=>x.id!==id);
+    if(_ntSelTmplId===id)_ntSelTmplId=S.templates[0]?.id||'';
+    saveTemplates();toast('🗑️ Verwijderd');nav('settings');
+  },null,'Sjabloon verwijderen');
 }
 function resetTemplates(){
-  if(!confirm('Alle sjablonen terugzetten naar standaard? Jouw aanpassingen worden gewist.'))return;
-  S.templates=DFLT_TMPLS.map(t=>({...t}));
-  _ntSelTmplId=S.templates[0]?.id||'';
-  saveTemplates();toast('✅ Sjablonen hersteld!');nav('settings');
+  orbitConfirm('Alle sjablonen terugzetten naar standaard? Jouw aanpassingen worden gewist.',()=>{
+    S.templates=DFLT_TMPLS.map(t=>({...t}));
+    _ntSelTmplId=S.templates[0]?.id||'';
+    saveTemplates();toast('✅ Sjablonen hersteld!');nav('settings');
+  },null,'Sjablonen resetten');
 }

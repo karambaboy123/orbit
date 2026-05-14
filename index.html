@@ -211,6 +211,18 @@
   Hulp
 </button>
 
+<!-- ── ORBIT MODAL (vervangt alert / confirm / prompt) ──── -->
+<div id="orbit-modal" class="hidden fixed inset-0 flex items-center justify-center p-4" style="background:rgba(0,0,0,.55);z-index:120">
+  <div class="rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" style="background:var(--card);border:1px solid var(--card-border)">
+    <div id="orbit-modal-title" class="font-bold text-sm" style="color:var(--txt)"></div>
+    <div id="orbit-modal-msg" class="text-sm" style="color:var(--txt2);white-space:pre-wrap;line-height:1.65"></div>
+    <div id="orbit-modal-input-wrap" class="hidden">
+      <input id="orbit-modal-input" type="text" class="inp w-full text-sm">
+    </div>
+    <div id="orbit-modal-btns" class="flex gap-3 justify-end pt-1"></div>
+  </div>
+</div>
+
 <script>
 /* ── Service Worker registratie ── */
 if('serviceWorker' in navigator){

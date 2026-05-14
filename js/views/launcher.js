@@ -32,14 +32,15 @@ const QUICK_TASK_TMPLS=[
 ];
 function quickStartTask(id){
   const tmpl=QUICK_TASK_TMPLS.find(t=>t.id===id);if(!tmpl)return;
-  const name=prompt(`Naam voor deze ${tmpl.name}:`,tmpl.name+' — '+new Date().toLocaleDateString('nl-NL'));
-  if(!name)return;
-  const t=mkTask('task',{goal:name,aud:'',tone:'',out:''},name);
-  t.analysis=tmpl.analysis;
-  t.tags=[...(tmpl.tags||[])];
-  saveT();S.tid=t.id;
-  toast('✅ Taak aangemaakt van sjabloon!');
-  nav('analysis');
+  orbitPrompt(`Naam voor deze ${tmpl.name}:`,tmpl.name+' — '+new Date().toLocaleDateString('nl-NL'),name=>{
+    if(!name)return;
+    const t=mkTask('task',{goal:name,aud:'',tone:'',out:''},name);
+    t.analysis=tmpl.analysis;
+    t.tags=[...(tmpl.tags||[])];
+    saveT();S.tid=t.id;
+    toast('✅ Taak aangemaakt van sjabloon!');
+    nav('analysis');
+  },'Naam invoeren');
 }
 const saveLaunchTmpls=()=>localStorage.setItem('pb_launch_tmpls',JSON.stringify(LAUNCH_TMPLS));
 
@@ -127,7 +128,7 @@ function vLauncher(){
   const histTab=_launchHistory.length?`<div class="space-y-3">
     <div class="flex items-center justify-between">
       <div class="text-sm text-gray-500">Jouw recente AI-sessies (laatste 50)</div>
-      <button onclick="if(confirm('Geschiedenis wissen?')){_launchHistory=[];saveLaunchHistory();render()}" class="btn bs text-xs">🗑️ Wis alles</button>
+      <button onclick="orbitConfirm('Geschiedenis wissen?',()=>{_launchHistory=[];saveLaunchHistory();render()},null,'Wissen')" class="btn bs text-xs">🗑️ Wis alles</button>
     </div>
     ${_launchHistory.map((h,i)=>{const s=SITES.find(x=>x.id===h.siteId)||{l:h.siteName,c:'#6b7280'};return`<div class="card p-3 flex items-start gap-3">
       <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style="background:${s.c}">${s.l.slice(0,2)}</div>
@@ -161,7 +162,7 @@ function vLauncher(){
     </div>
     ${logEntries.length?`<div class="space-y-3">
       <div class="flex items-center justify-between"><div class="font-semibold text-sm">${logEntries.length} opgeslagen ${logEntries.length===1?'item':'items'}</div>
-        <button onclick="if(confirm('Alle logboek-items verwijderen?')){localStorage.removeItem('pb_log_entries');render()}" class="btn bs text-xs">🗑️ Wis logboek</button></div>
+        <button onclick="orbitConfirm('Alle logboek-items verwijderen?',()=>{localStorage.removeItem('pb_log_entries');render()},null,'Logboek wissen')" class="btn bs text-xs">🗑️ Wis logboek</button></div>
       ${logEntries.map((e,i)=>`<div class="card p-4 space-y-2">
         <div class="flex items-center justify-between">
           <div class="font-semibold text-sm">${e.title||'Naamloos'}</div>
@@ -183,7 +184,7 @@ function vLauncher(){
       <div class="text-sm text-gray-500">Beheer je templates — bewerk, voeg toe, verwijder of reset naar standaard.</div>
       <div class="flex gap-2">
         <button onclick="ltNewForm()" class="btn bp text-sm">➕ Nieuw template</button>
-        <button onclick="if(confirm('Alle templates resetten naar standaard?')){LAUNCH_TMPLS=DFLT_LAUNCH_TMPLS.map(t=>({...t}));saveLaunchTmpls();_ltEditingIdx=null;_ltShowForm=false;render()}" class="btn bs text-sm">↩️ Reset</button>
+        <button onclick="orbitConfirm('Alle templates resetten naar standaard?',()=>{LAUNCH_TMPLS=DFLT_LAUNCH_TMPLS.map(t=>({...t}));saveLaunchTmpls();_ltEditingIdx=null;_ltShowForm=false;render()},null,'Reset')" class="btn bs text-sm">↩️ Reset</button>
       </div>
     </div>
 
@@ -229,8 +230,9 @@ function vLauncher(){
 function ltNewForm(){_ltEditingIdx=null;_ltShowForm=true;render();}
 function ltEdit(i){_ltEditingIdx=i;_ltShowForm=true;render();}
 function ltDelete(i){
-  if(!confirm('Template "'+LAUNCH_TMPLS[i].l+'" verwijderen?'))return;
-  LAUNCH_TMPLS.splice(i,1);saveLaunchTmpls();render();toast('🗑️ Verwijderd');
+  orbitConfirm('Template "'+LAUNCH_TMPLS[i].l+'" verwijderen?',()=>{
+    LAUNCH_TMPLS.splice(i,1);saveLaunchTmpls();render();toast('🗑️ Verwijderd');
+  },null,'Template verwijderen');
 }
 function ltSaveForm(){
   const ic=document.getElementById('lt-ic')?.value?.trim()||'📝';

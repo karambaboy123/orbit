@@ -93,18 +93,19 @@ function handleImport(input){
     try{
       const data=JSON.parse(e.target.result);
       const info=`• ${data.tasks?.length||0} opdrachten\n• ${data.notes?.length||0} notities\n• ${data.templates?.length||0} sjablonen\n• ${data.presets?.length||0} presets`;
-      if(!confirm(`Importeren overschrijft je huidige data:\n\n${info}\n\nDoorgaan?`))return;
-      if(data.tasks)    {S.tasks=data.tasks;saveT();}
-      if(data.goals)    {S.goals=data.goals;localStorage.setItem('pb_goals',JSON.stringify(S.goals));}
-      if(data.notes)    {S.notes=data.notes;localStorage.setItem('pb_notes',JSON.stringify(S.notes));}
-      if(data.promptLib){S.promptLib=data.promptLib;saveL();}
-      if(data.templates){S.templates=data.templates;saveTemplates();}
-      if(data.presets)  {S.presets=data.presets;savePresets();}
-      if(data.customColors!==undefined){_customColors=data.customColors;localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));}
-      if(data.theme)    applyTheme(data.theme);
-      if(data.font)     applyFont(data.font);
-      if(data.iconStyle){_iconStyle=data.iconStyle;saveIconStyle();}
-      render(); toast('✅ Import geslaagd!');
+      orbitConfirm(`Importeren overschrijft je huidige data:\n\n${info}\n\nDoorgaan?`,()=>{
+        if(data.tasks)    {S.tasks=data.tasks;saveT();}
+        if(data.goals)    {S.goals=data.goals;localStorage.setItem('pb_goals',JSON.stringify(S.goals));}
+        if(data.notes)    {S.notes=data.notes;localStorage.setItem('pb_notes',JSON.stringify(S.notes));}
+        if(data.promptLib){S.promptLib=data.promptLib;saveL();}
+        if(data.templates){S.templates=data.templates;saveTemplates();}
+        if(data.presets)  {S.presets=data.presets;savePresets();}
+        if(data.customColors!==undefined){_customColors=data.customColors;localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));}
+        if(data.theme)    applyTheme(data.theme);
+        if(data.font)     applyFont(data.font);
+        if(data.iconStyle){_iconStyle=data.iconStyle;saveIconStyle();}
+        render(); toast('✅ Import geslaagd!');
+      },null,'Import bevestigen');
     }catch(err){toast('❌ Ongeldig bestand: '+err.message,6000);}
   };
   reader.readAsText(file); input.value='';
@@ -139,10 +140,8 @@ async function syncToGitHub(){
   }catch(e){toast('❌ GitHub backup mislukt: '+e.message,7000);}
   finally{if(btn){btn.disabled=false;btn.innerHTML=ic('cloudup',13)+' Backup naar GitHub';}}
 }
-async function restoreFromGitHub(){
+async function _doRestoreFromGitHub(){
   const token=localStorage.getItem('pb_gh_token');
-  if(!token){toast('⚠️ Sla eerst een GitHub token op');return;}
-  if(!confirm('Dit vervangt al je huidige data met de GitHub backup. Doorgaan?'))return;
   const btn=document.getElementById('gh-restore-btn');
   if(btn){btn.disabled=true;btn.innerHTML=ic('cloud',13)+' Bezig...';}
   try{
@@ -165,6 +164,11 @@ async function restoreFromGitHub(){
     render(); toast('✅ Data hersteld van GitHub!');
   }catch(e){toast('❌ Herstel mislukt: '+e.message,7000);}
   finally{if(btn){btn.disabled=false;btn.innerHTML=ic('clouddown',13)+' Herstel van GitHub';}}
+}
+function restoreFromGitHub(){
+  const token=localStorage.getItem('pb_gh_token');
+  if(!token){toast('⚠️ Sla eerst een GitHub token op');return;}
+  orbitConfirm('Dit vervangt al je huidige data met de GitHub backup. Doorgaan?',_doRestoreFromGitHub,null,'Herstel van GitHub');
 }
 
 /* ── WEEK PLANNING (review view) ────────────────────────── */

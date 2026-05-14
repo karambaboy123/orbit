@@ -372,7 +372,7 @@ function vSettings(){
 
         <!-- Danger zone -->
         <div class="pt-1">
-          <button class="btn bs text-xs" style="color:#ef4444" onclick="if(confirm('Alle opdrachten permanent wissen?')){S.tasks=[];saveT();nav('dashboard')}">${ic('trash',13)} Wis alle opdrachten</button>
+          <button class="btn bs text-xs" style="color:#ef4444" onclick="orbitConfirm('Alle opdrachten permanent wissen?',()=>{S.tasks=[];saveT();nav('dashboard')},null,'Wis opdrachten')">${ic('trash',13)} Wis alle opdrachten</button>
         </div>
         <div class="text-xs text-gray-400">Alles wordt lokaal opgeslagen in je browser (localStorage). Gebruik export of GitHub Sync als back-up.</div>
       </div>

@@ -96,7 +96,7 @@ function vDash(){
         <h2 class="font-semibold text-gray-800">Actieve opdrachten${_dashTag?` <span style="font-size:11px;background:#e0e7ff;color:#4f46e5;padding:1px 8px;border-radius:10px;font-weight:700">${filteredActive.length} van ${total}</span>`:''}</h2>
         <div class="flex gap-3">
           <span class="text-xs text-gray-400">📦 = archiveer · 🗑️ = verwijder</span>
-          <button class="text-xs text-red-400 hover:text-red-600" onclick="if(confirm('Alle actieve opdrachten wissen?')){S.tasks=S.tasks.filter(t=>t.archived);saveT();nav('dashboard')}">Wis actieve</button>
+          <button class="text-xs text-red-400 hover:text-red-600" onclick="orbitConfirm('Alle actieve opdrachten wissen?',()=>{S.tasks=S.tasks.filter(t=>t.archived);saveT();nav('dashboard')},null,'Wis opdrachten')">Wis actieve</button>
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3">${taskCards||'<div class="col-span-2 text-center text-gray-400 py-6 text-sm">Geen opdrachten met tag <strong>'+_dashTag+'</strong></div>'}</div>
@@ -114,7 +114,7 @@ function vDash(){
       </button>
       <div id="arch-list" class="hidden border-t border-gray-100 p-4">
         <div class="grid grid-cols-2 gap-3">${archCards}</div>
-        <button class="btn bs text-xs mt-3" onclick="if(confirm('Archief leegmaken? (worden verwijderd)')){S.tasks=S.tasks.filter(t=>!t.archived);saveT();render()}">🗑️ Archief leegmaken</button>
+        <button class="btn bs text-xs mt-3" onclick="orbitConfirm('Archief leegmaken? (worden verwijderd)',()=>{S.tasks=S.tasks.filter(t=>!t.archived);saveT();render()},null,'Archief leegmaken')">🗑️ Archief leegmaken</button>
       </div>
     </div>`:''}
 
@@ -124,7 +124,7 @@ function vDash(){
 
 function renameTask(id,name){const t=S.tasks.find(x=>x.id===id);if(t){t.name=name;saveT();renderHist();}}
 function setDeadline(id,date){const t=S.tasks.find(x=>x.id===id);if(t){t.deadline=date;saveT();render();}}
-function delTask(id){if(!confirm('Verwijder deze opdracht?'))return;S.tasks=S.tasks.filter(x=>x.id!==id);saveT();if(S.tid===id){S.tid=null;nav('dashboard');}else{render();}}
+function delTask(id){orbitConfirm('Verwijder deze opdracht?',()=>{S.tasks=S.tasks.filter(x=>x.id!==id);saveT();if(S.tid===id){S.tid=null;nav('dashboard');}else{render();}},null,'Verwijderen');}
 function archiveTask(id){const t=S.tasks.find(x=>x.id===id);if(t){t.archived=true;saveT();render();toast('📦 Gearchiveerd');}}
 function unarchiveTask(id){const t=S.tasks.find(x=>x.id===id);if(t){t.archived=false;saveT();render();toast('✅ Hersteld');}}
 function toggleArchiveView(){const el=document.getElementById('arch-list');const ic=document.getElementById('arch-ic');if(!el)return;el.classList.toggle('hidden');if(ic)ic.textContent=el.classList.contains('hidden')?'▼':'▲';}

@@ -175,10 +175,11 @@ function updateGoalLevel(id,val){
 function undoHistory(gid,i){
   const g=S.goals.find(x=>x.id===gid);if(!g||!g.history)return;
   const h=g.history[i];if(!h)return;
-  if(!confirm(`Wil je deze groei ongedaan maken? (${g.name}: ${h.newLevel} → ${h.oldLevel})`))return;
-  g.level=h.oldLevel;g.history.splice(i,1);saveGoals();render();toast('↩ Ongedaan gemaakt');
+  orbitConfirm(`Wil je deze groei ongedaan maken? (${g.name}: ${h.newLevel} → ${h.oldLevel})`,()=>{
+    g.level=h.oldLevel;g.history.splice(i,1);saveGoals();render();toast('↩ Ongedaan gemaakt');
+  },null,'Ongedaan maken');
 }
-function deleteGoal(id){if(!confirm('Doel verwijderen?'))return;S.goals=S.goals.filter(x=>x.id!==id);saveGoals();nav('portfolio');}
+function deleteGoal(id){orbitConfirm('Doel verwijderen?',()=>{S.goals=S.goals.filter(x=>x.id!==id);saveGoals();nav('portfolio');},null,'Doel verwijderen');}
 function toggleMilestone(gid,i,done){
   const g=S.goals.find(x=>x.id===gid);if(!g)return;
   g.milestones[i].done=done;saveGoals();

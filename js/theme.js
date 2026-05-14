@@ -82,13 +82,14 @@ function resetCustomColors(){
 /* ── Kleurpresets (opgeslagen schema's) ─── */
 let _colorPresets=JSON.parse(localStorage.getItem('pb_color_presets')||'[]');
 function saveColorPreset(){
-  const name=prompt('Naam voor dit kleurschema:','Mijn schema');
-  if(!name||!name.trim())return;
-  const preset={id:'cp'+Date.now(),name:name.trim(),mode:_baseMode,colors:_customColors?{..._customColors}:null};
-  _colorPresets.push(preset);
-  localStorage.setItem('pb_color_presets',JSON.stringify(_colorPresets));
-  toast('✅ Schema opgeslagen: '+name.trim());
-  render();
+  orbitPrompt('Naam voor dit kleurschema:','Mijn schema',name=>{
+    if(!name||!name.trim())return;
+    const preset={id:'cp'+Date.now(),name:name.trim(),mode:_baseMode,colors:_customColors?{..._customColors}:null};
+    _colorPresets.push(preset);
+    localStorage.setItem('pb_color_presets',JSON.stringify(_colorPresets));
+    toast('✅ Schema opgeslagen: '+name.trim());
+    render();
+  },'Schema opslaan');
 }
 function loadColorPreset(id){
   if(!id||id==='--')return;
@@ -107,9 +108,10 @@ function loadColorPreset(id){
   applyTheme();render();
 }
 function deleteColorPreset(id){
-  if(!confirm('Kleurschema verwijderen?'))return;
-  _colorPresets=_colorPresets.filter(p=>p.id!==id);
-  localStorage.setItem('pb_color_presets',JSON.stringify(_colorPresets));
-  render();toast('✅ Verwijderd');
+  orbitConfirm('Kleurschema verwijderen?',()=>{
+    _colorPresets=_colorPresets.filter(p=>p.id!==id);
+    localStorage.setItem('pb_color_presets',JSON.stringify(_colorPresets));
+    render();toast('✅ Verwijderd');
+  },null,'Schema verwijderen');
 }
 applyTheme();

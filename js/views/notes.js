@@ -129,10 +129,11 @@ function toggleNotePin(id){
   n.pinned=!n.pinned;saveNotes();render();
 }
 function deleteNote(id){
-  if(!confirm('Notitie verwijderen?'))return;
-  S.notes=S.notes.filter(x=>x.id!==id);
-  if(S.nid===id)S.nid=S.notes[0]?.id||null;
-  saveNotes();render();
+  orbitConfirm('Notitie verwijderen?',()=>{
+    S.notes=S.notes.filter(x=>x.id!==id);
+    if(S.nid===id)S.nid=S.notes[0]?.id||null;
+    saveNotes();render();
+  },null,'Verwijderen');
 }
 function addNoteTag(id,tag){
   const t=tag.trim().toLowerCase();if(!t)return;

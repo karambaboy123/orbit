@@ -183,7 +183,7 @@ function backupRestore(id){
       const d=snap.data;
       const date=new Date(snap.date).toLocaleString('nl-NL',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
       const preview=`${d.tasks?.length||0} opdrachten · ${d.notes?.length||0} notities · ${d.goals?.length||0} doelen`;
-      if(!confirm(`Herstellen van backup:\n${date}\n${preview}\n\nJe huidige data wordt VERVANGEN. Doorgaan?`))return;
+      orbitConfirm(`Herstellen van backup:\n${date}\n${preview}\n\nJe huidige data wordt VERVANGEN. Doorgaan?`,()=>{
       // Maak eerst backup van huidige staat
       backupSnapshot('pre-restore').then(()=>{
         if(d.tasks)    {S.tasks    =d.tasks;    localStorage.setItem('pb_tasks',    JSON.stringify(d.tasks));}
@@ -198,6 +198,7 @@ function backupRestore(id){
         nav('settings');
         renderBackupSection();
       });
+      },null,'Backup herstellen');
     };
   });
 }
@@ -231,15 +232,15 @@ function backupViewContents(id){
       const snap=req.result;if(!snap)return;
       const d=snap.data;
       const date=new Date(snap.date).toLocaleString('nl-NL',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      alert(
-        `📦 Backup — ${date}\n\n`+
-        `📋 Opdrachten:       ${d.tasks?.length||0}\n`+
-        `📓 Notities:         ${d.notes?.length||0}\n`+
-        `🎯 Doelen:           ${d.goals?.length||0}\n`+
-        `📊 Weekreviews:      ${d.reviews?.length||0}\n`+
-        `⚡ Prompt-bibliotheek: ${d.promptLib?.length||0}\n`+
-        `📝 Sjablonen:        ${d.templates?.length||0}\n`+
-        `📌 Presets:          ${d.presets?.length||0}`
+      orbitAlert(
+        `Opdrachten:         ${d.tasks?.length||0}\n`+
+        `Notities:           ${d.notes?.length||0}\n`+
+        `Doelen:             ${d.goals?.length||0}\n`+
+        `Weekreviews:        ${d.reviews?.length||0}\n`+
+        `Prompt-bibliotheek: ${d.promptLib?.length||0}\n`+
+        `Sjablonen:          ${d.templates?.length||0}\n`+
+        `Presets:            ${d.presets?.length||0}`,
+        `Backup — ${date}`
       );
     };
   });
@@ -278,7 +279,7 @@ async function renderBackupSection(){
   el.innerHTML=`
     <div class="flex items-center justify-between mb-3">
       <div class="text-xs text-gray-500">${all.length} van ${BACKUP_MAX} backups opgeslagen · oudste worden automatisch gewist</div>
-      <button onclick="if(confirm('Alle backups permanent verwijderen?')){backupClear().then(()=>{renderBackupSection();toast('✅ Alle backups gewist')})}" class="btn bs text-xs" style="color:#ef4444">${ic('trash',13)} Alles wissen</button>
+      <button onclick="orbitConfirm('Alle backups permanent verwijderen?',()=>backupClear().then(()=>{renderBackupSection();toast('✅ Alle backups gewist')}),null,'Backups wissen')" class="btn bs text-xs" style="color:#ef4444">${ic('trash',13)} Alles wissen</button>
     </div>
     <div class="space-y-2">
     ${all.map(snap=>{

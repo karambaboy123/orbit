@@ -251,9 +251,60 @@ function doSearch(q){
 }
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();_searchOpen?closeSearch():openSearch();}
-  if(e.key==='Escape'&&_searchOpen){closeSearch();}
-  if(e.key==='Escape'&&window.innerWidth<768&&document.getElementById('sidebar')?.classList.contains('mobile-open')){closeMobileSidebar();}
+  if(e.key==='Escape'){
+    const om=document.getElementById('orbit-modal');
+    if(om&&!om.classList.contains('hidden')){_omClose();if(_omCancel)_omCancel();return;}
+    if(_searchOpen){closeSearch();return;}
+    if(window.innerWidth<768&&document.getElementById('sidebar')?.classList.contains('mobile-open')){closeMobileSidebar();}
+  }
 });
+
+/* ── CUSTOM MODALS (vervangt alert / confirm / prompt) ───── */
+let _omOk=null,_omCancel=null;
+function _omClose(){document.getElementById('orbit-modal').classList.add('hidden');_omOk=null;_omCancel=null;}
+
+function orbitAlert(msg,title,onOk){
+  title=title||'Melding';
+  document.getElementById('orbit-modal-title').textContent=title;
+  document.getElementById('orbit-modal-msg').textContent=msg;
+  document.getElementById('orbit-modal-input-wrap').classList.add('hidden');
+  document.getElementById('orbit-modal-btns').innerHTML=
+    '<button class="btn bp text-sm px-5" onclick="_omClose();if(_omOk)_omOk()">OK</button>';
+  _omOk=onOk||null;_omCancel=null;
+  document.getElementById('orbit-modal').classList.remove('hidden');
+}
+
+function orbitConfirm(msg,onOk,onCancel,title){
+  title=title||'Bevestigen';
+  document.getElementById('orbit-modal-title').textContent=title;
+  document.getElementById('orbit-modal-msg').textContent=msg;
+  document.getElementById('orbit-modal-input-wrap').classList.add('hidden');
+  document.getElementById('orbit-modal-btns').innerHTML=
+    '<button class="btn bs text-sm px-4" onclick="_omClose();if(_omCancel)_omCancel()">Annuleer</button>'+
+    '<button class="btn bp text-sm px-4" onclick="_omClose();if(_omOk)_omOk()">Doorgaan</button>';
+  _omOk=onOk||null;_omCancel=onCancel||null;
+  document.getElementById('orbit-modal').classList.remove('hidden');
+}
+
+function orbitPrompt(msg,defaultVal,onOk,title){
+  title=title||'Invoer';
+  document.getElementById('orbit-modal-title').textContent=title;
+  document.getElementById('orbit-modal-msg').textContent=msg;
+  document.getElementById('orbit-modal-input-wrap').classList.remove('hidden');
+  const inp=document.getElementById('orbit-modal-input');
+  inp.value=defaultVal||'';
+  const okBtn='<button class="btn bp text-sm px-4" id="orbit-modal-ok-btn">OK</button>';
+  document.getElementById('orbit-modal-btns').innerHTML=
+    '<button class="btn bs text-sm px-4" onclick="_omClose()">Annuleer</button>'+okBtn;
+  _omOk=onOk||null;_omCancel=null;
+  document.getElementById('orbit-modal-ok-btn').onclick=()=>{
+    const v=document.getElementById('orbit-modal-input').value;
+    _omClose();if(_omOk)_omOk(v);
+  };
+  inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('orbit-modal-ok-btn')?.click();}};
+  document.getElementById('orbit-modal').classList.remove('hidden');
+  setTimeout(()=>inp.focus(),50);
+}
 
 /* ── MOBILE SIDEBAR ─────────────────────────────────────── */
 function isMobile(){return window.innerWidth<768;}

@@ -95,7 +95,7 @@ function vPromptGen(){
           <div class="font-semibold text-sm">${ic('library',14)} Bibliotheek (${lib.length})</div>
           <div class="text-xs text-gray-400">Hover → kopieer, verbeter of verwijder</div>
           <div class="space-y-2 max-h-screen overflow-y-auto">${libHTML}</div>
-          ${lib.length?`<button class="btn bs text-xs w-full" onclick="if(confirm('Bibliotheek leegmaken?')){S.promptLib=[];saveL();render()}">🗑️ Leegmaken</button>`:''}
+          ${lib.length?`<button class="btn bs text-xs w-full" onclick="orbitConfirm('Bibliotheek leegmaken?',()=>{S.promptLib=[];saveL();render()},null,'Leegmaken')">🗑️ Leegmaken</button>`:''}
         </div>
       </div>
     </div>
