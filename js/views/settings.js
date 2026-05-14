@@ -303,7 +303,24 @@ function vSettings(){
       </div>
     </div>
 
-    <!-- Accordion 6: Gegevens -->
+    <!-- Accordion 6: Auto-backups -->
+    <div class="card overflow-hidden">
+      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('backups');if(!document.getElementById('acc-body-backups').classList.contains('hidden'))renderBackupSection()">
+        <div class="flex items-center gap-3">
+          <span class="text-xl">💾</span>
+          <div>
+            <div class="font-bold text-sm">Auto-backups</div>
+            <div class="text-xs text-gray-500">Automatisch opgeslagen snapshots in IndexedDB — herstel bij dataverlies</div>
+          </div>
+        </div>
+        <span id="acc-ic-backups" class="text-gray-400 text-xs ml-4">▼</span>
+      </button>
+      <div id="acc-body-backups" class="hidden border-t border-gray-100 p-5 space-y-3">
+        <div id="backup-list-content"><div class="text-sm text-gray-400 py-4 text-center">Laden...</div></div>
+      </div>
+    </div>
+
+    <!-- Accordion 7: Gegevens -->
     <div class="card overflow-hidden">
       <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('data')">
         <div class="flex items-center gap-3"><span class="text-xl">${ic('doc',18)}</span><div><div class="font-bold text-sm">Gegevens & Export</div><div class="text-xs text-gray-500">${S.tasks.length} opdrachten · alles opgeslagen in je browser</div></div></div>

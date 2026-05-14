@@ -23,7 +23,7 @@ function render(){
     case 'ai-checklist':el.innerHTML=vAIChecklist(); break;
     case 'launcher':    el.innerHTML=vLauncher(); break;
     case 'analysis':    el.innerHTML=vAnalysis(); bindChecks(); break;
-    case 'settings':    el.innerHTML=vSettings(); break;
+    case 'settings':    el.innerHTML=vSettings(); renderBackupSection(); break;
     case 'portfolio':   el.innerHTML=vPortfolio(); break;
     case 'goal-detail': el.innerHTML=vGoalDetail(); break;
     case 'notes':       el.innerHTML=vNotes(); bindNoteEditor(); break;
@@ -61,5 +61,6 @@ function renderHist(){
 
 /* ── BOOT ───────────────────────────────────────────────── */
 render();nav('home');
+backupInit();
 // Apply icons after all scripts/fonts may have loaded
 window.addEventListener('load',()=>{ requestAnimationFrame(applyIcons); });

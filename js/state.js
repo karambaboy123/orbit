@@ -61,13 +61,13 @@ let _searchOpen=false;
 let _dashTag='';
 let _noteMdMode=localStorage.getItem('pb_note_md_mode')||'edit';
 
-const saveT       = () => localStorage.setItem('pb_tasks',   JSON.stringify(S.tasks));
-const saveL       = () => localStorage.setItem('pb_prompts', JSON.stringify(S.promptLib));
-const savePresets = () => localStorage.setItem('pb_presets', JSON.stringify(S.presets));
-const saveTemplates=() => localStorage.setItem('pb_templates',JSON.stringify(S.templates));
-const saveGoals   = () => localStorage.setItem('pb_goals',   JSON.stringify(S.goals));
-const saveNotes   = () => localStorage.setItem('pb_notes',   JSON.stringify(S.notes));
-const saveReviews = () => localStorage.setItem('pb_reviews', JSON.stringify(S.reviews));
+const saveT       = () => { localStorage.setItem('pb_tasks',    JSON.stringify(S.tasks));     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveL       = () => { localStorage.setItem('pb_prompts',  JSON.stringify(S.promptLib)); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const savePresets = () => { localStorage.setItem('pb_presets',  JSON.stringify(S.presets));   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveTemplates=() => { localStorage.setItem('pb_templates',JSON.stringify(S.templates)); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveGoals   = () => { localStorage.setItem('pb_goals',    JSON.stringify(S.goals));     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveNotes   = () => { localStorage.setItem('pb_notes',    JSON.stringify(S.notes));     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveReviews = () => { localStorage.setItem('pb_reviews',  JSON.stringify(S.reviews));   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
 const getTask = () => S.tasks.find(t=>t.id===S.tid)||null;
 const mkId = () => 't'+Date.now()+Math.random().toString(36).slice(2,5);
 
