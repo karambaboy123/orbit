@@ -271,13 +271,14 @@ async function renderBackupSection(){
   const reasonLabel=r=>({daily:'Dagelijks',auto:'Auto',  'auto-counter':'Auto (10 wijzigingen)','pre-restore':'Vóór herstel',manual:'Handmatig'}[r]||r);
   if(!all.length){
     el.innerHTML=`<div class="text-sm text-gray-400 py-4 text-center">Nog geen backups — de eerste wordt aangemaakt bij het sluiten van de app of na 10 wijzigingen.</div>
-      <button onclick="backupSnapshot('manual').then(()=>{renderBackupSection();toast('✅ Handmatige backup gemaakt!')})" class="btn bs text-sm w-full mt-2">💾 Nu handmatig backup maken</button>`;
+      <button onclick="backupSnapshot('manual').then(()=>{renderBackupSection();toast('✅ Handmatige backup gemaakt!')})" class="btn bs text-sm w-full mt-2">${ic('save',14)} Nu handmatig backup maken</button>`;
+    requestAnimationFrame(applyIcons);
     return;
   }
   el.innerHTML=`
     <div class="flex items-center justify-between mb-3">
       <div class="text-xs text-gray-500">${all.length} van ${BACKUP_MAX} backups opgeslagen · oudste worden automatisch gewist</div>
-      <button onclick="if(confirm('Alle backups permanent verwijderen?')){backupClear().then(()=>{renderBackupSection();toast('🗑️ Alle backups gewist')})}" class="btn bs text-xs" style="color:#ef4444">🗑️ Alles wissen</button>
+      <button onclick="if(confirm('Alle backups permanent verwijderen?')){backupClear().then(()=>{renderBackupSection();toast('✅ Alle backups gewist')})}" class="btn bs text-xs" style="color:#ef4444">${ic('trash',13)} Alles wissen</button>
     </div>
     <div class="space-y-2">
     ${all.map(snap=>{
@@ -289,15 +290,16 @@ async function renderBackupSection(){
           <div class="text-xs text-gray-400 mt-0.5">${reasonLabel(snap.reason)} · ${size} KB · ${snap.data.tasks?.length||0} opdrachten, ${snap.data.notes?.length||0} notities, ${snap.data.goals?.length||0} doelen</div>
         </div>
         <div class="flex gap-1 flex-shrink-0">
-          <button onclick="backupViewContents('${snap.id}')" class="btn bs text-xs py-1 px-2" title="Bekijk inhoud">👁️</button>
-          <button onclick="backupDownload('${snap.id}')" class="btn bs text-xs py-1 px-2" title="Download JSON">⬇️</button>
-          <button onclick="backupRestore('${snap.id}')" class="btn bp text-xs py-1 px-2">↩️ Herstellen</button>
-          <button onclick="backupDelete('${snap.id}').then(()=>{renderBackupSection();toast('🗑️ Backup verwijderd')})" class="btn bs text-xs py-1 px-2" style="color:#ef4444" title="Verwijder">🗑️</button>
+          <button onclick="backupViewContents('${snap.id}')" class="btn bs text-xs py-1 px-2" title="Bekijk inhoud">${ic('eye',13)}</button>
+          <button onclick="backupDownload('${snap.id}')" class="btn bs text-xs py-1 px-2" title="Download JSON">${ic('download',13)}</button>
+          <button onclick="backupRestore('${snap.id}')" class="btn bp text-xs py-1 px-2">${ic('undo',13)} Herstellen</button>
+          <button onclick="backupDelete('${snap.id}').then(()=>{renderBackupSection();toast('✅ Backup verwijderd')})" class="btn bs text-xs py-1 px-2" style="color:#ef4444" title="Verwijder">${ic('trash',13)}</button>
         </div>
       </div>`;
     }).join('')}
     </div>
-    <button onclick="backupSnapshot('manual').then(()=>{renderBackupSection();toast('✅ Handmatige backup gemaakt!')})" class="btn bs text-sm w-full mt-3">💾 Nu handmatig backup maken</button>`;
+    <button onclick="backupSnapshot('manual').then(()=>{renderBackupSection();toast('✅ Handmatige backup gemaakt!')})" class="btn bs text-sm w-full mt-3">${ic('save',14)} Nu handmatig backup maken</button>`;
+  requestAnimationFrame(applyIcons);
 }
 
 /* ── Bump change counter — aangeroepen door save-helpers ── */

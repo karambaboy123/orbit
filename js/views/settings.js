@@ -307,7 +307,7 @@ function vSettings(){
     <div class="card overflow-hidden">
       <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('backups');if(!document.getElementById('acc-body-backups').classList.contains('hidden'))renderBackupSection()">
         <div class="flex items-center gap-3">
-          <span class="text-xl">💾</span>
+          <span class="text-xl">${ic('save',18)}</span>
           <div>
             <div class="font-bold text-sm">Auto-backups</div>
             <div class="text-xs text-gray-500">Automatisch opgeslagen snapshots in IndexedDB — herstel bij dataverlies</div>
