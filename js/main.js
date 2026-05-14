@@ -55,10 +55,11 @@ function renderHist(){
   if(!active.length){el.innerHTML='<div style="font-size:11.5px;padding:5px 8px;border-radius:7px;color:var(--nav-txt);opacity:0.55;font-style:italic">Geen opdrachten</div>';return;}
   el.innerHTML=active.slice(0,8).map(t=>{
     const lbl=(t.name||t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,22);
-    const ic=t.type==='ai-checklist'?'📥':t.type==='prompt'?'⚡':t.type==='file-ai'?'📤':'✏️';
+    const typeKey=t.type==='ai-checklist'?'checklist':t.type==='prompt'?'prompt':t.type==='file-ai'?'upload':'edit';
     const onclick=t.type==='ai-checklist'?`S.tid='${t.id}';nav('ai-checklist','${t.id}')`:`nav('analysis','${t.id}')`;
-    return `<div class="ni text-xs ${t.id===S.tid?'active':''}" onclick="${onclick}" title="${lbl}">${ic} ${lbl}</div>`;
+    return `<div class="ni text-xs ${t.id===S.tid?'active':''}" onclick="${onclick}" title="${lbl}">${ic(typeKey,13)} ${lbl}</div>`;
   }).join('');
+  if(_iconStyle==='lu'&&typeof lucide!=='undefined')setTimeout(()=>{try{lucide.createIcons();}catch(e){}},16);
 }
 
 /* ── BOOT ───────────────────────────────────────────────── */

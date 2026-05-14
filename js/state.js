@@ -39,15 +39,39 @@ const DFLT_TMPLS=[
    aiPrompt:'Voer een grondige analyse uit van:\n{{doel}}\n\nDoelgroep: {{doelgroep}}\nToon: {{toon}}\n{{context}}\n\nDe analyse bevat:\n1. Situatieschets en context\n2. Sterke punten\n3. Zwakke punten en risico\'s\n4. Kansen\n5. Bedreigingen\n6. Conclusies en prioriteitsaanbevelingen\n\nIn het Nederlands, objectief en onderbouwd.'},
 ];
 
+/* ── Safe localStorage helpers ──────────────────────────── */
+function _safeJSON(key, fallback){
+  try{
+    const v=localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch(e){
+    console.warn('[Orbit] Corrupte data in "'+key+'" — reset naar standaard');
+    try{localStorage.removeItem(key);}catch(_){}
+    return fallback;
+  }
+}
+function _safeSave(key, value){
+  try{
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch(e){
+    if(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED'){
+      if(typeof toast==='function')
+        toast('⚠️ Browseropslag bijna vol — exporteer een backup via Instellingen', 6000);
+    } else { console.warn('[Orbit] Opslaan mislukt voor "'+key+'":', e); }
+    return false;
+  }
+}
+
 const S = {
   view: 'dashboard',
-  tasks:     JSON.parse(localStorage.getItem('pb_tasks')||'[]'),
-  promptLib: JSON.parse(localStorage.getItem('pb_prompts')||'[]'),
-  presets:   JSON.parse(localStorage.getItem('pb_presets')||'null'),
-  templates: JSON.parse(localStorage.getItem('pb_templates')||'null'),
-  goals:     JSON.parse(localStorage.getItem('pb_goals')||'[]'),
-  notes:     JSON.parse(localStorage.getItem('pb_notes')||'[]'),
-  reviews:   JSON.parse(localStorage.getItem('pb_reviews')||'[]'),
+  tasks:     _safeJSON('pb_tasks',    []),
+  promptLib: _safeJSON('pb_prompts',  []),
+  presets:   _safeJSON('pb_presets',  null),
+  templates: _safeJSON('pb_templates',null),
+  goals:     _safeJSON('pb_goals',    []),
+  notes:     _safeJSON('pb_notes',    []),
+  reviews:   _safeJSON('pb_reviews',  []),
   tid: null, gid: null, nid: null,
   geminiKey: localStorage.getItem('pb_gemini')||'',
 };
@@ -61,13 +85,13 @@ let _searchOpen=false;
 let _dashTag='';
 let _noteMdMode=localStorage.getItem('pb_note_md_mode')||'edit';
 
-const saveT       = () => { localStorage.setItem('pb_tasks',    JSON.stringify(S.tasks));     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
-const saveL       = () => { localStorage.setItem('pb_prompts',  JSON.stringify(S.promptLib)); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
-const savePresets = () => { localStorage.setItem('pb_presets',  JSON.stringify(S.presets));   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
-const saveTemplates=() => { localStorage.setItem('pb_templates',JSON.stringify(S.templates)); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
-const saveGoals   = () => { localStorage.setItem('pb_goals',    JSON.stringify(S.goals));     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
-const saveNotes   = () => { localStorage.setItem('pb_notes',    JSON.stringify(S.notes));     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
-const saveReviews = () => { localStorage.setItem('pb_reviews',  JSON.stringify(S.reviews));   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveT       = () => { _safeSave('pb_tasks',    S.tasks);     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveL       = () => { _safeSave('pb_prompts',  S.promptLib); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const savePresets = () => { _safeSave('pb_presets',  S.presets);   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveTemplates=() => { _safeSave('pb_templates',S.templates); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveGoals   = () => { _safeSave('pb_goals',    S.goals);     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveNotes   = () => { _safeSave('pb_notes',    S.notes);     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveReviews = () => { _safeSave('pb_reviews',  S.reviews);   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
 const getTask = () => S.tasks.find(t=>t.id===S.tid)||null;
 const mkId = () => 't'+Date.now()+Math.random().toString(36).slice(2,5);
 

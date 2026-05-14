@@ -253,3 +253,19 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();_searchOpen?closeSearch():openSearch();}
   if(e.key==='Escape'&&_searchOpen){closeSearch();}
 });
+
+/* ── OFFLINE INDICATOR ──────────────────────────────────── */
+function _setOfflineUI(isOnline){
+  const bar=document.getElementById('offline-bar');
+  if(bar)bar.classList.toggle('hidden',isOnline);
+}
+window.addEventListener('online', ()=>{
+  _setOfflineUI(true);
+  toast('✅ Je bent weer online');
+});
+window.addEventListener('offline', ()=>{
+  _setOfflineUI(false);
+  toast('⚠️ Je bent offline — wijzigingen worden lokaal opgeslagen', 5000);
+});
+// Controleer status bij laden
+_setOfflineUI(navigator.onLine);

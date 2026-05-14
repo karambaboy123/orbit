@@ -89,6 +89,11 @@
     <div class="nav-section-lbl text-xs font-semibold px-2 py-1 uppercase tracking-wider">Opdrachten</div>
     <div id="hist"></div>
   </nav>
+  <!-- Offline indicator — alleen zichtbaar zonder internetverbinding -->
+  <div id="offline-bar" class="hidden mx-2 mb-1 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2" style="background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.25)">
+    <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:orbitPulse 2s ease-in-out infinite"></span>
+    Offline
+  </div>
   <div class="p-2.5 border-t border-indigo-800 space-y-1">
     <div class="ni" data-ic="question" data-label="Hulp" onclick="nav('help')" id="nav-help">❓ Hulp</div>
     <div class="ni" data-ic="settings" data-label="Instellingen" onclick="nav('settings')" id="nav-settings">⚙️ Instellingen</div>

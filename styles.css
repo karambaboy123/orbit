@@ -77,6 +77,7 @@ body{font-family:var(--font-family);background:var(--bg);color:var(--txt)}
 .theme-mono-dark .pp{background:var(--card);border-color:#2e2e2e;color:var(--txt)}
 .theme-mono-dark .pp:hover{border-color:var(--p);background:#27272a}
 .theme-mono-dark .pp.sel{border-color:var(--p);background:#27272a;box-shadow:0 0 0 3px rgba(255,255,255,.15)}
+@keyframes orbitPulse{0%,100%{opacity:1}50%{opacity:.3}}
 .lbl{display:block;font-size:12px;font-weight:600;color:#4b5563;margin-bottom:3px}
 /* Prose */
 .prose h1{font-size:1.4em;font-weight:700;margin:.2em 0 .4em;color:#111}
