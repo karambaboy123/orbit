@@ -70,10 +70,12 @@ const GH_BACKUP_FILE='orbit-backup.json';
 
 function getFullExportData(){
   return {
-    version:2, exported:new Date().toISOString(),
-    tasks:S.tasks, goals:S.goals, notes:S.notes,
+    version:3, exported:new Date().toISOString(),
+    tasks:S.tasks, goals:S.goals, notes:S.notes, reviews:S.reviews,
     promptLib:S.promptLib, templates:S.templates, presets:S.presets,
-    theme:_baseMode, font:_curFont, iconStyle:_iconStyle, customColors:_customColors||undefined,
+    theme:_baseMode, font:_curFont, iconStyle:_iconStyle,
+    customColors:_customColors||undefined,
+    colorPresets:JSON.parse(localStorage.getItem('pb_color_presets')||'[]'),
   };
 }
 function exportAll(){
@@ -92,14 +94,16 @@ function handleImport(input){
   reader.onload=e=>{
     try{
       const data=JSON.parse(e.target.result);
-      const info=`• ${data.tasks?.length||0} opdrachten\n• ${data.notes?.length||0} notities\n• ${data.templates?.length||0} sjablonen\n• ${data.presets?.length||0} presets`;
+      const info=`• ${data.tasks?.length||0} opdrachten\n• ${data.notes?.length||0} notities\n• ${data.goals?.length||0} doelen\n• ${data.reviews?.length||0} weekreviews\n• ${data.templates?.length||0} sjablonen\n• ${data.presets?.length||0} presets\n• ${data.colorPresets?.length||0} kleurschema's`;
       orbitConfirm(`Importeren overschrijft je huidige data:\n\n${info}\n\nDoorgaan?`,()=>{
         if(data.tasks)    {S.tasks=data.tasks;saveT();}
         if(data.goals)    {S.goals=data.goals;localStorage.setItem('pb_goals',JSON.stringify(S.goals));}
         if(data.notes)    {S.notes=data.notes;localStorage.setItem('pb_notes',JSON.stringify(S.notes));}
+        if(data.reviews)  {S.reviews=data.reviews;localStorage.setItem('pb_reviews',JSON.stringify(S.reviews));}
         if(data.promptLib){S.promptLib=data.promptLib;saveL();}
         if(data.templates){S.templates=data.templates;saveTemplates();}
         if(data.presets)  {S.presets=data.presets;savePresets();}
+        if(data.colorPresets){localStorage.setItem('pb_color_presets',JSON.stringify(data.colorPresets));}
         if(data.customColors!==undefined){_customColors=data.customColors;localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));}
         if(data.theme)    applyTheme(data.theme);
         if(data.font)     applyFont(data.font);
@@ -154,9 +158,11 @@ async function _doRestoreFromGitHub(){
     if(data.tasks)    {S.tasks=data.tasks;saveT();}
     if(data.goals)    {S.goals=data.goals;localStorage.setItem('pb_goals',JSON.stringify(S.goals));}
     if(data.notes)    {S.notes=data.notes;localStorage.setItem('pb_notes',JSON.stringify(S.notes));}
+    if(data.reviews)  {S.reviews=data.reviews;localStorage.setItem('pb_reviews',JSON.stringify(S.reviews));}
     if(data.promptLib){S.promptLib=data.promptLib;saveL();}
     if(data.templates){S.templates=data.templates;saveTemplates();}
     if(data.presets)  {S.presets=data.presets;savePresets();}
+    if(data.colorPresets){localStorage.setItem('pb_color_presets',JSON.stringify(data.colorPresets));}
     if(data.customColors!==undefined){_customColors=data.customColors;localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));}
     if(data.theme)    applyTheme(data.theme);
     if(data.font)     applyFont(data.font);

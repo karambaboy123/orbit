@@ -48,14 +48,19 @@ function backupList(){
 /* ── Collect current app data ───────────────────────────── */
 function _backupGetData(){
   return{
-    tasks:     S.tasks,
-    promptLib: S.promptLib,
-    presets:   S.presets,
-    templates: S.templates,
-    goals:     S.goals,
-    notes:     S.notes,
-    reviews:   S.reviews,
-    geminiKey: S.geminiKey,
+    tasks:        S.tasks,
+    promptLib:    S.promptLib,
+    presets:      S.presets,
+    templates:    S.templates,
+    goals:        S.goals,
+    notes:        S.notes,
+    reviews:      S.reviews,
+    geminiKey:    S.geminiKey,
+    theme:        _baseMode,
+    font:         typeof _curFont!=='undefined'?_curFont:null,
+    iconStyle:    typeof _iconStyle!=='undefined'?_iconStyle:null,
+    customColors: typeof _customColors!=='undefined'?_customColors:null,
+    colorPresets: JSON.parse(localStorage.getItem('pb_color_presets')||'[]'),
   };
 }
 
@@ -193,6 +198,11 @@ function backupRestore(id){
         if(d.goals)    {S.goals    =d.goals;    localStorage.setItem('pb_goals',    JSON.stringify(d.goals));}
         if(d.notes)    {S.notes    =d.notes;    localStorage.setItem('pb_notes',    JSON.stringify(d.notes));}
         if(d.reviews)  {S.reviews  =d.reviews;  localStorage.setItem('pb_reviews',  JSON.stringify(d.reviews));}
+        if(d.colorPresets){localStorage.setItem('pb_color_presets',JSON.stringify(d.colorPresets));}
+        if(d.customColors!==undefined&&d.customColors!==null){localStorage.setItem('pb_custom_colors',JSON.stringify(d.customColors));if(typeof _customColors!=='undefined')window._customColors=d.customColors;}
+        if(d.theme&&typeof applyTheme==='function')applyTheme(d.theme);
+        if(d.font&&typeof applyFont==='function')applyFont(d.font);
+        if(d.iconStyle&&typeof _iconStyle!=='undefined'){window._iconStyle=d.iconStyle;localStorage.setItem('pb_icon_style',d.iconStyle);}
         localStorage.setItem('pb_change_count','0');
         toast('✅ Data hersteld van backup!',4000);
         nav('settings');
