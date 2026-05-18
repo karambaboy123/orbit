@@ -256,7 +256,7 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();_searchOpen?closeSearch():openSearch();}
   if(e.key==='Escape'){
     const om=document.getElementById('orbit-modal');
-    if(om&&!om.classList.contains('hidden')){_omClose();if(_omCancel)_omCancel();return;}
+    if(om&&!om.classList.contains('hidden')){_omDoCancel();return;}
     if(_searchOpen){closeSearch();return;}
     if(window.innerWidth<768&&document.getElementById('sidebar')?.classList.contains('mobile-open')){closeMobileSidebar();}
   }
@@ -265,6 +265,8 @@ document.addEventListener('keydown',e=>{
 /* ── CUSTOM MODALS (vervangt alert / confirm / prompt) ───── */
 let _omOk=null,_omCancel=null;
 function _omClose(){document.getElementById('orbit-modal').classList.add('hidden');_omOk=null;_omCancel=null;}
+function _omDoOk(){const cb=_omOk;_omClose();if(cb)cb();}
+function _omDoCancel(){const cb=_omCancel;_omClose();if(cb)cb();}
 
 function orbitAlert(msg,title,onOk){
   title=title||'Melding';
@@ -272,7 +274,7 @@ function orbitAlert(msg,title,onOk){
   document.getElementById('orbit-modal-msg').textContent=msg;
   document.getElementById('orbit-modal-input-wrap').classList.add('hidden');
   document.getElementById('orbit-modal-btns').innerHTML=
-    '<button class="btn bp text-sm px-5" onclick="_omClose();if(_omOk)_omOk()">OK</button>';
+    '<button class="btn bp text-sm px-5" onclick="_omDoOk()">OK</button>';
   _omOk=onOk||null;_omCancel=null;
   document.getElementById('orbit-modal').classList.remove('hidden');
 }
@@ -283,8 +285,8 @@ function orbitConfirm(msg,onOk,onCancel,title){
   document.getElementById('orbit-modal-msg').textContent=msg;
   document.getElementById('orbit-modal-input-wrap').classList.add('hidden');
   document.getElementById('orbit-modal-btns').innerHTML=
-    '<button class="btn bs text-sm px-4" onclick="_omClose();if(_omCancel)_omCancel()">Annuleer</button>'+
-    '<button class="btn bp text-sm px-4" onclick="_omClose();if(_omOk)_omOk()">Doorgaan</button>';
+    '<button class="btn bs text-sm px-4" onclick="_omDoCancel()">Annuleer</button>'+
+    '<button class="btn bp text-sm px-4" onclick="_omDoOk()">Doorgaan</button>';
   _omOk=onOk||null;_omCancel=onCancel||null;
   document.getElementById('orbit-modal').classList.remove('hidden');
 }
