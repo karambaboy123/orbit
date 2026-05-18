@@ -194,7 +194,7 @@ function openSearch(){
     modal.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding-top:80px;background:rgba(0,0,0,0.5)';
     modal.innerHTML=`<div id="search-box" style="background:var(--card);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:100%;max-width:560px;overflow:hidden">
       <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--card-border)">
-        <span style="font-size:18px">🔍</span>
+        <span style="font-size:18px;display:flex;align-items:center;color:var(--txt2)">${ic('search',18)}</span>
         <input id="search-inp" style="flex:1;border:none;outline:none;font-size:15px;background:transparent;color:var(--txt)" placeholder="Zoek in opdrachten, notities, prompts, doelen...">
         <button onclick="closeSearch()" style="background:none;border:none;cursor:pointer;color:var(--txt2);font-size:18px;line-height:1">×</button>
       </div>
@@ -218,36 +218,39 @@ function closeSearch(){
 function doSearch(q){
   const el=document.getElementById('search-results');if(!el)return;
   const sq=q.toLowerCase().trim();
+  const _taskTypeLbl={task:'Analyse-opdracht','ai-checklist':'AI Checklist',prompt:'Prompt-opdracht','file-ai':'Bestand → AI'};
   const results=[];
   // Tasks
   S.tasks.forEach(t=>{
-    const txt=(t.name+(t.input?.goal||t.input?.promptGoal||'')+(t.analysis||'')).toLowerCase();
-    if(!sq||txt.includes(sq))results.push({type:'Opdracht',icon:'✏️',label:t.name||(t.input?.goal||'Opdracht').slice(0,40),sub:t.type,action:`closeSearch();nav('analysis','${t.id}')`});
+    const lbl=t.name||(t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,50);
+    const txt=(lbl+(t.analysis||'')).toLowerCase();
+    if(!sq||txt.includes(sq))results.push({type:'Opdracht',icKey:'edit',label:lbl,sub:_taskTypeLbl[t.type]||t.type,action:`closeSearch();${t.type==='ai-checklist'?`S.tid='${t.id}';`:''}nav('${t.type==='ai-checklist'?'ai-checklist':'analysis'}','${t.id}')`});
   });
   // Notes
   S.notes.forEach(n=>{
     const txt=(n.title+n.body+n.tags.join(' ')).toLowerCase();
-    if(!sq||txt.includes(sq))results.push({type:'Notitie',icon:'📓',label:n.title||'Naamloos',sub:n.body.slice(0,60),action:`closeSearch();S.nid='${n.id}';nav('notes')`});
+    if(!sq||txt.includes(sq))results.push({type:'Notitie',icKey:'notes',label:n.title||'Naamloos',sub:n.body.replace(/[#*`]/g,'').slice(0,60),action:`closeSearch();S.nid='${n.id}';nav('notes')`});
   });
   // PromptLib
   (S.promptLib||[]).forEach(p=>{
     const txt=(p.name+(p.prompt||'')).toLowerCase();
-    if(!sq||txt.includes(sq))results.push({type:'Prompt',icon:'⚡',label:p.name,sub:'',action:`closeSearch();nav('prompt-gen')`});
+    if(!sq||txt.includes(sq))results.push({type:'Prompt',icKey:'prompt',label:p.name,sub:(p.prompt||'').slice(0,60),action:`closeSearch();nav('prompt-gen')`});
   });
   // Goals
   (S.goals||[]).forEach(g=>{
-    const txt=(g.goal||'').toLowerCase();
-    if(!sq||txt.includes(sq))results.push({type:'Leerdoel',icon:'🎯',label:g.goal||'Doel',sub:'',action:`closeSearch();nav('portfolio')`});
+    const txt=(g.name||g.goal||'').toLowerCase();
+    if(!sq||txt.includes(sq))results.push({type:'Leerdoel',icKey:'portfolio',label:g.name||g.goal||'Doel',sub:(g.category?g.category+' · ':'')+'Niveau '+(g.level||1)+'/100',action:`closeSearch();S.gid='${g.id}';nav('goal-detail')`});
   });
   if(!results.length){el.innerHTML=`<div style="padding:24px;text-align:center;color:var(--txt2);font-size:14px">${sq?'Geen resultaten voor <strong>'+q+'</strong>':'Begin met typen om te zoeken...'}</div>`;return;}
-  el.innerHTML=results.slice(0,30).map(r=>`<div onclick="${r.action}" style="display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;transition:background .1s" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">
-    <span style="font-size:18px;flex-shrink:0">${r.icon}</span>
+  el.innerHTML=results.slice(0,30).map(r=>`<div onclick="${r.action}" style="display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;transition:background .1s" onmouseover="this.style.background='var(--nav-hover,rgba(0,0,0,.04))'" onmouseout="this.style.background='transparent'">
+    <span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--bg);flex-shrink:0;color:var(--p)">${ic(r.icKey,16)}</span>
     <div style="flex:1;min-width:0">
       <div style="font-size:13px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.label}</div>
       ${r.sub?`<div style="font-size:11px;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.sub.replace(/</g,'&lt;')}</div>`:''}
     </div>
     <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:#e0e7ff;color:#4f46e5;flex-shrink:0">${r.type}</span>
   </div>`).join('');
+  if(_iconStyle==='lu'&&typeof lucide!=='undefined')setTimeout(()=>{try{lucide.createIcons();}catch(e){}},16);
 }
 document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();_searchOpen?closeSearch():openSearch();}
