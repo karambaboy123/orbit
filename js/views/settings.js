@@ -335,7 +335,17 @@ function vSettings(){
         <!-- Local Backup -->
         <div class="rounded-xl border border-gray-200 p-4 space-y-3">
           <div class="flex items-center gap-2 font-semibold text-sm text-gray-700">${ic('doc',15)} Lokale back-up</div>
-          <p class="text-xs text-gray-500">Download een JSON-bestand met al je data (opdrachten, notities, doelen, prompts, instellingen). Bewaar dit ergens veilig.</p>
+          <p class="text-xs text-gray-500">Download een JSON-bestand met <strong>alles</strong> — je kunt dit op een ander apparaat of browser inladen om verder te werken.</p>
+          <div class="grid grid-cols-2 gap-1.5 text-xs rounded-lg p-2.5" style="background:var(--bg);border:1px solid var(--card-border)">
+            <span class="text-gray-500">📋 Opdrachten</span><span class="font-semibold text-right" style="color:var(--txt)">${S.tasks.length}</span>
+            <span class="text-gray-500">📝 Notities</span><span class="font-semibold text-right" style="color:var(--txt)">${S.notes.length}</span>
+            <span class="text-gray-500">🎯 Leerdoelen</span><span class="font-semibold text-right" style="color:var(--txt)">${S.goals.length}</span>
+            <span class="text-gray-500">📅 Weekreviews</span><span class="font-semibold text-right" style="color:var(--txt)">${S.reviews.length}</span>
+            <span class="text-gray-500">💬 Promptbibliotheek</span><span class="font-semibold text-right" style="color:var(--txt)">${S.promptLib.length}</span>
+            <span class="text-gray-500">🗂️ Sjablonen</span><span class="font-semibold text-right" style="color:var(--txt)">${S.templates.length}</span>
+            <span class="text-gray-500">⚙️ Presets</span><span class="font-semibold text-right" style="color:var(--txt)">${S.presets.length}</span>
+            <span class="text-gray-500">🎨 Kleurschema's</span><span class="font-semibold text-right" style="color:var(--txt)">${JSON.parse(localStorage.getItem('pb_color_presets')||'[]').length}</span>
+          </div>
           <div class="flex gap-2 flex-wrap">
             <button class="btn bs" onclick="exportAll()">${ic('cloudup',13)} Exporteer alles (JSON)</button>
             <button class="btn bs" onclick="importFromFile()">${ic('clouddown',13)} Importeer JSON</button>
