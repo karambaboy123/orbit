@@ -97,8 +97,8 @@ function vNotes(){
     <div class="flex gap-4" style="min-height:580px">
       <!-- Linker paneel: lijst -->
       <div style="width:260px;flex-shrink:0" class="flex flex-col gap-2">
-        <input class="inp text-sm" placeholder="🔍 Zoeken..." value="${_noteSearch}"
-          oninput="_noteSearch=this.value;render()">
+        <input id="note-search-inp" class="inp text-sm" placeholder="🔍 Zoeken..." value="${_noteSearch}"
+          oninput="const _p=this.selectionStart;_noteSearch=this.value;render();requestAnimationFrame(()=>{const _el=document.getElementById('note-search-inp');if(_el){_el.focus();_el.setSelectionRange(_p,_p);}})">
         ${tags.length?`<div class="flex flex-wrap gap-1">
           <button onclick="_noteTag='';render()" class="text-xs px-2 py-0.5 rounded-full border ${!_noteTag?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">Alle</button>
           ${tags.map(t=>`<button onclick="_noteTag='${t}';render()" class="text-xs px-2 py-0.5 rounded-full border ${_noteTag===t?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">${t}</button>`).join('')}
