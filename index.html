@@ -140,7 +140,7 @@
 <div id="manual-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5)">
   <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
     <div class="flex items-center justify-between">
-      <div class="font-bold text-lg">📝 Niveau handmatig instellen</div>
+      <div class="font-bold text-lg flex items-center gap-2"><span data-ic="edit" data-ic-size="18">✏️</span> Niveau handmatig instellen</div>
       <button onclick="document.getElementById('manual-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">×</button>
     </div>
     <div class="text-sm text-gray-500">Dit wordt opgeslagen in je groeigeschiedenis. Vul een reden in voor waarom het niveau veranderd is.</div>
@@ -154,7 +154,7 @@
       <textarea id="ml-reason" class="inp text-sm w-full" rows="3" placeholder="Bijv: Ik heb dit weekend een project afgerond en meerdere concepten toegepast..."></textarea>
     </div>
     <div class="flex gap-3">
-      <button onclick="saveManualLevel()" class="btn bp flex-1">💾 Opslaan</button>
+      <button onclick="saveManualLevel()" class="btn bp flex-1 flex items-center justify-center gap-1.5"><span data-ic="save" data-ic-size="15">💾</span> Opslaan</button>
       <button onclick="document.getElementById('manual-modal').classList.add('hidden')" class="btn bs">Annuleer</button>
     </div>
   </div>
@@ -164,7 +164,7 @@
 <div id="start-level-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5)">
   <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
     <div class="flex items-center justify-between">
-      <div class="font-bold text-lg">🎯 Startniveau instellen</div>
+      <div class="font-bold text-lg flex items-center gap-2"><span data-ic="portfolio" data-ic-size="18">🎯</span> Startniveau instellen</div>
       <button onclick="document.getElementById('start-level-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">×</button>
     </div>
     <div class="text-sm text-indigo-700 font-semibold" id="sl-goal-name"></div>
@@ -178,7 +178,7 @@
     <!-- Visual gradient bar -->
     <div class="h-3 rounded-full" style="background:linear-gradient(to right,#dc2626,#ef4444,#f97316,#f59e0b,#eab308,#84cc16,#22c55e,#10b981,#059669,#047857)"></div>
     <div class="flex gap-3">
-      <button onclick="confirmStartLevel()" class="btn bp flex-1">✅ Toevoegen</button>
+      <button onclick="confirmStartLevel()" class="btn bp flex-1 flex items-center justify-center gap-1.5"><span data-ic="check" data-ic-size="15">✅</span> Toevoegen</button>
       <button onclick="document.getElementById('start-level-modal').classList.add('hidden')" class="btn bs">Annuleer</button>
     </div>
   </div>
