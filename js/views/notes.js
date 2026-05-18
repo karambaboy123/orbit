@@ -97,13 +97,13 @@ function vNotes(){
     <div class="flex gap-4" style="min-height:580px">
       <!-- Linker paneel: lijst -->
       <div style="width:260px;flex-shrink:0" class="flex flex-col gap-2">
-        <input id="note-search-inp" class="inp text-sm" placeholder="🔍 Zoeken..." value="${_noteSearch}"
-          oninput="const _p=this.selectionStart;_noteSearch=this.value;render();requestAnimationFrame(()=>{const _el=document.getElementById('note-search-inp');if(_el){_el.focus();_el.setSelectionRange(_p,_p);}})">
+        <input id="note-search-inp" class="inp text-sm" placeholder="Zoeken..." value="${_noteSearch}"
+          oninput="_noteSearch=this.value;_renderNoteList()">
         ${tags.length?`<div class="flex flex-wrap gap-1">
           <button onclick="_noteTag='';render()" class="text-xs px-2 py-0.5 rounded-full border ${!_noteTag?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">Alle</button>
           ${tags.map(t=>`<button onclick="_noteTag='${t}';render()" class="text-xs px-2 py-0.5 rounded-full border ${_noteTag===t?'bg-indigo-600 text-white border-indigo-600':'bg-white text-gray-500 border-gray-200'}">${t}</button>`).join('')}
         </div>`:''}
-        <div class="space-y-1.5 overflow-y-auto flex-1" style="max-height:500px">
+        <div id="note-list" class="space-y-1.5 overflow-y-auto flex-1" style="max-height:500px">
           ${noteList||'<div class="text-xs text-gray-400 text-center py-4">Geen notities gevonden</div>'}
         </div>
       </div>
@@ -113,6 +113,28 @@ function vNotes(){
       </div>
     </div>
   </div>`;
+}
+
+function _renderNoteList(){
+  const container=document.getElementById('note-list');
+  if(!container){render();return;}
+  const notes=filteredNotes();
+  container.innerHTML=notes.map(n=>{
+    const preview=n.body.slice(0,80).replace(/\n/g,' ');
+    const rel=relTime(n.updatedAt);
+    return`<div class="p-3 rounded-lg cursor-pointer border transition-all ${n.id===S.nid?'bg-indigo-50 border-indigo-300':'bg-white border-gray-200 hover:border-indigo-200'}"
+      onclick="S.nid='${n.id}';render()">
+      <div class="flex items-center gap-1.5 mb-1">
+        ${n.pinned?'<span class="text-yellow-400 text-xs">📌</span>':''}
+        <div class="font-semibold text-sm truncate flex-1">${n.title||'Naamloos'}</div>
+      </div>
+      ${preview?`<div class="text-xs text-gray-400 truncate">${preview}</div>`:''}
+      <div class="flex items-center justify-between mt-1">
+        <div class="text-xs text-gray-300">${rel}</div>
+        ${n.tags.length?`<div class="flex gap-1">${n.tags.slice(0,2).map(t=>`<span class="text-xs bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded">${t}</span>`).join('')}</div>`:''}
+      </div>
+    </div>`;
+  }).join('')||'<div class="text-xs text-gray-400 text-center py-4">Geen notities gevonden</div>';
 }
 
 function createNote(){
