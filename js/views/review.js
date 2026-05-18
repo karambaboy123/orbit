@@ -116,16 +116,6 @@ function vReview(){
             :'<div class="text-xs text-gray-400 py-2">Geen deadlines komende week</div>'}
         </div>
 
-        <!-- Snel actie -->
-        <div class="card p-4 bg-indigo-50 border-indigo-200">
-          <div class="font-semibold text-sm text-indigo-800 mb-2">⚡ Snel naar</div>
-          <div class="grid grid-cols-2 gap-2">
-            <button class="btn bs text-xs w-full justify-center" onclick="nav('new-task')">✏️ Nieuwe opdracht</button>
-            <button class="btn bs text-xs w-full justify-center" onclick="S.tid=null;nav('ai-checklist')">📥 AI → Checklist</button>
-            <button class="btn bs text-xs w-full justify-center" onclick="nav('portfolio')">🎯 Portfolio</button>
-            <button class="btn bs text-xs w-full justify-center" onclick="createNote();nav('notes')">📓 Notitie</button>
-          </div>
-        </div>
       </div>
     </div>
 

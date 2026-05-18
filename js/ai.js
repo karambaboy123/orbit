@@ -68,24 +68,33 @@ async function testGem(){
 const GH_BACKUP_REPO='karambaboy123/orbit-data';
 const GH_BACKUP_FILE='orbit-backup.json';
 
-function getFullExportData(){
-  return {
-    version:3, exported:new Date().toISOString(),
-    tasks:S.tasks, goals:S.goals, notes:S.notes, reviews:S.reviews,
-    promptLib:S.promptLib, templates:S.templates, presets:S.presets,
-    theme:_baseMode, font:_curFont, iconStyle:_iconStyle,
-    customColors:_customColors||undefined,
-    colorPresets:JSON.parse(localStorage.getItem('pb_color_presets')||'[]'),
-  };
+function _chk(id){const el=document.getElementById(id);return!el||el.checked;}
+function getFullExportData(sel){
+  // sel=true → respect checkboxes; sel=false/undefined → export everything
+  const all=!sel;
+  const data={version:3,exported:new Date().toISOString(),
+    theme:_baseMode,font:_curFont,iconStyle:_iconStyle,
+    customColors:_customColors||undefined};
+  if(all||_chk('exp-tasks'))    data.tasks    =S.tasks;
+  if(all||_chk('exp-notes'))    data.notes    =S.notes;
+  if(all||_chk('exp-goals'))    data.goals    =S.goals;
+  if(all||_chk('exp-reviews'))  data.reviews  =S.reviews;
+  if(all||_chk('exp-prompts'))  data.promptLib=S.promptLib;
+  if(all||_chk('exp-templates'))data.templates=S.templates;
+  if(all||_chk('exp-presets'))  data.presets  =S.presets;
+  if(all||_chk('exp-colors'))   data.colorPresets=JSON.parse(localStorage.getItem('pb_color_presets')||'[]');
+  return data;
 }
 function exportAll(){
-  const data=getFullExportData();
+  const data=getFullExportData(true);
+  const cats=Object.keys(data).filter(k=>!['version','exported','theme','font','iconStyle','customColors'].includes(k)).length;
+  if(!cats){toast('⚠️ Selecteer minstens één categorie');return;}
   const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(b);
   a.download=`orbit-backup-${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
-  toast('✅ Backup gedownload!');
+  toast(`✅ Backup gedownload (${cats} categorie${cats===1?'':'ën})!`);
 }
 function importFromFile(){document.getElementById('orbit-import-file')?.click();}
 function handleImport(input){

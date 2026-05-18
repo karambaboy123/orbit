@@ -329,25 +329,28 @@ function vSettings(){
       <div id="acc-body-data" class="hidden border-t border-gray-100 p-5 space-y-5">
         <input type="file" id="orbit-import-file" class="hidden" accept=".json" onchange="handleImport(this)">
 
-        <!-- Stats -->
-        <div class="text-sm text-gray-600">Opdrachten: <strong>${S.tasks.length}</strong> · Leerdoelen: <strong>${S.goals.length}</strong> · Notities: <strong>${S.notes.length}</strong> · Promptbibliotheek: <strong>${S.promptLib.length}</strong></div>
-
         <!-- Local Backup -->
         <div class="rounded-xl border border-gray-200 p-4 space-y-3">
           <div class="flex items-center gap-2 font-semibold text-sm text-gray-700">${ic('doc',15)} Lokale back-up</div>
-          <p class="text-xs text-gray-500">Download een JSON-bestand met <strong>alles</strong> — je kunt dit op een ander apparaat of browser inladen om verder te werken.</p>
-          <div class="grid grid-cols-2 gap-1.5 text-xs rounded-lg p-2.5" style="background:var(--bg);border:1px solid var(--card-border)">
-            <span class="text-gray-500">📋 Opdrachten</span><span class="font-semibold text-right" style="color:var(--txt)">${S.tasks.length}</span>
-            <span class="text-gray-500">📝 Notities</span><span class="font-semibold text-right" style="color:var(--txt)">${S.notes.length}</span>
-            <span class="text-gray-500">🎯 Leerdoelen</span><span class="font-semibold text-right" style="color:var(--txt)">${S.goals.length}</span>
-            <span class="text-gray-500">📅 Weekreviews</span><span class="font-semibold text-right" style="color:var(--txt)">${S.reviews.length}</span>
-            <span class="text-gray-500">💬 Promptbibliotheek</span><span class="font-semibold text-right" style="color:var(--txt)">${S.promptLib.length}</span>
-            <span class="text-gray-500">🗂️ Sjablonen</span><span class="font-semibold text-right" style="color:var(--txt)">${S.templates.length}</span>
-            <span class="text-gray-500">⚙️ Presets</span><span class="font-semibold text-right" style="color:var(--txt)">${S.presets.length}</span>
-            <span class="text-gray-500">🎨 Kleurschema's</span><span class="font-semibold text-right" style="color:var(--txt)">${JSON.parse(localStorage.getItem('pb_color_presets')||'[]').length}</span>
+          <p class="text-xs text-gray-500">Vink aan wat je wilt exporteren. Bij import worden alleen de aangevinkte categorieën overschreven — de rest blijft ongewijzigd.</p>
+          <div class="space-y-1 text-xs rounded-lg p-2.5" style="background:var(--bg);border:1px solid var(--card-border)">
+            ${[
+              {id:'exp-tasks',    label:'Opdrachten',      icKey:'edit',      count:S.tasks.length},
+              {id:'exp-notes',    label:'Notities',        icKey:'notes',     count:S.notes.length},
+              {id:'exp-goals',    label:'Leerdoelen',      icKey:'portfolio', count:S.goals.length},
+              {id:'exp-reviews',  label:'Weekreviews',     icKey:'review',    count:S.reviews.length},
+              {id:'exp-prompts',  label:'Promptbibliotheek',icKey:'prompt',   count:S.promptLib.length},
+              {id:'exp-templates',label:'Sjablonen',       icKey:'doc',       count:S.templates.length},
+              {id:'exp-presets',  label:'Presets',         icKey:'settings',  count:S.presets.length},
+              {id:'exp-colors',   label:"Kleurschema's",   icKey:'theme',     count:JSON.parse(localStorage.getItem('pb_color_presets')||'[]').length},
+            ].map(r=>`<label class="flex items-center gap-2 cursor-pointer rounded px-1 py-1 hover:bg-gray-100 select-none">
+              <input type="checkbox" id="${r.id}" checked class="w-3.5 h-3.5 accent-indigo-600">
+              <span class="flex items-center gap-1.5 flex-1" style="color:var(--txt2)">${ic(r.icKey,13)} ${r.label}</span>
+              <span class="font-semibold" style="color:var(--txt)">${r.count}</span>
+            </label>`).join('')}
           </div>
           <div class="flex gap-2 flex-wrap">
-            <button class="btn bs" onclick="exportAll()">${ic('cloudup',13)} Exporteer alles (JSON)</button>
+            <button class="btn bs" onclick="exportAll()">${ic('cloudup',13)} Exporteer selectie (JSON)</button>
             <button class="btn bs" onclick="importFromFile()">${ic('clouddown',13)} Importeer JSON</button>
           </div>
         </div>
