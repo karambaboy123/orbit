@@ -63,8 +63,8 @@ function vSettings(){
             <select class="inp flex-1" onchange="loadColorPreset(this.value)">
               <option value="light"       ${_baseMode==='light'      &&!_customColors?'selected':''}>☀️ Indigo Licht — blauw/paars</option>
               <option value="dark"        ${_baseMode==='dark'       &&!_customColors?'selected':''}>🌙 Indigo Donker — blauw/paars</option>
-              <option value="mono-light"  ${_baseMode==='mono-light' &&!_customColors?'selected':''}>⬜ Mono Licht — zwart, wit &amp; grijs</option>
-              <option value="mono-dark"   ${_baseMode==='mono-dark'  &&!_customColors?'selected':''}>⬛ Mono Donker — zwart, wit &amp; grijs</option>
+              <option value="mono-light"  ${_baseMode==='mono-light' &&!_customColors?'selected':''}>Mono Licht — zwart, wit &amp; grijs</option>
+              <option value="mono-dark"   ${_baseMode==='mono-dark'  &&!_customColors?'selected':''}>Mono Donker — zwart, wit &amp; grijs</option>
               ${_colorPresets.length?`<option disabled value="--">──── Opgeslagen ────</option>`:''}
               ${_colorPresets.map(p=>`<option value="${p.id}" ${JSON.stringify(_customColors)===JSON.stringify(p.colors)&&_baseMode===p.mode?'selected':''}>${p.name}</option>`).join('')}
               <option disabled value="--">──────────────────</option>
@@ -156,7 +156,7 @@ function vSettings(){
     <!-- Accordion 2: Gemini AI -->
     <div class="card overflow-hidden">
       <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('gemini')">
-        <div class="flex items-center gap-3"><span class="text-xl">🔵</span><div><div class="font-bold text-sm">Gemini AI (Google)</div><div class="text-xs text-gray-500">Optioneel gratis · voor betere analyses${S.geminiKey?' · <span style="color:#10b981;font-weight:700">Actief</span>':''}</div></div></div>
+        <div class="flex items-center gap-3"><span class="text-xl" style="color:#4285f4">${ic('ai',20)}</span><div><div class="font-bold text-sm">Gemini AI (Google)</div><div class="text-xs text-gray-500">Optioneel gratis · voor betere analyses${S.geminiKey?' · <span style="color:#10b981;font-weight:700">Actief</span>':''}</div></div></div>
         <span id="acc-ic-gemini" class="text-gray-400 text-xs ml-4">▼</span>
       </button>
       <div id="acc-body-gemini" class="hidden border-t border-gray-100 p-5 space-y-4">
@@ -167,15 +167,15 @@ function vSettings(){
             <li>Log in met Google-account</li>
             <li>Klik <strong>"Create API key"</strong> en kopieer de sleutel (<code>AIza...</code>)</li>
           </ol>
-          <div class="mt-2 text-xs text-blue-600 font-semibold">✅ Volledig gratis — geen betaalkaart nodig</div>
+          <div class="mt-2 text-xs text-blue-600 font-semibold">${ic('check',13)} Volledig gratis — geen betaalkaart nodig</div>
         </div>
         <div><label class="lbl">Gemini API Sleutel</label>
           <div class="flex gap-2"><input id="gkey" type="password" class="inp flex-1" placeholder="AIza..." value="${S.geminiKey}">
-          <button class="btn bs" onclick="const e=document.getElementById('gkey');e.type=e.type==='password'?'text':'password'">👁️</button></div></div>
+          <button class="btn bs" onclick="const e=document.getElementById('gkey');e.type=e.type==='password'?'text':'password'">${ic('eye',14)}</button></div></div>
         <div class="flex gap-3">
-          <button class="btn bp" onclick="saveGem()">💾 Opslaan</button>
-          <button class="btn bs" onclick="testGem()">🧪 Test verbinding</button>
-          ${S.geminiKey?`<button class="btn bs" style="color:#ef4444" onclick="S.geminiKey='';localStorage.removeItem('pb_gemini');render();toast('Sleutel verwijderd')">🗑️ Verwijder</button>`:''}
+          <button class="btn bp" onclick="saveGem()">${ic('save',14)} Opslaan</button>
+          <button class="btn bs" onclick="testGem()">${ic('lab',14)} Test verbinding</button>
+          ${S.geminiKey?`<button class="btn bs" style="color:#ef4444" onclick="S.geminiKey='';localStorage.removeItem('pb_gemini');render();toast('Sleutel verwijderd')">${ic('delete',14)} Verwijder</button>`:''}
         </div>
       </div>
     </div>

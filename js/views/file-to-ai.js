@@ -23,7 +23,7 @@ function vFileToAI(){
         ondragleave="this.classList.remove('over')"
         ondrop="event.preventDefault();this.classList.remove('over');ftaLoad(event.dataTransfer.files[0])">
         <input type="file" id="fta-fi" class="hidden" accept=".txt,.md,.html,.json,.csv,.pdf" onchange="ftaLoad(this.files[0])">
-        <div class="text-2xl mb-1">📂</div>
+        <div class="text-2xl mb-1">${ic('folderopen',24)}</div>
         <div class="font-semibold text-gray-600 text-sm">Sleep bestand of klik om te uploaden</div>
         <div class="text-xs text-gray-400">.txt .md .pdf .html .json .csv — PDF wordt automatisch omgezet naar tekst</div>
       </div>
@@ -47,8 +47,8 @@ function vFileToAI(){
       </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="lbl">📝 Naam (optioneel)</label><input id="fta-name" class="inp" placeholder="Bijv: Projectplan Q3"></div>
-        <div><label class="lbl">🔍 Extra focus (optioneel)</label><input id="fta-q" class="inp" placeholder="Focus extra op bijv. risico's of deadlines"></div>
+        <div><label class="lbl">${ic('note',13)} Naam (optioneel)</label><input id="fta-name" class="inp" placeholder="Bijv: Projectplan Q3"></div>
+        <div><label class="lbl">${ic('search',13)} Extra focus (optioneel)</label><input id="fta-q" class="inp" placeholder="Focus extra op bijv. risico's of deadlines"></div>
       </div>
     </div>
 

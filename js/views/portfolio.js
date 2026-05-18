@@ -130,7 +130,7 @@ function vPortfolio(){
       <div class="font-bold text-sm text-indigo-800">➕ Doel toevoegen</div>
       <button onclick="_pgPickerOpen=false;render()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
     </div>
-    <input id="picker-search" class="inp text-sm" placeholder="🔍 Zoek een vaardigheid..."
+    <input id="picker-search" class="inp text-sm" placeholder="Zoek een vaardigheid..."
       value="${_pgPickerSearch}" oninput="_pgPickerSearch=this.value;render()">
     <div>
       <!-- Category tabs -->

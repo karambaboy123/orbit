@@ -1,5 +1,5 @@
 /* Orbit Service Worker — cache-first met network fallback */
-const CACHE_NAME = 'orbit-v10';
+const CACHE_NAME = 'orbit-v11';
 const CORE_URLS = [
   '/orbit/',
   '/orbit/index.html',

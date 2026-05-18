@@ -191,7 +191,7 @@ function vLauncher(){
     ${_ltShowForm?`<div class="card p-5 border-2 border-indigo-300 space-y-3">
       <div class="font-bold text-sm text-indigo-800">${editingTmpl?'✏️ Template bewerken':'➕ Nieuw template'}</div>
       <div class="grid grid-cols-3 gap-3">
-        <div><label class="lbl">Icoon</label><input id="lt-ic" class="inp text-sm" value="${editingTmpl?editingTmpl.ic:'📝'}" placeholder="📝" style="max-width:80px"></div>
+        <div><label class="lbl">Icoon</label><input id="lt-ic" class="inp text-sm" value="${editingTmpl?editingTmpl.ic:'📝'}" placeholder="bijv. 📝" style="max-width:80px"></div>
         <div class="col-span-2"><label class="lbl">Naam</label><input id="lt-name" class="inp text-sm" value="${editingTmpl?editingTmpl.l.replace(/"/g,'&quot;'):''}" placeholder="Naam van het template"></div>
       </div>
       <div><label class="lbl">Prompt-inhoud</label>
