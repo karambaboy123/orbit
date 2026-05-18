@@ -41,6 +41,8 @@ function applyTheme(mode){
   document.body.classList.remove('theme-dark','theme-mono-dark');
   if(_baseMode==='dark')document.body.classList.add('theme-dark');
   else if(_baseMode==='mono-dark')document.body.classList.add('theme-mono-dark');
+  const _mtc=document.querySelector('meta[name="theme-color"]');
+  if(_mtc)_mtc.setAttribute('content',c.sb);
   document.querySelectorAll('#sidebar .border-indigo-800').forEach(el=>{el.style.borderColor=c.navTxt+'33';});
   document.querySelectorAll('#sidebar .text-indigo-500').forEach(el=>{el.style.color=c.navTxt+'aa';});
   document.querySelectorAll('.nav-section-lbl').forEach(el=>{el.style.color=c.navTxt;el.style.opacity='0.5';});
