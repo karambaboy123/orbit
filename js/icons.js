@@ -79,6 +79,7 @@ const ICONS={
   sparkles:  {em:'✨', lu:'sparkles',        ma:'auto_awesome',    ph:'sparkle'},
   pencil:    {em:'✏️', lu:'pencil',          ma:'edit',            ph:'pencil-simple'},
   import:    {em:'📥', lu:'log-in',          ma:'login',           ph:'sign-in'},
+  compass:   {em:'🧭', lu:'compass',         ma:'explore',         ph:'compass'},
   // ── Formulier-labels ──
   palette:   {em:'🎨', lu:'palette',         ma:'palette',         ph:'palette'},
   clipboard: {em:'📋', lu:'clipboard-list',  ma:'assignment',      ph:'clipboard-text'},
