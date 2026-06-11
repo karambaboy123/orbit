@@ -36,15 +36,15 @@ function vHome(){
         Maak van elk idee direct een uitvoerbare AI-workflow.
       </p>
 
-      <div class="flex flex-wrap gap-3 justify-center mt-7">
-        <button class="btn bp px-7 py-2.5 font-semibold text-sm" onclick="nav('new-task')">
-          ${ic('edit',15)} Nieuwe opdracht starten
+      <div class="flex flex-wrap gap-3 justify-center mt-7 items-center">
+        <button class="btn bp px-7 py-2.5 font-semibold text-sm" onclick="nav('portfolio')">
+          ${ic('portfolio',15)} Portfolio &amp; Doelen
         </button>
-        <button class="btn bs px-7 py-2.5 font-semibold text-sm" onclick="nav('prompt-gen')">
-          ${ic('prompt',15)} Prompt genereren
+        <button class="btn bs px-7 py-2.5 font-semibold text-sm" onclick="nav('new-task')">
+          ${ic('edit',15)} Nieuwe opdracht
         </button>
-        <button class="btn bs px-7 py-2.5 font-semibold text-sm" onclick="openIntroVideo()">
-          ${ic('play',15)} Bekijk de intro
+        <button class="btn bp px-9 py-3.5 font-bold text-base" style="box-shadow:0 6px 22px color-mix(in srgb,var(--p) 45%,transparent)" onclick="openIntroVideo()">
+          ${ic('play',18)} Bekijk de intro
         </button>
       </div>
     </div>

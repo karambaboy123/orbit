@@ -14,13 +14,13 @@
   @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(60px,40px) scale(1.15)}}
 
   .scene{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
-    opacity:0;pointer-events:none;transition:opacity .7s ease;padding:24px}
+    opacity:0;pointer-events:none;transition:opacity .45s ease;padding:24px}
   .scene.on{opacity:1;pointer-events:auto}
 
-  .rise{opacity:0;transform:translateY(26px);transition:all .8s cubic-bezier(.2,.7,.3,1)}
+  .rise{opacity:0;transform:translateY(26px);transition:all .5s cubic-bezier(.2,.7,.3,1)}
   .on .rise{opacity:1;transform:translateY(0)}
-  .on .d1{transition-delay:.15s}.on .d2{transition-delay:.35s}.on .d3{transition-delay:.55s}
-  .on .d4{transition-delay:.75s}.on .d5{transition-delay:.95s}.on .d6{transition-delay:1.15s}
+  .on .d1{transition-delay:.08s}.on .d2{transition-delay:.18s}.on .d3{transition-delay:.3s}
+  .on .d4{transition-delay:.42s}.on .d5{transition-delay:.54s}.on .d6{transition-delay:.66s}
 
   .logo-wrap{margin-bottom:22px}
   .logo-wrap svg.orbitlogo{filter:drop-shadow(0 0 26px rgba(129,140,248,.55));animation:spinSlow 16s linear infinite}
@@ -45,13 +45,13 @@
   .pct{margin-left:auto;font-weight:800;font-size:15px}
 
   .bar-track{height:7px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}
-  .bar-fill{height:100%;border-radius:4px;width:0;transition:width 1.4s cubic-bezier(.2,.7,.3,1)}
+  .bar-fill{height:100%;border-radius:4px;width:0;transition:width .9s cubic-bezier(.2,.7,.3,1)}
   .on .bar-fill{width:var(--w)}
 
   .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 13px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em}
 
   svg.growth{width:100%;display:block;margin-top:4px}
-  .gline{stroke-dasharray:600;stroke-dashoffset:600;transition:stroke-dashoffset 2.2s ease .4s}
+  .gline{stroke-dasharray:600;stroke-dashoffset:600;transition:stroke-dashoffset 1.3s ease .25s}
   .on .gline{stroke-dashoffset:0}
 
   .theme-dots{display:flex;gap:10px}
@@ -83,7 +83,7 @@
 <div class="progress" id="prog"></div>
 
 <!-- Scene 1: intro -->
-<section class="scene" data-dur="5000">
+<section class="scene" data-dur="3200">
   <div class="logo-wrap rise d1">
     <svg class="orbitlogo" viewBox="0 0 100 100" width="120" height="120">
       <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="#a5b4fc" stroke-width="3.8" stroke-linecap="round"/>
@@ -99,7 +99,7 @@
 </section>
 
 <!-- Scene 2: het probleem -->
-<section class="scene" data-dur="5500">
+<section class="scene" data-dur="3600">
   <h2 class="rise d1"><i data-lucide="graduation-cap"></i>Portfolio maken = stress?</h2>
   <p class="sub rise d2">Leerdoelen bijhouden, reflecties schrijven, bewijs verzamelen, alles netjes inleveren...<br><strong style="color:#fff">Orbit doet het zware werk voor je.</strong></p>
   <div class="mock rise d3">
@@ -110,7 +110,7 @@
 </section>
 
 <!-- Scene 2b: automatische checklists -->
-<section class="scene" data-dur="6500">
+<section class="scene" data-dur="4200">
   <h2 class="rise d1"><i data-lucide="list-checks"></i>Plak je opdracht, krijg een plan</h2>
   <p class="sub rise d2">Orbit splitst elke opdracht automatisch op in subopdrachten en een afvinkbare checklist — ook van een ChatGPT-antwoord.</p>
   <div class="mock rise d3">
@@ -122,7 +122,7 @@
 </section>
 
 <!-- Scene 3: leerdoelen -->
-<section class="scene" data-dur="6500">
+<section class="scene" data-dur="4200">
   <h2 class="rise d1"><i data-lucide="target"></i>Jouw leerdoelen, jouw groei</h2>
   <p class="sub rise d2">Stel doelen in die jij belangrijk vindt en zie je niveau stijgen door het jaar heen.</p>
   <div class="mock rise d3">
@@ -143,7 +143,7 @@
 </section>
 
 <!-- Scene 4: groei analyseren -->
-<section class="scene" data-dur="6500">
+<section class="scene" data-dur="4200">
   <h2 class="rise d1"><i data-lucide="microscope"></i>AI beoordeelt je groei</h2>
   <p class="sub rise d2">Plak je verslag in de AI en krijg een eerlijke, kritische beoordeling op streng HBO-niveau — met punten en onderbouwing per leerdoel.</p>
   <div class="mock rise d3">
@@ -154,7 +154,7 @@
 </section>
 
 <!-- Scene 5: PDF -->
-<section class="scene" data-dur="6500">
+<section class="scene" data-dur="4200">
   <h2 class="rise d1"><i data-lucide="file-text"></i>Inleveren? Eén klik.</h2>
   <p class="sub rise d2">Exporteer een professioneel portfolio: voorpagina met jouw naam, vaardighedenradar, groeidiagram en al je bewijs als nette kaarten.</p>
   <div class="mock rise d3" style="display:flex;gap:16px;align-items:stretch">
@@ -192,7 +192,7 @@
 </section>
 
 <!-- Scene 6: opdrachten & AI tools -->
-<section class="scene" data-dur="6500">
+<section class="scene" data-dur="4200">
   <h2 class="rise d1"><i data-lucide="zap"></i>En al je opdrachten erbij</h2>
   <p class="sub rise d2">Orbit is meer dan portfolio — het is je hele studieworkflow op één plek.</p>
   <div class="mock rise d3">
@@ -204,7 +204,7 @@
 </section>
 
 <!-- Scene 7: instellingen -->
-<section class="scene" data-dur="6500">
+<section class="scene" data-dur="4200">
   <h2 class="rise d1"><i data-lucide="settings"></i>Maak het van jou</h2>
   <p class="sub rise d2">Kies je thema, kleuren, lettertype en icoonstijl — en maak met één klik een backup van al je data.</p>
   <div class="mock rise d3">
@@ -222,7 +222,7 @@
 </section>
 
 <!-- Scene 8: outro -->
-<section class="scene" data-dur="7000">
+<section class="scene" data-dur="4600">
   <div class="logo-wrap rise d1">
     <svg class="orbitlogo" viewBox="0 0 100 100" width="90" height="90">
       <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="#a5b4fc" stroke-width="3.8" stroke-linecap="round"/>
