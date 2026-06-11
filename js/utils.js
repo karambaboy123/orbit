@@ -161,6 +161,7 @@ function exportPortfolioPDF(){
   document.getElementById('pdf-opleiding').value=saved.opleiding||'';
   document.getElementById('pdf-klas').value=saved.klas||'';
   document.getElementById('pdf-periode').value=saved.periode||'';
+  renderPdfColorPicker();
   document.getElementById('pdf-export-modal').classList.remove('hidden');
 }
 
@@ -175,7 +176,7 @@ function generatePortfolioPDF(){
   _safeSave('pb_portfolio_personal',personal);
   document.getElementById('pdf-export-modal').classList.add('hidden');
 
-  const color=PORTFOLIO_COLORS.find(c=>c.id===_portfolioColor)||PORTFOLIO_COLORS[0];
+  const color=PORTFOLIO_COLORS.find(c=>c.id===_pdfColor)||PORTFOLIO_COLORS[0];
   const accent=color.hex;
   const datum=new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
 
@@ -187,97 +188,140 @@ function generatePortfolioPDF(){
     <circle cx="88" cy="23" r="5" fill="currentColor"/>
   </svg>`;
 
+  /* Kleine ringbadge met niveau (per leerdoel) */
+  const ringBadge=(lv,lc)=>`<svg viewBox="0 0 36 36" width="56" height="56" style="flex-shrink:0">
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#eef0f4" stroke-width="3"/>
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="${lc}" stroke-width="3" stroke-linecap="round"
+      stroke-dasharray="${(lv/100*97.4).toFixed(1)} 97.4" transform="rotate(-90 18 18)"/>
+    <text x="18" y="16.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="${lc}" font-family="Segoe UI,sans-serif">${lv}</text>
+    <text x="18" y="25.5" text-anchor="middle" font-size="5.5" font-weight="700" fill="#9ca3af" font-family="Segoe UI,sans-serif">/100</text>
+  </svg>`;
+
   /* ── Voorpagina ── */
   let html=`<div class="cover">
-    <div class="cover-logo">${logoSvg}</div>
-    <h1>Portfolio</h1>
-    <div class="cover-sub">Persoonlijk ontwikkelportfolio</div>
-    ${(personal.naam||personal.opleiding||personal.klas)?`<div class="cover-info">
-      ${personal.naam?`<div class="cover-naam">${personal.naam}</div>`:''}
-      ${personal.opleiding?`<div>${personal.opleiding}</div>`:''}
-      ${personal.klas?`<div>${personal.klas}</div>`:''}
-    </div>`:''}
-    ${personal.periode?`<div class="cover-periode" style="color:${accent}">${personal.periode}</div>`:''}
-    <div class="cover-date">Gegenereerd op ${datum} met Orbit</div>
+    <div class="cover-shape cover-shape-1"></div>
+    <div class="cover-shape cover-shape-2"></div>
+    <div class="cover-card">
+      <div class="cover-logo">${logoSvg}</div>
+      <div class="cover-eyebrow">AI WORKFLOW TOOL · ORBIT</div>
+      <h1>Portfolio</h1>
+      <div class="cover-sub">Persoonlijk ontwikkelportfolio</div>
+      ${(personal.naam||personal.opleiding||personal.klas)?`<div class="cover-info">
+        ${personal.naam?`<div class="cover-naam">${personal.naam}</div>`:''}
+        ${(personal.opleiding||personal.klas)?`<div class="cover-sub2">${[personal.opleiding,personal.klas].filter(Boolean).join(' · ')}</div>`:''}
+      </div>`:''}
+      ${personal.periode?`<div class="cover-periode">${personal.periode}</div>`:''}
+    </div>
+    <div class="cover-date">Gegenereerd op ${datum} · Orbit AI Workflow Tool</div>
   </div>`;
 
   /* ── Overzicht / statistieken ── */
   const experts=S.goals.filter(g=>g.level>=80).length;
   const growth=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
   const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
-  html+=`<h2 style="color:${accent};border-bottom-color:${accent}33">Overzicht</h2>
+  html+=`<div class="section-hd"><span class="section-ic">📊</span><h2>Overzicht</h2></div>
   <div class="stats-grid">
-    <div class="stat-box"><div class="num" style="color:${accent}">${S.goals.length}</div><div class="lbl">Leerdoelen</div></div>
-    <div class="stat-box"><div class="num" style="color:${accent}">${avgLevel}</div><div class="lbl">Gemiddeld niveau</div></div>
-    <div class="stat-box"><div class="num" style="color:${accent}">${experts}</div><div class="lbl">Expert (80+)</div></div>
-    <div class="stat-box"><div class="num" style="color:${accent}">${growth}</div><div class="lbl">Groeimomenten</div></div>
+    <div class="stat-box"><div class="num">${S.goals.length}</div><div class="lbl">Leerdoelen</div></div>
+    <div class="stat-box"><div class="num">${avgLevel}</div><div class="lbl">Gemiddeld niveau</div></div>
+    <div class="stat-box"><div class="num">${experts}</div><div class="lbl">Expert (80+)</div></div>
+    <div class="stat-box"><div class="num">${growth}</div><div class="lbl">Groeimomenten</div></div>
   </div>`;
 
   /* ── Vaardighedenradar ── */
   if(S.goals.length>=2){
-    html+=`<h2 style="color:${accent};border-bottom-color:${accent}33">Vaardighedenradar</h2>
-    <div class="radar-wrap">${buildRadarChart(S.goals,300)}</div>`;
+    html+=`<div class="section-hd"><span class="section-ic">🕸️</span><h2>Vaardighedenradar</h2></div>
+    <div class="radar-card">${buildRadarChart(S.goals,300)}</div>`;
   }
 
   /* ── Per categorie ── */
   const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))];
   cats.forEach(cat=>{
     const goals=S.goals.filter(g=>(g.category||'Overig')===cat);
-    html+=`<div class="cat-section"><div class="cat-title" style="color:${accent};border-bottom-color:${accent}33">${cat}</div>`;
+    html+=`<div class="cat-section"><div class="cat-title"><span class="cat-dot"></span>${cat}</div>`;
     goals.forEach(g=>{
       const lc=lvlColor(g.level||1);
       const done=g.milestones.filter(m=>m.done).length,tot=g.milestones.length;
       const hist=g.history||[];
       html+=`<div class="goal-card">
         <div class="goal-head">
+          ${ringBadge(g.level||1,lc)}
           <div style="flex:1;min-width:0">
             <div class="goal-name">${g.name}</div>
             ${g.desc?`<div class="goal-desc">${g.desc}</div>`:''}
+            <div class="goal-bar"><div class="goal-bar-fill" style="width:${g.level||1}%;background:${lc}"></div></div>
+            ${tot>0?`<div class="goal-meta">${done}/${tot} mijlpalen afgerond</div>`:''}
           </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div class="goal-level" style="color:${lc}">${g.level||1}</div>
-            <div style="font-size:10px;color:${lc};font-weight:700">${lvlLabel(g.level||1)}</div>
-          </div>
+          <div class="goal-tag" style="background:${lc}1a;color:${lc}">${lvlLabel(g.level||1)}</div>
         </div>
-        <div class="goal-bar"><div class="goal-bar-fill" style="width:${g.level||1}%;background:${lc}"></div></div>
-        ${tot>0?`<div class="goal-meta">${done}/${tot} mijlpalen afgerond</div>`:''}
-        ${g.notes?`<div class="goal-section-lbl" style="color:${accent}">Reflectie</div><div class="goal-text">${g.notes.replace(/</g,'&lt;')}</div>`:''}
-        ${hist.length?`<div class="goal-section-lbl" style="color:${accent}">Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${h.reason.replace(/</g,'&lt;')} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
-        ${(g.werkItems&&g.werkItems.length)?`<div class="goal-section-lbl" style="color:${accent}">Mijn werk</div>${g.werkItems.map(w=>`<div class="timeline-item"><strong>${w.title.replace(/</g,'&lt;')}</strong>${w.body?': '+w.body.replace(/</g,'&lt;'):''}</div>`).join('')}`:''}
+        ${g.notes?`<div class="goal-section-lbl">💭 Reflectie</div><div class="goal-text">${g.notes.replace(/</g,'&lt;')}</div>`:''}
+        ${hist.length?`<div class="goal-section-lbl">📈 Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${h.reason.replace(/</g,'&lt;')} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
+        ${(g.werkItems&&g.werkItems.length)?`<div class="goal-section-lbl">💼 Mijn werk</div>${g.werkItems.map(w=>`<div class="timeline-item"><strong>${w.title.replace(/</g,'&lt;')}</strong>${w.body?': '+w.body.replace(/</g,'&lt;'):''}</div>`).join('')}`:''}
       </div>`;
     });
     html+=`</div>`;
   });
 
+  html+=`<div class="pdf-footer">
+    <div class="pdf-footer-logo">${logoSvg.replace('width="90" height="90"','width="22" height="22"')}</div>
+    <div>Gemaakt met <strong>Orbit</strong> — AI Workflow Tool</div>
+  </div>`;
+
   const extraStyle=`
-    .cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:90vh;page-break-after:always}
-    .cover-logo{margin-bottom:16px}
-    .cover h1{font-size:38px;border:none;color:${accent};margin:0 0 4px;padding:0}
-    .cover-sub{color:#6b7280;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
-    .cover-info{margin-top:36px;font-size:14px;color:#374151}
-    .cover-info div{margin:3px 0}
-    .cover-naam{font-size:20px;font-weight:700;color:#1e1b4b}
-    .cover-periode{margin-top:14px;font-weight:600;font-size:13px}
-    .cover-date{margin-top:60px;color:#9ca3af;font-size:12px}
-    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 8px}
-    .stat-box{border:1px solid #e5e7eb;border-radius:10px;padding:14px 8px;text-align:center}
-    .stat-box .num{font-size:24px;font-weight:800}
-    .stat-box .lbl{font-size:10px;color:#6b7280;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
-    .radar-wrap{display:flex;justify-content:center;margin:16px 0}
-    .cat-section{margin-top:28px}
-    .cat-title{font-size:17px;font-weight:700;border-bottom:2px solid;padding-bottom:6px;margin-bottom:12px}
-    .goal-card{border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:14px;page-break-inside:avoid}
-    .goal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-    .goal-name{font-size:15px;font-weight:700}
+    body{font-family:'Segoe UI',sans-serif}
+    h1,h2,h3{font-family:'Segoe UI',sans-serif}
+    .cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+      min-height:96vh;page-break-after:always;overflow:hidden;border-radius:18px;
+      background:linear-gradient(135deg,${accent} 0%,color-mix(in srgb,${accent} 55%,#1e1b4b) 100%);color:#fff}
+    .cover-shape{position:absolute;border-radius:50%;background:rgba(255,255,255,0.08)}
+    .cover-shape-1{width:340px;height:340px;top:-120px;left:-100px}
+    .cover-shape-2{width:260px;height:260px;bottom:-100px;right:-80px;background:rgba(255,255,255,0.06)}
+    .cover-card{position:relative;z-index:1;background:rgba(255,255,255,0.08);backdrop-filter:blur(2px);
+      border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:48px 56px;max-width:520px}
+    .cover-logo svg{filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
+    .cover-logo{margin-bottom:14px}
+    .cover-eyebrow{font-size:11px;letter-spacing:.25em;color:rgba(255,255,255,.75);font-weight:700;margin-bottom:10px}
+    .cover h1{font-size:46px;border:none;color:#fff;margin:0 0 6px;padding:0;font-weight:800;letter-spacing:.02em}
+    .cover-sub{color:rgba(255,255,255,.85);font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+    .cover-info{margin-top:34px;padding-top:24px;border-top:1px solid rgba(255,255,255,.25)}
+    .cover-naam{font-size:22px;font-weight:800;color:#fff}
+    .cover-sub2{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px}
+    .cover-periode{margin-top:14px;display:inline-block;padding:5px 16px;border-radius:999px;background:rgba(255,255,255,.18);font-weight:600;font-size:12px}
+    .cover-date{position:relative;z-index:1;margin-top:40px;color:rgba(255,255,255,.7);font-size:11px;letter-spacing:.05em}
+    .section-hd{display:flex;align-items:center;gap:10px;margin-top:28px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid color-mix(in srgb,${accent} 22%,transparent)}
+    .section-hd h2{margin:0;padding:0;border:none;font-size:18px;color:${accent};font-weight:800}
+    .section-ic{font-size:18px;display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;
+      border-radius:9px;background:color-mix(in srgb,${accent} 14%,white)}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 0 8px}
+    .stat-box{border-radius:12px;padding:16px 8px;text-align:center;
+      background:linear-gradient(160deg,color-mix(in srgb,${accent} 12%,white) 0%,white 100%);
+      border:1px solid color-mix(in srgb,${accent} 18%,transparent)}
+    .stat-box .num{font-size:26px;font-weight:800;color:${accent}}
+    .stat-box .lbl{font-size:10px;color:#6b7280;margin-top:3px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+    .radar-card{display:flex;justify-content:center;margin:8px 0 4px;padding:16px;border-radius:14px;
+      background:linear-gradient(160deg,color-mix(in srgb,${accent} 8%,white) 0%,white 100%);
+      border:1px solid color-mix(in srgb,${accent} 16%,transparent)}
+    .cat-section{margin-top:30px}
+    .cat-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:#1e1b4b;
+      border-bottom:2px solid color-mix(in srgb,${accent} 20%,transparent);padding-bottom:8px;margin-bottom:14px;
+      letter-spacing:.02em}
+    .cat-dot{width:10px;height:10px;border-radius:50%;background:${accent};flex-shrink:0}
+    .goal-card{border:1px solid #ececf2;border-left:5px solid ${accent};border-radius:12px;padding:16px 18px;
+      margin-bottom:14px;page-break-inside:avoid;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+    .goal-head{display:flex;align-items:flex-start;gap:14px}
+    .goal-name{font-size:15px;font-weight:800;color:#1e1b4b}
     .goal-desc{font-size:12px;color:#6b7280;margin-top:2px}
-    .goal-level{font-size:24px;font-weight:800;line-height:1.1}
-    .goal-bar{height:6px;background:#f3f4f6;border-radius:3px;margin-top:10px}
-    .goal-bar-fill{height:100%;border-radius:3px}
-    .goal-meta{font-size:11px;color:#9ca3af;margin-top:6px}
-    .goal-section-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:10px}
-    .goal-text{font-size:13px;color:#374151;margin-top:3px;white-space:pre-wrap}
-    .timeline-item{font-size:12px;color:#4b5563;padding:3px 0;border-bottom:1px dashed #f3f4f6}
+    .goal-bar{height:7px;background:#f1f2f6;border-radius:4px;margin-top:10px;overflow:hidden}
+    .goal-bar-fill{height:100%;border-radius:4px}
+    .goal-meta{font-size:11px;color:#9ca3af;margin-top:6px;font-weight:600}
+    .goal-tag{flex-shrink:0;font-size:10px;font-weight:800;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+    .goal-section-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:12px;color:${accent}}
+    .goal-text{font-size:13px;color:#374151;margin-top:4px;white-space:pre-wrap;line-height:1.6}
+    .timeline-item{font-size:12px;color:#4b5563;padding:4px 0;border-bottom:1px dashed #f1f2f6}
+    .timeline-item:last-child{border-bottom:none}
     .timeline-date{color:#9ca3af}
+    .pdf-footer{margin-top:40px;padding-top:16px;border-top:1px solid #ececf2;display:flex;align-items:center;
+      justify-content:center;gap:8px;color:#9ca3af;font-size:11px}
+    .pdf-footer-logo svg{display:block}
   `;
   exportPDF('Portfolio',html,extraStyle);
 }

@@ -86,10 +86,12 @@ function lvlLabel(n){
 /* ── Portfolio state ── */
 let _pgPickerCat='',_pgPickerSearch='',_pgPickerOpen=false;
 let _analysisProposals=[];
+let _newGoalProposals=[];
 let _portfolioStyle='linkedin';
 let _portfolioColor='indigo';
 let _portfolioCustomPrompt='';
 let _portfolioSections={goals:true,projects:true,milestones:true,reflection:true,radar:false};
+let _pdfColor=localStorage.getItem('pb_pdf_color')||'indigo';
 
 function vPortfolio(){
   const catFilter=S._goalCat||'';
@@ -177,14 +179,39 @@ function vPortfolio(){
     </div>
   </div>`:'';
 
+  /* ── Nieuwe doel-voorstellen ── */
+  const newGoalProposalsHTML=_newGoalProposals.length?`<div class="card border-2 border-violet-300 p-5 space-y-3">
+    <div class="font-bold text-sm text-violet-800">🧭 Voorgestelde nieuwe leerdoelen — keur goed of verwijder</div>
+    ${_newGoalProposals.map((p,i)=>`<div class="flex items-center gap-3 p-3 rounded-lg border ${p.accepted===true?'border-emerald-300 bg-emerald-50':p.accepted===false?'border-red-100 bg-red-50 opacity-50':'border-gray-200 bg-white'}">
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-sm">${p.name}</div>
+        <div class="text-xs text-gray-500 mt-0.5">${p.reason}</div>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">${p.category}</span>
+          <span class="text-xs text-gray-400">Startniveau: ${p.level}/100 (${lvlLabel(p.level)})</span>
+        </div>
+      </div>
+      ${p.accepted===null?`<div class="flex gap-2 flex-shrink-0">
+        <button onclick="acceptNewGoalProposal(${i})" class="btn bg text-xs py-1 px-3">✅ Toevoegen</button>
+        <button onclick="rejectNewGoalProposal(${i})" class="btn br text-xs py-1 px-2">✕</button>
+      </div>`:`<div class="text-xs font-semibold flex-shrink-0 ${p.accepted?'text-emerald-600':'text-red-400'}">${p.accepted?'✅ Toegevoegd':'✕ Afgewezen'}</div>`}
+    </div>`).join('')}
+    <div class="flex gap-2 pt-1 border-t border-gray-100">
+      <button onclick="acceptAllNewGoalProposals()" class="btn bg text-xs">✅ Alles toevoegen</button>
+      <button onclick="_newGoalProposals=[];render()" class="btn bs text-xs">Sluiten</button>
+    </div>
+  </div>`:'';
+
   return `<div class="space-y-5">
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div><h1 class="text-2xl font-bold">🎯 Portfolio & Leerdoelen</h1>
         <p class="text-gray-400 text-sm mt-0.5">Volg je groei per vaardigheid op een schaal van 1 tot 100</p></div>
       <div class="flex gap-2 flex-wrap">
+        <button class="btn bs text-sm" onclick="toggleAcc('portfolio-discover')">🧭 Nieuwe doelen ontdekken</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-analyse')">🔬 Groei analyseren</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-maker')">📄 Portfolio maken</button>
         <button class="btn bs text-sm" onclick="exportPortfolioPDF()">📄 PDF exporteren</button>
+        <button class="btn bs text-sm" style="color:#ef4444" onclick="clearAllGrowth()">🗑️ Alle groei wissen</button>
         <button class="btn bp text-sm" onclick="_pgPickerOpen=!_pgPickerOpen;render()">➕ Nieuw doel</button>
       </div>
     </div>
@@ -207,6 +234,54 @@ ${(()=>{
 
     ${pickerHTML}
     ${proposalsHTML}
+    ${newGoalProposalsHTML}
+
+    <!-- Nieuwe doelen ontdekken accordion -->
+    <div class="card overflow-hidden">
+      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('portfolio-discover')">
+        <div class="flex items-center gap-3"><span class="text-lg">🧭</span><div>
+          <div class="font-bold text-sm">Nieuwe doelen ontdekken</div>
+          <div class="text-xs text-gray-500">Laat AI o.b.v. je werk en 20 vragen passende leerdoelen voorstellen</div>
+        </div></div>
+        <span id="acc-ic-portfolio-discover" class="text-gray-400 text-xs">▼</span>
+      </button>
+      <div id="acc-body-portfolio-discover" class="hidden border-t border-gray-100 p-4 space-y-4">
+
+        <!-- Stap 1: Ontdek-prompt genereren -->
+        <div class="bg-violet-50 border border-violet-200 rounded-lg p-4 space-y-3">
+          <div class="font-semibold text-sm text-violet-800">📋 Stap 1 — Genereer de ontdek-prompt</div>
+          <div class="text-xs text-violet-700">De AI stelt jou ~20 vragen over je werk, interesses en ervaring, en stelt op basis daarvan nieuwe leerdoelen voor die nog niet in je portfolio staan.</div>
+          <div class="space-y-2">
+            <label class="lbl">Voeg je werk toe aan de prompt (optioneel):</label>
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              ${S.tasks.filter(t=>!t.archived).slice(0,8).map(t=>`<button onclick="addWorkToPrompt('ng-work-context','${t.id}')" class="text-xs bg-white border border-violet-200 text-violet-600 px-2 py-1 rounded hover:bg-violet-100">${(t.name||t.input?.goal||'Opdracht').slice(0,28)}</button>`).join('')||'<span class="text-xs text-gray-400">Maak eerst opdrachten aan in de app</span>'}
+            </div>
+            <textarea id="ng-work-context" class="inp text-sm w-full" rows="3"
+              placeholder="Of typ/plak hier een korte beschrijving van je werk, interesses of opleiding..."></textarea>
+          </div>
+          <button class="btn bp text-sm w-full" onclick="generateNewGoalsPrompt()">📋 Genereer & kopieer ontdek-prompt</button>
+          <div id="new-goals-prompt-out" class="hidden space-y-2">
+            <label class="lbl text-violet-700">✅ Prompt gegenereerd — kopieer naar ChatGPT/Claude:</label>
+            <textarea id="new-goals-prompt-txt" class="inp text-xs w-full" rows="8" style="font-family:monospace;background:#f8f7ff" readonly></textarea>
+            <div class="flex gap-2">
+              ${SITES.map(s=>`<button onclick="sendNewGoalsToAI('${s.id}')" class="btn text-white text-xs py-1.5 px-3 rounded-lg font-bold" style="background:${s.c}">${s.l}</button>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Stap 2: Antwoord plakken -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3">
+          <div class="font-semibold text-sm text-emerald-800">✅ Stap 2 — Plak het AI-antwoord hier</div>
+          <div class="text-xs text-emerald-700">Voer eerst het gesprek met de AI (beantwoord de 20 vragen). Plak hierna het uiteindelijke antwoord met de voorgestelde leerdoelen. De app leest de voorstellen automatisch uit.</div>
+          <textarea id="new-goals-dump" class="inp text-sm w-full" rows="7"
+            placeholder="Plak hier het uiteindelijke antwoord van de AI met de voorgestelde leerdoelen..."></textarea>
+          <div class="flex gap-2">
+            <button class="btn bg text-sm" onclick="processNewGoalsDump()">🧭 Verwerk antwoord</button>
+            <button class="btn bs text-sm" onclick="document.getElementById('new-goals-dump').value=''">Wis</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Groei analyseren accordion -->
     <div class="card overflow-hidden">
@@ -226,7 +301,7 @@ ${(()=>{
           <div class="space-y-2">
             <label class="lbl">Voeg je werk toe aan de prompt (optioneel):</label>
             <div class="flex flex-wrap gap-1.5 mb-1">
-              ${S.tasks.filter(t=>!t.archived).slice(0,8).map(t=>`<button onclick="addWorkToPrompt('${t.id}')" class="text-xs bg-white border border-indigo-200 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100">${(t.name||t.input?.goal||'Opdracht').slice(0,28)}</button>`).join('')||'<span class="text-xs text-gray-400">Maak eerst opdrachten aan in de app</span>'}
+              ${S.tasks.filter(t=>!t.archived).slice(0,8).map(t=>`<button onclick="addWorkToPrompt('work-context','${t.id}')" class="text-xs bg-white border border-indigo-200 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100">${(t.name||t.input?.goal||'Opdracht').slice(0,28)}</button>`).join('')||'<span class="text-xs text-gray-400">Maak eerst opdrachten aan in de app</span>'}
             </div>
             <textarea id="work-context" class="inp text-sm w-full" rows="3"
               placeholder="Of typ/plak hier een korte beschrijving van je werk of project..."></textarea>
@@ -390,9 +465,9 @@ function addCustomGoal(){
 
 /* ── Analyse dump verwerking ── */
 /* ── Analyse-prompt genereren (Stap 1) ── */
-function addWorkToPrompt(tid){
+function addWorkToPrompt(targetId,tid){
   const t=S.tasks.find(x=>x.id===tid);if(!t)return;
-  const ctx=document.getElementById('work-context');
+  const ctx=document.getElementById(targetId);
   if(!ctx)return;
   const extra=t.analysis||t.input?.goal||'';
   ctx.value=(ctx.value?ctx.value+'\n\n---\n\n':'')+`Opdracht: ${t.name||t.input?.goal||'Opdracht'}\n${extra.slice(0,800)}`;
@@ -406,22 +481,36 @@ function generateAnalysePrompt(){
 
   const customTpl=localStorage.getItem('pb_analyse_prompt_tpl')||'';
 
-  const prompt=customTpl||`Jij bent een leercoach die mijn voortgang beoordeelt op mijn leerdoelen.
+  const prompt=customTpl||`Jij bent een kritische maar behulpzame leercoach die mijn voortgang op mijn leerdoelen beoordeelt aan de hand van mijn opgeleverde werk/verslagen.
 
-Beoordeel het onderstaande werk en geef voor ELK leerdoel aan hoeveel ik gegroeid ben.
+Werk in TWEE stappen:
+
+STAP 1 — VRAGEN STELLEN (verplicht, doe dit eerst):
+Voordat je een score geeft, wil ik dat je eerst kritisch bent. Ga per leerdoel hieronder na of het opgeleverde werk genoeg bewijs geeft om een eerlijke inschatting te maken. Stel mij een checklist met kritische vragen (gerust 10-20 vragen) over:
+- Wat ik precies gedaan heb voor elk leerdoel en welk bewijs daarvoor in mijn werk te vinden is
+- Welke keuzes ik heb gemaakt en waarom
+- Wat er moeilijk was, wat er fout ging en hoe ik dat heb opgelost
+- Wat ik ervan geleerd heb en wat ik de volgende keer anders zou doen
+- Voor leerdoelen waar je in het werk weinig of geen bewijs van groei ziet: vraag daar expliciet naar
+
+Wacht NIET op antwoord — stel de vragen, maar geef ook alvast een voorlopige inschatting. Geef daarna duidelijk aan: "Beantwoord deze vragen zo concreet mogelijk en stuur ze terug, dan geef ik een definitieve, scherpere beoordeling."
+
+STAP 2 — DEFINITIEVE BEOORDELING (pas geven nadat ik de vragen beantwoord heb, of als voorlopige inschatting als ik dat aangeef):
+Geef voor ELK leerdoel hieronder aan hoeveel ik gegroeid ben, gebaseerd op concreet bewijs uit mijn werk en mijn antwoorden. Wees kritisch: ken alleen groei toe als er echt bewijs voor is, en wees streng — een hoge score moet verdiend zijn.
 
 BELANGRIJK — gebruik EXACT dit formaat voor elk leerdoel dat veranderd is (kopieer de namen exact):
 ===
 LEERDOEL: [exact de naam van het leerdoel]
 DELTA: [getal, bijv. +10 of -5 of 0]
-REDEN: [1-2 zinnen waarom, in het Nederlands]
+REDEN: [1-2 zinnen waarom, in het Nederlands, met verwijzing naar concreet bewijs]
 ===
 
+MIJN LEERDOELEN:
 ${goalLines}
 
-${work?`MIJN WERK / CONTEXT:\n${work}`:'[VOEG HIER JE WERK, OPDRACHT OF BESCHRIJVING TOE]'}
+${work?`MIJN WERK / OPDRACHT / VERSLAG:\n${work}`:'[VOEG HIER JE WERK, OPDRACHT, VERSLAG OF BESCHRIJVING TOE]'}
 
-Geef voor elk leerdoel een beoordeling. Gebruik 0 als er geen verandering is. Wees eerlijk en specifiek.`;
+Begin met STAP 1 (kritische vragen + voorlopige inschatting). Gebruik 0 als er geen verandering is. Wees eerlijk, kritisch en specifiek.`;
 
   const out=document.getElementById('analyse-prompt-out');
   const ta=document.getElementById('analyse-prompt-txt');
@@ -436,6 +525,105 @@ function sendAnalyseToAI(siteId){
   window.open(s.url,'_blank','noopener');
   navigator.clipboard?.writeText(txt).catch(()=>fbCopy(txt,''));
   toast('✅ '+s.l+' geopend & prompt gekopieerd!',3000);
+}
+
+/* ── Nieuwe doelen ontdekken: prompt genereren (Stap 1) ── */
+function generateNewGoalsPrompt(){
+  const work=document.getElementById('ng-work-context')?.value?.trim()||'';
+  const existing=S.goals.length?S.goals.map(g=>`- ${g.name} (${g.category})`).join('\n'):'(nog geen leerdoelen)';
+  const catList=GOAL_CATS.join(', ');
+
+  const customTpl=localStorage.getItem('pb_new_goals_prompt_tpl')||'';
+
+  const prompt=customTpl||`Jij bent een loopbaan- en leercoach die mij helpt nieuwe, passende leerdoelen te ontdekken.
+
+Werk in TWEE stappen:
+
+STAP 1 — VRAGEN STELLEN (verplicht, doe dit eerst):
+Stel mij ongeveer 20 gerichte vragen om mijn werk, ervaring, interesses, ambities en ontwikkelpunten goed in kaart te brengen. Denk aan vragen over:
+- Wat voor werk/opdrachten/projecten ik recent heb gedaan (zie context hieronder)
+- Welke taken ik leuk vind en welke niet, en waarom
+- Waar ik moeite mee heb of onzeker over ben
+- Welke richting/branche/functie ik op termijn ambieer
+- Welke vaardigheden collega's of docenten bij mij herkennen
+- Wat ik in de afgelopen periode geleerd heb en wat ik daarna zou willen leren
+- Hoe ik het liefst leer (zelfstandig, met begeleiding, praktijk vs theorie)
+
+Wacht NIET op antwoord — stel direct de ~20 vragen genummerd onder elkaar.
+
+STAP 2 — LEERDOELEN VOORSTELLEN (pas geven nadat ik de vragen beantwoord heb):
+Stel op basis van mijn antwoorden en de context 4 tot 8 nieuwe, concrete leerdoelen voor die nog NIET in onderstaande lijst staan. Kies voor elk leerdoel een passende categorie uit deze lijst: ${catList}. Schat ook een realistisch startniveau in (1-100) op basis van wat ik al kan.
+
+BELANGRIJK — gebruik EXACT dit formaat voor elk voorgesteld leerdoel:
+===
+NIEUW LEERDOEL: [naam van het leerdoel]
+CATEGORIE: [exact een categorie uit de lijst hierboven]
+STARTNIVEAU: [getal 1-100]
+REDEN: [1-2 zinnen waarom dit een passend leerdoel voor mij is]
+===
+
+MIJN HUIDIGE LEERDOELEN (stel deze niet opnieuw voor):
+${existing}
+
+${work?`MIJN WERK / CONTEXT:\n${work}`:'[VOEG HIER JE WERK, OPDRACHT OF BESCHRIJVING TOE]'}
+
+Begin met STAP 1 (de ~20 vragen).`;
+
+  const out=document.getElementById('new-goals-prompt-out');
+  const ta=document.getElementById('new-goals-prompt-txt');
+  if(ta)ta.value=prompt;
+  if(out)out.classList.remove('hidden');
+  navigator.clipboard?.writeText(prompt).then(()=>toast('✅ Ontdek-prompt gekopieerd!')).catch(()=>fbCopy(prompt,'Ontdek-prompt gekopieerd!'));
+}
+function sendNewGoalsToAI(siteId){
+  const s=SITES.find(x=>x.id===siteId);if(!s)return;
+  const txt=document.getElementById('new-goals-prompt-txt')?.value||'';
+  window.open(s.url,'_blank','noopener');
+  navigator.clipboard?.writeText(txt).catch(()=>fbCopy(txt,''));
+  toast('✅ '+s.l+' geopend & prompt gekopieerd!',3000);
+}
+
+/* ── Nieuwe doelen ontdekken: antwoord verwerken (Stap 2) ── */
+function processNewGoalsDump(){
+  const txt=document.getElementById('new-goals-dump')?.value?.trim();
+  if(!txt){toast('⚠️ Plak eerst het AI-antwoord');return;}
+
+  const proposals=[];
+  const blocks=txt.split(/={3,}/g).map(b=>b.trim()).filter(Boolean);
+  blocks.forEach(block=>{
+    const nameMatch=block.match(/NIEUW LEERDOEL:\s*(.+)/i);
+    const catMatch=block.match(/CATEGORIE:\s*(.+)/i);
+    const lvlMatch=block.match(/STARTNIVEAU:\s*(\d+)/i);
+    const reasonMatch=block.match(/REDEN:\s*(.+)/is);
+    if(!nameMatch)return;
+    const name=nameMatch[1].trim();
+    if(S.goals.some(g=>g.name.toLowerCase()===name.toLowerCase()))return;
+    const rawCat=catMatch?catMatch[1].trim():'Overig';
+    const category=GOAL_CATS.find(c=>c.toLowerCase()===rawCat.toLowerCase())||'Overig';
+    const level=lvlMatch?Math.max(1,Math.min(100,parseInt(lvlMatch[1],10))):1;
+    const reason=(reasonMatch?reasonMatch[1].trim():'Voorgesteld door AI-analyse').replace(/\n/g,' ').slice(0,200);
+    proposals.push({name,category,level,reason,accepted:null});
+  });
+
+  if(!proposals.length){
+    toast('⚠️ Geen nieuwe leerdoelen gevonden — zorg dat het AI-antwoord het NIEUW LEERDOEL/CATEGORIE/STARTNIVEAU/REDEN formaat volgt',5000);
+    return;
+  }
+  const seen=new Set();
+  _newGoalProposals=proposals.filter(p=>{const k=p.name.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});
+  render();
+  toast(`✅ ${_newGoalProposals.length} nieuw${_newGoalProposals.length!==1?'e voorstellen':' voorstel'} gevonden!`);
+}
+function acceptNewGoalProposal(i){
+  const p=_newGoalProposals[i];if(!p)return;
+  const g=mkGoal(p.name,p.category);
+  g.level=p.level;
+  g.history=[{date:new Date().toISOString().slice(0,10),oldLevel:1,newLevel:p.level,delta:p.level-1,reason:p.reason}];
+  saveGoals();p.accepted=true;render();toast('✅ Leerdoel toegevoegd: '+g.name);
+}
+function rejectNewGoalProposal(i){_newGoalProposals[i].accepted=false;render();}
+function acceptAllNewGoalProposals(){
+  _newGoalProposals.forEach((_,i)=>{if(_newGoalProposals[i].accepted===null)acceptNewGoalProposal(i);});
 }
 
 /* ── Antwoord verwerken (Stap 2) ── */
@@ -509,6 +697,19 @@ function acceptProposal(i){
 function rejectProposal(i){_analysisProposals[i].accepted=false;render();}
 function acceptAllProposals(){
   _analysisProposals.forEach((_,i)=>{if(_analysisProposals[i].accepted===null)acceptProposal(i);});
+}
+
+/* ── Alle groei wissen ── */
+function clearAllGrowth(){
+  if(!S.goals.some(g=>(g.history||[]).length)){toast('ℹ️ Er is nog geen groeigeschiedenis om te wissen');return;}
+  orbitConfirm('Weet je zeker dat je ALLE groeigeschiedenis wilt wissen? Elk leerdoel wordt teruggezet naar het startniveau (of 1 als er geen geschiedenis is). Dit kan niet ongedaan worden gemaakt.',()=>{
+    S.goals.forEach(g=>{
+      const hist=g.history||[];
+      g.level=hist.length?hist[0].oldLevel:1;
+      g.history=[];
+    });
+    saveGoals();render();toast('🗑️ Alle groeigeschiedenis gewist');
+  },null,'Alle groei wissen');
 }
 
 /* ── Portfolio prompt genereren ── */
@@ -665,6 +866,24 @@ function setPortfolioStyle(id){
     const sid=el.dataset.sid;
     if(sid===id){el.classList.add('border-indigo-500','bg-indigo-50');el.classList.remove('border-gray-200');}
     else{el.classList.remove('border-indigo-500','bg-indigo-50');el.classList.add('border-gray-200');}
+  });
+}
+/* ── PDF kleurkeuze (export-modal) ── */
+function renderPdfColorPicker(){
+  const el=document.getElementById('pdf-color-picker');if(!el)return;
+  el.innerHTML=PORTFOLIO_COLORS.map(c=>`<button data-cid="${c.id}" onclick="setPdfColor('${c.id}')"
+    class="pdf-pc-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 text-xs font-semibold transition-all"
+    style="background:${c.hex}20;color:${c.hex};border-color:${_pdfColor===c.id?c.hex:'#e5e7eb'};${_pdfColor===c.id?'outline:2px solid '+c.hex:''}">
+    <span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${c.hex}"></span>${c.l}
+  </button>`).join('');
+}
+function setPdfColor(id){
+  _pdfColor=id;localStorage.setItem('pb_pdf_color',id);
+  document.querySelectorAll('.pdf-pc-btn').forEach(el=>{
+    const cid=el.dataset.cid;
+    const c=PORTFOLIO_COLORS.find(x=>x.id===cid);if(!c)return;
+    if(cid===id){el.style.borderColor=c.hex;el.style.outline='2px solid '+c.hex;}
+    else{el.style.borderColor='#e5e7eb';el.style.outline='';}
   });
 }
 function setPortfolioColor(id){
