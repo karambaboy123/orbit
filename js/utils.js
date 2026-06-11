@@ -286,6 +286,13 @@ function generatePortfolioPDF(){
     <div class="radar-card">${buildRadarChart(S.goals,300)}</div>`;
   }
 
+  /* ── Groeidiagram ── */
+  const growthChart=buildGrowthChart(S.goals,560,240);
+  if(growthChart){
+    html+=`<div class="section-hd"><span class="section-ic">${ic('growth',18)}</span><h2>Groeidiagram</h2></div>
+    <div class="radar-card" style="flex-direction:column">${growthChart}</div>`;
+  }
+
   /* ── Per categorie ── */
   const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))];
   cats.forEach(cat=>{

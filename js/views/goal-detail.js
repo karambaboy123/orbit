@@ -115,9 +115,9 @@ function vGoalDetail(){
         <label class="lbl">Voeg werk toe — tekst, link of verslag</label>
         <div class="flex gap-2 flex-wrap">
           <select id="werk-type" class="inp text-sm" style="max-width:120px" onchange="toggleWerkFields(this.value)">
-            <option value="tekst">📝 Tekst</option>
-            <option value="link">🔗 Link</option>
-            <option value="verslag">📄 Verslag</option>
+            <option value="tekst">Tekst</option>
+            <option value="link">Link</option>
+            <option value="verslag">Verslag</option>
           </select>
           <input id="werk-title" class="inp text-sm" style="max-width:200px" placeholder="Naam (bijv. Scriptie H3)">
           <input id="werk-url" class="inp text-sm flex-1 hidden" placeholder="https://...">

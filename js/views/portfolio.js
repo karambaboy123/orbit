@@ -296,8 +296,8 @@ ${(()=>{
       <div id="acc-body-portfolio-bijlagen" class="hidden border-t border-gray-100 p-4 space-y-3">
         <div class="flex gap-2 flex-wrap">
           <select id="att-type" class="inp text-sm" style="max-width:120px" onchange="toggleAttFields(this.value)">
-            <option value="link">🔗 Link</option>
-            <option value="doc">📄 Verslag/bestand</option>
+            <option value="link">Link</option>
+            <option value="doc">Verslag/bestand</option>
           </select>
           <input id="att-title" class="inp text-sm" style="max-width:220px" placeholder="Naam (bijv. LinkedIn profiel, Eindverslag)">
           <input id="att-url" class="inp text-sm flex-1" placeholder="https://...">
@@ -533,7 +533,21 @@ Voordat je een score geeft, wil ik dat je eerst kritisch bent. Ga per leerdoel h
 Wacht NIET op antwoord — stel de vragen, maar geef ook alvast een voorlopige inschatting. Geef daarna duidelijk aan: "Beantwoord deze vragen zo concreet mogelijk en stuur ze terug, dan geef ik een definitieve, scherpere beoordeling."
 
 STAP 2 — DEFINITIEVE BEOORDELING (pas geven nadat ik de vragen beantwoord heb, of als voorlopige inschatting als ik dat aangeef):
-Geef voor ELK leerdoel hieronder aan hoeveel ik gegroeid ben, gebaseerd op concreet bewijs uit mijn werk en mijn antwoorden. Wees kritisch: ken alleen groei toe als er echt bewijs voor is, en wees streng — een hoge score moet verdiend zijn.
+Geef voor ELK leerdoel hieronder aan hoeveel ik gegroeid ben, gebaseerd op concreet bewijs uit mijn werk en mijn antwoorden. Beoordeel volgens een STRENG HBO-niveau (hoger beroepsonderwijs) — vergelijkbaar met een toetsende docent die een portfolio nakijkt. Ken alleen groei toe als er echt bewijs voor is, en wees streng: een hoge score moet verdiend zijn.
+
+HANTEER DEZE HBO-BEOORDELINGSCRITERIA om de DELTA (groei in punten) per leerdoel te bepalen:
+- 0 punten — Geen aantoonbaar bewijs van groei, of het werk is puur beschrijvend zonder reflectie of eigen inbreng.
+- 1-3 punten — Beginnend niveau: er is werk geleverd, maar het blijft oppervlakkig, weinig onderbouwd of nauwelijks gekoppeld aan het leerdoel. Reflectie ontbreekt of is zeer beperkt.
+- 4-7 punten — Basisniveau: het werk toont begrip en correcte toepassing van basisvaardigheden/kennis, met enige reflectie op eigen handelen, maar mist diepgang, kritische analyse of onderbouwde keuzes.
+- 8-12 punten — Gevorderd niveau: het werk toont zelfstandige, onderbouwde toepassing met duidelijke keuzes en argumentatie, kritische reflectie op het eigen leerproces (wat ging goed/fout, waarom, en wat zou je anders doen), en concrete koppeling tussen werk en leerdoel.
+- 13-18 punten — HBO-eindniveau: het werk toont een complexe, zelfstandige aanpak met expliciete afweging van alternatieven, diepgaande kritische reflectie, transfer naar andere situaties/contexten, en aantoonbare ontwikkeling ten opzichte van eerdere niveaus.
+- 19-25 punten — Uitzonderlijk: alleen toekennen bij overtuigend bewijs van een sprong in zelfstandigheid, kwaliteit én reflectie, met expliciete onderbouwing waarom dit een grote groei rechtvaardigt. Dit is uitzondering, geen regel.
+
+Belangrijke richtlijnen bij het toepassen van deze criteria:
+- Ken NOOIT meer dan 25 punten per keer toe, ook niet bij uitzonderlijk werk.
+- Bij twijfel tussen twee niveaus: kies ALTIJD het lagere niveau (streng beoordelen).
+- Een DELTA kan ook negatief zijn (bijv. als blijkt dat een eerder toegekend niveau niet houdbaar is op basis van het werk) of 0 (geen aantoonbare groei).
+- Onderbouw in REDEN expliciet op welk criterium-niveau (uit de lijst hierboven) je de score baseert en waarom, met verwijzing naar concreet bewijs uit het werk.
 
 BELANGRIJK — gebruik EXACT dit formaat voor elk leerdoel dat veranderd is (kopieer de namen exact):
 ===
@@ -917,6 +931,49 @@ function buildRadarChart(goals,size=260){
     ringLabels+=`<text x="${(lp.x+4).toFixed(1)}" y="${lp.y.toFixed(1)}" font-size="7" fill="#9ca3af" font-family="system-ui,sans-serif">${v}</text>`;
   });
   return `<svg viewBox="0 0 ${size} ${size}" style="width:100%;max-width:${size}px;display:block;margin:0 auto">${rings}${axes}${data}${labels}${ringLabels}</svg>`;
+}
+
+/* ── Groeidiagram: niveauverloop per leerdoel over tijd (lijngrafiek) ── */
+function buildGrowthChart(goals,width=560,height=240){
+  const withHist=(goals||[]).filter(g=>(g.history||[]).length);
+  if(withHist.length<1)return'';
+  const dateSet=new Set();
+  withHist.forEach(g=>g.history.forEach(h=>dateSet.add(h.date)));
+  const dates=[...dateSet].sort();
+  if(!dates.length)return'';
+  const pad={l:32,r:14,t:14,b:24};
+  const w=width-pad.l-pad.r, h=height-pad.t-pad.b;
+  const xFor=i=>pad.l+(dates.length>1?(i/(dates.length-1))*w:w/2);
+  const yFor=lv=>pad.t+h-(lv/100*h);
+  let grid='';
+  [0,25,50,75,100].forEach(v=>{
+    const y=yFor(v);
+    grid+=`<line x1="${pad.l}" y1="${y.toFixed(1)}" x2="${pad.l+w}" y2="${y.toFixed(1)}" stroke="#eef0f4" stroke-width="1"/>`;
+    grid+=`<text x="${pad.l-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="8" fill="#9ca3af" font-family="system-ui,sans-serif">${v}</text>`;
+  });
+  let xlabels='';
+  dates.forEach((d,i)=>{
+    if(i===0||i===dates.length-1||(dates.length<=4))
+      xlabels+=`<text x="${xFor(i).toFixed(1)}" y="${height-6}" text-anchor="middle" font-size="8" fill="#9ca3af" font-family="system-ui,sans-serif">${d.slice(5)}</text>`;
+  });
+  let lines='', legend='';
+  withHist.forEach(g=>{
+    const lc=lvlColor(g.level||1);
+    const dateLevel={};
+    g.history.forEach(hh=>{dateLevel[hh.date]=hh.newLevel;});
+    let curLvl=g.history[0].oldLevel;
+    const series=dates.map((d,i)=>{
+      if(dateLevel[d]!==undefined)curLvl=dateLevel[d];
+      return{x:xFor(i),y:yFor(curLvl)};
+    });
+    const path=series.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+    lines+=`<path d="${path}" fill="none" stroke="${lc}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    series.forEach(p=>{lines+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${lc}" stroke="#fff" stroke-width="1"/>`;});
+    const name=g.name.length>18?g.name.slice(0,17)+'…':g.name;
+    legend+=`<div style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:${lc};display:inline-block;flex-shrink:0"></span><span style="font-size:10px;color:#374151">${name.replace(/</g,'&lt;')}</span></div>`;
+  });
+  return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;max-width:${width}px;display:block;margin:0 auto">${grid}${lines}${xlabels}</svg>
+  <div style="display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:10px">${legend}</div>`;
 }
 
 /* ══════════════════════════════════════════════════════════
