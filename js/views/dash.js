@@ -1,7 +1,7 @@
 /* ── DASHBOARD ──────────────────────────────────────────── */
 function mkTaskCard(t,today,archived=false){
   const pct=taskPct(t), done=taskDoneCount(t), tot=taskTotalCount(t);
-  const lbl=t.name||(t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,40);
+  const lbl=esc(t.name||(t.input?.goal||t.input?.promptGoal||'Opdracht').slice(0,40));
   const typeKey=t.type==='ai-checklist'?'checklist':t.type==='prompt'?'prompt':t.type==='file-ai'?'upload':'edit';
   const date=new Date(t.createdAt).toLocaleDateString('nl-NL',{day:'2-digit',month:'short'});
   const dlColor=t.deadline&&t.deadline<today?'text-red-500 font-bold':'text-gray-400';

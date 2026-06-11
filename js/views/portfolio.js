@@ -106,7 +106,7 @@ function vPortfolio(){
     return `<div class="card p-4 hover:shadow-md transition-shadow cursor-pointer group" onclick="S.gid='${g.id}';nav('goal-detail')">
       <div class="flex items-start justify-between gap-2 mb-3">
         <div class="flex-1 min-w-0">
-          <div class="font-bold text-sm truncate">${g.name}</div>
+          <div class="font-bold text-sm truncate">${esc(g.name)}</div>
           <div class="flex items-center gap-2 mt-1">
             <span class="text-xs px-2 py-0.5 rounded-full text-white font-semibold" style="background:${lc}">${lvlLabel(g.level||1)}</span>
             <span class="text-xs text-gray-400">${g.category}</span>
@@ -310,9 +310,9 @@ ${(()=>{
             return `<div class="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
             <span class="text-sm flex-shrink-0 mt-0.5">${aic}</span>
             <div class="flex-1 min-w-0">
-              <div class="font-semibold text-xs">${a.title}</div>
-              ${a.url?`<a href="${a.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline mt-0.5 block truncate">${a.url}</a>`:''}
-              ${a.body?`<div class="text-xs text-gray-500 mt-0.5">${a.body.slice(0,120)}${a.body.length>120?'...':''}</div>`:''}
+              <div class="font-semibold text-xs">${esc(a.title)}</div>
+              ${a.url?`<a href="${esc(a.url)}" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline mt-0.5 block truncate">${esc(a.url)}</a>`:''}
+              ${a.body?`<div class="text-xs text-gray-500 mt-0.5">${esc(a.body.slice(0,120))}${a.body.length>120?'...':''}</div>`:''}
             </div>
             <button onclick="removeAttachment(${i})" class="text-gray-300 hover:text-red-400 font-bold text-sm flex-shrink-0">✕</button>
           </div>`;}).join('')}
@@ -535,16 +535,18 @@ Wacht NIET op antwoord — stel de vragen, maar geef ook alvast een voorlopige i
 STAP 2 — DEFINITIEVE BEOORDELING (pas geven nadat ik de vragen beantwoord heb, of als voorlopige inschatting als ik dat aangeef):
 Geef voor ELK leerdoel hieronder aan hoeveel ik gegroeid ben, gebaseerd op concreet bewijs uit mijn werk en mijn antwoorden. Beoordeel volgens een STRENG HBO-niveau (hoger beroepsonderwijs) — vergelijkbaar met een toetsende docent die een portfolio nakijkt. Ken alleen groei toe als er echt bewijs voor is, en wees streng: een hoge score moet verdiend zijn.
 
+BETEKENIS VAN DE NIVEAUS (1-100): 1-20 = starter (nog geen zelfstandige toepassing), 21-40 = beginner (basiskennis, werkt met veel begeleiding), 41-60 = gemiddeld (past zelfstandig toe in bekende situaties), 61-80 = gevorderd (zelfstandig, onderbouwd, ook in nieuwe situaties), 81-100 = expert (HBO-eindniveau overstijgend, kan anderen begeleiden). Houd hier rekening mee: iemand op niveau 70 laten groeien vergt veel sterker bewijs dan iemand op niveau 25.
+
 HANTEER DEZE HBO-BEOORDELINGSCRITERIA om de DELTA (groei in punten) per leerdoel te bepalen:
 - 0 punten — Geen aantoonbaar bewijs van groei, of het werk is puur beschrijvend zonder reflectie of eigen inbreng.
 - 1-3 punten — Beginnend niveau: er is werk geleverd, maar het blijft oppervlakkig, weinig onderbouwd of nauwelijks gekoppeld aan het leerdoel. Reflectie ontbreekt of is zeer beperkt.
 - 4-7 punten — Basisniveau: het werk toont begrip en correcte toepassing van basisvaardigheden/kennis, met enige reflectie op eigen handelen, maar mist diepgang, kritische analyse of onderbouwde keuzes.
 - 8-12 punten — Gevorderd niveau: het werk toont zelfstandige, onderbouwde toepassing met duidelijke keuzes en argumentatie, kritische reflectie op het eigen leerproces (wat ging goed/fout, waarom, en wat zou je anders doen), en concrete koppeling tussen werk en leerdoel.
 - 13-18 punten — HBO-eindniveau: het werk toont een complexe, zelfstandige aanpak met expliciete afweging van alternatieven, diepgaande kritische reflectie, transfer naar andere situaties/contexten, en aantoonbare ontwikkeling ten opzichte van eerdere niveaus.
-- 19-25 punten — Uitzonderlijk: alleen toekennen bij overtuigend bewijs van een sprong in zelfstandigheid, kwaliteit én reflectie, met expliciete onderbouwing waarom dit een grote groei rechtvaardigt. Dit is uitzondering, geen regel.
+- 19-35 punten — Uitzonderlijk: alleen toekennen bij overtuigend bewijs van een sprong in zelfstandigheid, kwaliteit én reflectie, met expliciete onderbouwing waarom dit een grote groei rechtvaardigt. Dit is uitzondering, geen regel.
 
 Belangrijke richtlijnen bij het toepassen van deze criteria:
-- Ken NOOIT meer dan 25 punten per keer toe, ook niet bij uitzonderlijk werk.
+- Ken NOOIT meer dan 35 punten per keer toe, ook niet bij uitzonderlijk werk.
 - Bij twijfel tussen twee niveaus: kies ALTIJD het lagere niveau (streng beoordelen).
 - Een DELTA kan ook negatief zijn (bijv. als blijkt dat een eerder toegekend niveau niet houdbaar is op basis van het werk) of 0 (geen aantoonbare groei).
 - Onderbouw in REDEN expliciet op welk criterium-niveau (uit de lijst hierboven) je de score baseert en waarom, met verwijzing naar concreet bewijs uit het werk.

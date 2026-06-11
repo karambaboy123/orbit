@@ -11,7 +11,7 @@ function vGoalDetail(){
     <div class="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
       <span class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0 mt-0.5" style="background:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</span>
       <div class="flex-1 min-w-0">
-        <div class="text-xs text-gray-700">${h.reason}</div>
+        <div class="text-xs text-gray-700">${esc(h.reason)}</div>
         <div class="text-xs text-gray-400 mt-0.5">${h.oldLevel} → ${h.newLevel} · ${h.date}</div>
       </div>
       <button onclick="undoHistory('${g.id}',${(g.history||[]).length-1-i})" class="text-gray-300 hover:text-red-400 text-xs font-bold flex-shrink-0" title="Ongedaan maken">↩</button>
@@ -131,9 +131,9 @@ function vGoalDetail(){
             return `<div class="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
             <span class="text-sm flex-shrink-0 mt-0.5">${wic}</span>
             <div class="flex-1 min-w-0">
-              <div class="font-semibold text-xs">${w.title}</div>
-              ${wtype==='link'&&w.url?`<a href="${w.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline mt-0.5 block truncate">${w.url}</a>`:''}
-              ${w.body?`<div class="text-xs text-gray-500 mt-0.5">${w.body.slice(0,100)}${w.body.length>100?'...':''}</div>`:''}
+              <div class="font-semibold text-xs">${esc(w.title)}</div>
+              ${wtype==='link'&&w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline mt-0.5 block truncate">${esc(w.url)}</a>`:''}
+              ${w.body?`<div class="text-xs text-gray-500 mt-0.5">${esc(w.body.slice(0,100))}${w.body.length>100?'...':''}</div>`:''}
             </div>
             <button onclick="removeWerkItem('${g.id}',${i})" class="text-gray-300 hover:text-red-400 font-bold text-sm flex-shrink-0">✕</button>
           </div>`;}).join('')}

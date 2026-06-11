@@ -23,13 +23,13 @@ function vNotes(){
   const cur=S.nid?S.notes.find(x=>x.id===S.nid):null;
 
   const noteList=notes.map(n=>{
-    const preview=n.body.slice(0,80).replace(/\n/g,' ');
+    const preview=esc(n.body.slice(0,80).replace(/\n/g,' '));
     const rel=relTime(n.updatedAt);
     return `<div class="p-3 rounded-lg cursor-pointer border transition-all ${n.id===S.nid?'bg-indigo-50 border-indigo-300':'bg-white border-gray-200 hover:border-indigo-200'}"
       onclick="S.nid='${n.id}';render()">
       <div class="flex items-center gap-1.5 mb-1">
         ${n.pinned?'<span class="text-yellow-400 text-xs">📌</span>':''}
-        <div class="font-semibold text-sm truncate flex-1">${n.title||'Naamloos'}</div>
+        <div class="font-semibold text-sm truncate flex-1">${esc(n.title)||'Naamloos'}</div>
       </div>
       ${preview?`<div class="text-xs text-gray-400 truncate">${preview}</div>`:''}
       <div class="flex items-center justify-between mt-1">
@@ -120,13 +120,13 @@ function _renderNoteList(){
   if(!container){render();return;}
   const notes=filteredNotes();
   container.innerHTML=notes.map(n=>{
-    const preview=n.body.slice(0,80).replace(/\n/g,' ');
+    const preview=esc(n.body.slice(0,80).replace(/\n/g,' '));
     const rel=relTime(n.updatedAt);
     return`<div class="p-3 rounded-lg cursor-pointer border transition-all ${n.id===S.nid?'bg-indigo-50 border-indigo-300':'bg-white border-gray-200 hover:border-indigo-200'}"
       onclick="S.nid='${n.id}';render()">
       <div class="flex items-center gap-1.5 mb-1">
         ${n.pinned?'<span class="text-yellow-400 text-xs">📌</span>':''}
-        <div class="font-semibold text-sm truncate flex-1">${n.title||'Naamloos'}</div>
+        <div class="font-semibold text-sm truncate flex-1">${esc(n.title)||'Naamloos'}</div>
       </div>
       ${preview?`<div class="text-xs text-gray-400 truncate">${preview}</div>`:''}
       <div class="flex items-center justify-between mt-1">

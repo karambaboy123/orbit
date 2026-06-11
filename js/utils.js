@@ -34,6 +34,9 @@ function toggleSidebar(){
 let _tt;
 function toast(m,d=2800){const e=document.getElementById('toast');e.textContent=m;e.style.display='block';clearTimeout(_tt);_tt=setTimeout(()=>e.style.display='none',d);}
 
+/* ── HTML ESCAPING ──────────────────────────────────────── */
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 /* ── COPY / DOWNLOAD ────────────────────────────────────── */
 function getPromptForUse(p){return p?.trim()?`Verbeter eerst deze prompt en maak hem zo goed en volledig mogelijk, voer hem daarna pas uit:\n\n---\n\n${p.trim()}`:''}
 function copyText(t,lbl='Gekopieerd!'){if(!t?.trim()){toast('⚠️ Niets te kopiëren');return;}navigator.clipboard?.writeText(t).then(()=>toast('✅ '+lbl)).catch(()=>fbCopy(t,lbl))||fbCopy(t,lbl);}
@@ -193,10 +196,10 @@ function exportPortfolioPDF(){
 
 /* Render een 'mijn werk'/bijlage-item (tekst, link of verslag) als nette kaart */
 function renderWerkItem(w){
-  const title=(w.title||'Werk').replace(/</g,'&lt;');
-  const body=(w.body||'').replace(/</g,'&lt;');
+  const title=esc(w.title||'Werk');
+  const body=esc(w.body||'');
   if(w.type==='link'&&w.url){
-    const url=w.url.replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    const url=esc(w.url);
     return `<div class="link-card">
       <div class="link-card-ic">${ic('link',16)}</div>
       <div class="link-card-body">
@@ -306,15 +309,15 @@ function generatePortfolioPDF(){
         <div class="goal-head">
           ${ringBadge(g.level||1,lc)}
           <div style="flex:1;min-width:0">
-            <div class="goal-name">${g.name}</div>
-            ${g.desc?`<div class="goal-desc">${g.desc}</div>`:''}
+            <div class="goal-name">${esc(g.name)}</div>
+            ${g.desc?`<div class="goal-desc">${esc(g.desc)}</div>`:''}
             <div class="goal-bar"><div class="goal-bar-fill" style="width:${g.level||1}%;background:${lc}"></div></div>
             ${tot>0?`<div class="goal-meta">${done}/${tot} mijlpalen afgerond</div>`:''}
           </div>
           <div class="goal-tag" style="background:${lc}1a;color:${lc}">${lvlLabel(g.level||1)}</div>
         </div>
-        ${g.notes?`<div class="goal-section-lbl">${ic('thought',13)} Reflectie</div><div class="goal-text">${g.notes.replace(/</g,'&lt;')}</div>`:''}
-        ${hist.length?`<div class="goal-section-lbl">${ic('growth',13)} Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${h.reason.replace(/</g,'&lt;')} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
+        ${g.notes?`<div class="goal-section-lbl">${ic('thought',13)} Reflectie</div><div class="goal-text">${esc(g.notes)}</div>`:''}
+        ${hist.length?`<div class="goal-section-lbl">${ic('growth',13)} Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${esc(h.reason)} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
         ${(g.werkItems&&g.werkItems.length)?`<div class="goal-section-lbl">${ic('briefcase',13)} Mijn werk</div><div class="werk-grid">${g.werkItems.map(w=>renderWerkItem(w)).join('')}</div>`:''}
       </div>`;
     });

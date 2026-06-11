@@ -38,7 +38,7 @@ function vReview(){
 
   const taskRow=(t,emoji='')=>{
     const pct=taskPct(t);
-    const lbl=t.name||(t.input?.goal||'Opdracht').slice(0,45);
+    const lbl=esc(t.name||(t.input?.goal||'Opdracht').slice(0,45));
     return `<div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-0">
       <span class="text-sm">${emoji||'📋'}</span>
       <span class="flex-1 text-sm truncate ${pct===100?'text-emerald-600 font-medium':''}">${lbl}</span>
@@ -87,7 +87,7 @@ function vReview(){
         ${goalProgress.length?`<div class="card p-4">
           <div class="font-semibold text-sm mb-3 flex items-center gap-2"><span>🎯</span> Leerdoelen in uitvoering</div>
           ${goalProgress.slice(0,4).map(g=>`<div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-0">
-            <span class="flex-1 text-sm truncate">${g.name}</span>
+            <span class="flex-1 text-sm truncate">${esc(g.name)}</span>
             <div class="pbar" style="width:60px"><div class="pfill" style="width:${goalPct(g)}%"></div></div>
             <span class="text-xs font-bold text-indigo-500">${goalPct(g)}%</span>
           </div>`).join('')}
