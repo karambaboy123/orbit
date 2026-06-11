@@ -80,6 +80,7 @@ const ICONS={
   pencil:    {em:'✏️', lu:'pencil',          ma:'edit',            ph:'pencil-simple'},
   import:    {em:'📥', lu:'log-in',          ma:'login',           ph:'sign-in'},
   compass:   {em:'🧭', lu:'compass',         ma:'explore',         ph:'compass'},
+  play:      {em:'▶️', lu:'play',            ma:'play_arrow',      ph:'play'},
   // ── Formulier-labels ──
   palette:   {em:'🎨', lu:'palette',         ma:'palette',         ph:'palette'},
   clipboard: {em:'📋', lu:'clipboard-list',  ma:'assignment',      ph:'clipboard-text'},

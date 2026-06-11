@@ -43,6 +43,9 @@ function vHome(){
         <button class="btn bs px-7 py-2.5 font-semibold text-sm" onclick="nav('prompt-gen')">
           ${ic('prompt',15)} Prompt genereren
         </button>
+        <button class="btn bs px-7 py-2.5 font-semibold text-sm" onclick="openIntroVideo()">
+          ${ic('play',15)} Bekijk de intro
+        </button>
       </div>
     </div>
 
@@ -73,3 +76,24 @@ function vHome(){
     </div>
   </div>`;
 }
+
+/* ── Intro-video overlay ─────────────────────────────────── */
+function openIntroVideo(){
+  if(document.getElementById('intro-overlay'))return;
+  const ov=document.createElement('div');
+  ov.id='intro-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;background:#0c0a1d;display:flex;flex-direction:column';
+  ov.innerHTML=`
+    <button onclick="closeIntroVideo()" title="Sluiten"
+      style="position:absolute;top:14px;right:16px;z-index:10;width:40px;height:40px;border-radius:50%;
+      background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:18px;
+      cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    <iframe src="orbit-intro.html" style="flex:1;width:100%;border:none" title="Orbit introductie"></iframe>`;
+  document.body.appendChild(ov);
+  document.addEventListener('keydown',_introEscClose);
+}
+function closeIntroVideo(){
+  document.getElementById('intro-overlay')?.remove();
+  document.removeEventListener('keydown',_introEscClose);
+}
+function _introEscClose(e){if(e.key==='Escape')closeIntroVideo();}
