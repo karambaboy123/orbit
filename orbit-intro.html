@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Orbit — Introductie</title>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#0c0a1d;font-family:'Segoe UI',system-ui,sans-serif;color:#fff}
+
+  .bg-orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.35;pointer-events:none;animation:drift 18s ease-in-out infinite alternate}
+  .orb1{width:520px;height:520px;background:#4f46e5;top:-160px;left:-120px}
+  .orb2{width:420px;height:420px;background:#7c3aed;bottom:-140px;right:-100px;animation-delay:-9s}
+  @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(60px,40px) scale(1.15)}}
+
+  .scene{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    opacity:0;pointer-events:none;transition:opacity .7s ease;padding:24px}
+  .scene.on{opacity:1;pointer-events:auto}
+
+  .rise{opacity:0;transform:translateY(26px);transition:all .8s cubic-bezier(.2,.7,.3,1)}
+  .on .rise{opacity:1;transform:translateY(0)}
+  .on .d1{transition-delay:.15s}.on .d2{transition-delay:.35s}.on .d3{transition-delay:.55s}
+  .on .d4{transition-delay:.75s}.on .d5{transition-delay:.95s}.on .d6{transition-delay:1.15s}
+
+  .logo-wrap{margin-bottom:22px}
+  .logo-wrap svg.orbitlogo{filter:drop-shadow(0 0 26px rgba(129,140,248,.55));animation:spinSlow 16s linear infinite}
+  @keyframes spinSlow{to{transform:rotate(360deg)}}
+
+  h1{font-size:64px;font-weight:800;letter-spacing:.02em}
+  .eyebrow{font-size:13px;letter-spacing:.32em;color:#a5b4fc;font-weight:700;margin-bottom:14px}
+  .tagline{font-size:20px;color:#c7d2fe;margin-top:12px;font-weight:300}
+
+  h2{font-size:34px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:12px;justify-content:center}
+  h2 svg{width:30px;height:30px;color:#a5b4fc}
+  .sub{font-size:16px;color:#c7d2fe;max-width:580px;line-height:1.6;font-weight:300}
+
+  .mock{margin-top:30px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:18px;
+    padding:20px 24px;width:min(540px,92vw);backdrop-filter:blur(6px);text-align:left}
+  .mock-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;background:rgba(255,255,255,.05);margin-top:9px}
+  .mock-row:first-child{margin-top:0}
+  .chip{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .chip svg{width:17px;height:17px;color:#fff}
+  .mock-title{font-size:14px;font-weight:700}
+  .mock-sub{font-size:12px;color:#a5b4fc;margin-top:1px}
+  .pct{margin-left:auto;font-weight:800;font-size:15px}
+
+  .bar-track{height:7px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}
+  .bar-fill{height:100%;border-radius:4px;width:0;transition:width 1.4s cubic-bezier(.2,.7,.3,1)}
+  .on .bar-fill{width:var(--w)}
+
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 13px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em}
+
+  svg.growth{width:100%;display:block;margin-top:4px}
+  .gline{stroke-dasharray:600;stroke-dashoffset:600;transition:stroke-dashoffset 2.2s ease .4s}
+  .on .gline{stroke-dashoffset:0}
+
+  .theme-dots{display:flex;gap:10px}
+  .tdot{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.3)}
+
+  .check{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;flex-shrink:0}
+  .check svg{width:12px;height:12px}
+
+  .cta{margin-top:30px;display:inline-flex;align-items:center;gap:8px;background:#4f46e5;color:#fff;font-weight:700;font-size:17px;
+    padding:14px 36px;border-radius:14px;text-decoration:none;box-shadow:0 8px 30px rgba(79,70,229,.5)}
+  .cta svg{width:18px;height:18px}
+  .url{margin-top:16px;font-size:14px;color:#a5b4fc;letter-spacing:.03em}
+
+  .progress{position:fixed;top:0;left:0;height:4px;background:#818cf8;width:0;z-index:50;transition:width .3s linear}
+  .controls{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:50}
+  .controls button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;width:42px;height:42px;
+    border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .controls button svg{width:17px;height:17px}
+  .controls button:hover{background:rgba(255,255,255,.22)}
+  .dots{position:fixed;bottom:34px;right:28px;display:flex;gap:7px;z-index:50}
+  .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25)}
+  .dot.live{background:#818cf8}
+</style>
+</head>
+<body>
+
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="progress" id="prog"></div>
+
+<!-- Scene 1: intro -->
+<section class="scene" data-dur="5000">
+  <div class="logo-wrap rise d1">
+    <svg class="orbitlogo" viewBox="0 0 100 100" width="120" height="120">
+      <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="#a5b4fc" stroke-width="3.8" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="31" fill="none" stroke="#e0e7ff" stroke-width="10.5"/>
+      <path d="M 88 23 A 47 13 -35 0 1 12 77" fill="none" stroke="#a5b4fc" stroke-width="3.8" stroke-linecap="round"/>
+      <circle cx="12" cy="77" r="8" fill="#818cf8"/>
+      <circle cx="88" cy="23" r="5" fill="#818cf8"/>
+    </svg>
+  </div>
+  <div class="eyebrow rise d2">AI WORKFLOW TOOL VOOR STUDENTEN</div>
+  <h1 class="rise d3">Orbit</h1>
+  <div class="tagline rise d4">Minder nadenken. Meer bouwen.</div>
+</section>
+
+<!-- Scene 2: het probleem -->
+<section class="scene" data-dur="5500">
+  <h2 class="rise d1"><i data-lucide="graduation-cap"></i>Portfolio maken = stress?</h2>
+  <p class="sub rise d2">Leerdoelen bijhouden, reflecties schrijven, bewijs verzamelen, alles netjes inleveren...<br><strong style="color:#fff">Orbit doet het zware werk voor je.</strong></p>
+  <div class="mock rise d3">
+    <div class="mock-row"><span class="check" style="background:rgba(52,211,153,.25);color:#34d399"><i data-lucide="check"></i></span><div class="mock-title">Leerdoelen &amp; groei automatisch bijgehouden</div></div>
+    <div class="mock-row rise d4"><span class="check" style="background:rgba(52,211,153,.25);color:#34d399"><i data-lucide="check"></i></span><div class="mock-title">AI beoordeelt je werk op HBO-niveau</div></div>
+    <div class="mock-row rise d5"><span class="check" style="background:rgba(52,211,153,.25);color:#34d399"><i data-lucide="check"></i></span><div class="mock-title">Professionele PDF met één klik</div></div>
+  </div>
+</section>
+
+<!-- Scene 2b: automatische checklists -->
+<section class="scene" data-dur="6500">
+  <h2 class="rise d1"><i data-lucide="list-checks"></i>Plak je opdracht, krijg een plan</h2>
+  <p class="sub rise d2">Orbit splitst elke opdracht automatisch op in subopdrachten en een afvinkbare checklist — ook van een ChatGPT-antwoord.</p>
+  <div class="mock rise d3">
+    <div class="mock-row"><div class="chip" style="background:#4f46e5"><i data-lucide="pencil"></i></div><div><div class="mock-title">"Schrijf een stageverslag"</div><div class="mock-sub">Geanalyseerd → 5 stappen gegenereerd</div></div><div class="pct" style="color:#34d399">60%</div></div>
+    <div class="mock-row rise d4"><span class="check" style="background:rgba(52,211,153,.25);color:#34d399"><i data-lucide="check"></i></span><div class="mock-title" style="text-decoration:line-through;opacity:.55">Bedrijf en werkzaamheden beschrijven</div></div>
+    <div class="mock-row rise d5"><span class="check" style="background:rgba(52,211,153,.25);color:#34d399"><i data-lucide="check"></i></span><div class="mock-title" style="text-decoration:line-through;opacity:.55">STARR-reflectie schrijven</div></div>
+    <div class="mock-row rise d6"><span class="check" style="background:rgba(255,255,255,.12);color:transparent"><i data-lucide="check"></i></span><div class="mock-title">Feedback verwerken &amp; afronden</div></div>
+  </div>
+</section>
+
+<!-- Scene 3: leerdoelen -->
+<section class="scene" data-dur="6500">
+  <h2 class="rise d1"><i data-lucide="target"></i>Jouw leerdoelen, jouw groei</h2>
+  <p class="sub rise d2">Stel doelen in die jij belangrijk vindt en zie je niveau stijgen door het jaar heen.</p>
+  <div class="mock rise d3">
+    <div class="mock-row" style="display:block">
+      <div style="display:flex;justify-content:space-between"><span class="mock-title">Presenteren</span><span class="pct" style="color:#34d399">68</span></div>
+      <div class="bar-track"><div class="bar-fill" style="--w:68%;background:#34d399"></div></div>
+    </div>
+    <div class="mock-row rise d4" style="display:block">
+      <div style="display:flex;justify-content:space-between"><span class="mock-title">Onderzoek doen</span><span class="pct" style="color:#fbbf24">45</span></div>
+      <div class="bar-track"><div class="bar-fill" style="--w:45%;background:#fbbf24"></div></div>
+    </div>
+    <div class="mock-row rise d5" style="display:block">
+      <div style="display:flex;justify-content:space-between"><span class="mock-title">Samenwerken</span><span class="pct" style="color:#818cf8">81</span></div>
+      <div class="bar-track"><div class="bar-fill" style="--w:81%;background:#818cf8"></div></div>
+    </div>
+    <div class="mock-row rise d6"><div class="chip" style="background:#059669"><i data-lucide="briefcase"></i></div><div><div class="mock-title">Koppel je bewijs</div><div class="mock-sub">Stageverslag, presentatie-link, projectwebsite — alles bij je doel</div></div></div>
+  </div>
+</section>
+
+<!-- Scene 4: groei analyseren -->
+<section class="scene" data-dur="6500">
+  <h2 class="rise d1"><i data-lucide="microscope"></i>AI beoordeelt je groei</h2>
+  <p class="sub rise d2">Plak je verslag in de AI en krijg een eerlijke, kritische beoordeling op streng HBO-niveau — met punten en onderbouwing per leerdoel.</p>
+  <div class="mock rise d3">
+    <div class="mock-row"><div class="chip" style="background:#059669"><i data-lucide="microscope"></i></div><div><div class="mock-title">Onderzoek doen</div><div class="mock-sub">"Duidelijke onderzoeksvraag en kritische reflectie op je methode"</div></div><span class="badge" style="background:rgba(52,211,153,.2);color:#34d399;margin-left:auto">+8 punten</span></div>
+    <div class="mock-row rise d4"><div class="chip" style="background:#dc2626"><i data-lucide="microscope"></i></div><div><div class="mock-title">Presenteren</div><div class="mock-sub">"Te weinig bewijs in dit verslag — vertel meer over je aanpak"</div></div><span class="badge" style="background:rgba(248,113,113,.2);color:#f87171;margin-left:auto">+0 punten</span></div>
+    <div class="mock-row rise d5"><div class="chip" style="background:#4f46e5"><i data-lucide="compass"></i></div><div><div class="mock-title">Nieuwe doelen ontdekken</div><div class="mock-sub">Weet je niet wat je wilt leren? AI stelt vragen en doet voorstellen</div></div></div>
+  </div>
+</section>
+
+<!-- Scene 5: PDF -->
+<section class="scene" data-dur="6500">
+  <h2 class="rise d1"><i data-lucide="file-text"></i>Inleveren? Eén klik.</h2>
+  <p class="sub rise d2">Exporteer een professioneel portfolio: voorpagina met jouw naam, vaardighedenradar, groeidiagram en al je bewijs als nette kaarten.</p>
+  <div class="mock rise d3" style="display:flex;gap:16px;align-items:stretch">
+    <div style="flex-shrink:0;width:120px;border-radius:10px;overflow:hidden;background:#fff;display:flex;flex-direction:column">
+      <div style="flex:1;background:linear-gradient(135deg,#4f46e5,#1e1b4b);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center">
+        <svg viewBox="0 0 100 100" width="26" height="26" style="margin-bottom:5px">
+          <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="50" cy="50" r="31" fill="none" stroke="#fff" stroke-width="10.5"/>
+          <circle cx="12" cy="77" r="8" fill="#fff"/>
+        </svg>
+        <div style="font-size:11px;font-weight:800;color:#fff">Portfolio</div>
+        <div style="font-size:7px;color:rgba(255,255,255,.75);margin-top:2px;letter-spacing:.08em">KARAM RIHMANI</div>
+      </div>
+      <div style="padding:6px 8px">
+        <div style="height:3px;border-radius:2px;background:#e0e7ff;margin-bottom:3px"></div>
+        <div style="height:3px;border-radius:2px;background:#e0e7ff;width:70%"></div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0">
+    <div class="mock-title" style="margin-bottom:6px;display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:15px;height:15px;color:#a5b4fc"></i>Jouw groei dit jaar</div>
+    <svg class="growth" viewBox="0 0 460 130">
+      <line x1="30" y1="10" x2="30" y2="110" stroke="rgba(255,255,255,.15)"/>
+      <line x1="30" y1="110" x2="445" y2="110" stroke="rgba(255,255,255,.15)"/>
+      <text x="22" y="16" fill="#a5b4fc" font-size="9" text-anchor="end">100</text>
+      <text x="22" y="112" fill="#a5b4fc" font-size="9" text-anchor="end">0</text>
+      <polyline class="gline" points="30,90 165,72 300,50 435,28" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline class="gline" points="30,100 165,92 300,78 435,58" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div style="display:flex;gap:18px;margin-top:8px">
+      <span class="mock-sub"><span style="display:inline-block;width:16px;height:3px;background:#34d399;border-radius:2px;vertical-align:middle;margin-right:5px"></span>Presenteren</span>
+      <span class="mock-sub"><span style="display:inline-block;width:16px;height:3px;background:#fbbf24;border-radius:2px;vertical-align:middle;margin-right:5px"></span>Onderzoek doen</span>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- Scene 6: opdrachten & AI tools -->
+<section class="scene" data-dur="6500">
+  <h2 class="rise d1"><i data-lucide="zap"></i>En al je opdrachten erbij</h2>
+  <p class="sub rise d2">Orbit is meer dan portfolio — het is je hele studieworkflow op één plek.</p>
+  <div class="mock rise d3">
+    <div class="mock-row"><div class="chip" style="background:#0ea5e9"><i data-lucide="upload"></i></div><div><div class="mock-title">Bestand → AI</div><div class="mock-sub">Upload je briefing en analyseer met presets</div></div></div>
+    <div class="mock-row rise d4"><div class="chip" style="background:#f59e0b"><i data-lucide="zap"></i></div><div><div class="mock-title">Prompt Genereren</div><div class="mock-sub">Van vaag idee naar professionele AI-prompt</div></div></div>
+    <div class="mock-row rise d5"><div class="chip" style="background:#7c3aed"><i data-lucide="inbox"></i></div><div><div class="mock-title">AI → Checklist</div><div class="mock-sub">Plak een ChatGPT-antwoord, krijg een afvinkbare lijst</div></div></div>
+    <div class="mock-row rise d6"><div class="chip" style="background:#2563eb"><i data-lucide="bar-chart-2"></i></div><div><div class="mock-title">Weekreview</div><div class="mock-sub">Reflecteer wekelijks + AI genereert je weekplanning</div></div></div>
+  </div>
+</section>
+
+<!-- Scene 7: instellingen -->
+<section class="scene" data-dur="6500">
+  <h2 class="rise d1"><i data-lucide="settings"></i>Maak het van jou</h2>
+  <p class="sub rise d2">Kies je thema, kleuren, lettertype en icoonstijl — en maak met één klik een backup van al je data.</p>
+  <div class="mock rise d3">
+    <div class="mock-row"><div class="chip" style="background:#ec4899"><i data-lucide="palette"></i></div><div><div class="mock-title">Thema's &amp; kleuren</div><div class="mock-sub">Licht, donker, mono of volledig eigen kleuren</div></div>
+      <div class="theme-dots" style="margin-left:auto">
+        <div class="tdot" style="background:#4f46e5"></div>
+        <div class="tdot" style="background:#0c0a1d"></div>
+        <div class="tdot" style="background:#f4f4f5"></div>
+      </div>
+    </div>
+    <div class="mock-row rise d4"><div class="chip" style="background:#7c3aed"><i data-lucide="sparkles"></i></div><div><div class="mock-title">Icoonstijl &amp; lettertype</div><div class="mock-sub">Lucide, Material of Phosphor + 15 Google Fonts</div></div></div>
+    <div class="mock-row rise d5"><div class="chip" style="background:#059669"><i data-lucide="save"></i></div><div><div class="mock-title">Backup &amp; herstel</div><div class="mock-sub">Exporteer/importeer al je data met één klik</div></div></div>
+    <div class="mock-row rise d6"><div class="chip" style="background:#2563eb"><i data-lucide="lock"></i></div><div><div class="mock-title">100% privé</div><div class="mock-sub">Alles blijft lokaal in je browser — geen server, geen account</div></div></div>
+  </div>
+</section>
+
+<!-- Scene 8: outro -->
+<section class="scene" data-dur="7000">
+  <div class="logo-wrap rise d1">
+    <svg class="orbitlogo" viewBox="0 0 100 100" width="90" height="90">
+      <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="#a5b4fc" stroke-width="3.8" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="31" fill="none" stroke="#e0e7ff" stroke-width="10.5"/>
+      <path d="M 88 23 A 47 13 -35 0 1 12 77" fill="none" stroke="#a5b4fc" stroke-width="3.8" stroke-linecap="round"/>
+      <circle cx="12" cy="77" r="8" fill="#818cf8"/>
+      <circle cx="88" cy="23" r="5" fill="#818cf8"/>
+    </svg>
+  </div>
+  <h2 class="rise d2">Gratis. Geen account. Direct beginnen.</h2>
+  <p class="sub rise d3">Werkt in je browser, installeerbaar als app op desktop én mobiel.</p>
+  <a class="cta rise d4" href="https://karambaboy123.github.io/orbit/" target="_blank" rel="noopener"><i data-lucide="rocket"></i>Probeer Orbit</a>
+  <div class="url rise d5">karambaboy123.github.io/orbit</div>
+  <div class="rise d6" style="margin-top:34px;font-size:13px;color:rgba(199,210,254,.6);display:flex;align-items:center;gap:7px">
+    <i data-lucide="sparkles" style="width:14px;height:14px"></i>Gemaakt door: Karam Rihmani &amp; Claude
+  </div>
+</section>
+
+<div class="controls">
+  <button id="prev" title="Vorige"><i data-lucide="skip-back"></i></button>
+  <button id="play" title="Pauzeer"><i data-lucide="pause"></i></button>
+  <button id="next" title="Volgende"><i data-lucide="skip-forward"></i></button>
+</div>
+<div class="dots" id="dots"></div>
+
+<script>
+const scenes=[...document.querySelectorAll('.scene')];
+const dots=document.getElementById('dots');
+scenes.forEach(()=>{const d=document.createElement('div');d.className='dot';dots.appendChild(d);});
+const dotEls=[...dots.children];
+let cur=0,playing=true,elapsed=0,last=null,raf=null;
+const prog=document.getElementById('prog');
+
+function show(i){
+  cur=(i+scenes.length)%scenes.length;
+  scenes.forEach((s,j)=>s.classList.toggle('on',j===cur));
+  dotEls.forEach((d,j)=>d.classList.toggle('live',j===cur));
+  elapsed=0;last=null;
+}
+function tick(){
+  if(playing){
+    const now=performance.now();
+    if(last===null)last=now;
+    elapsed+=now-last;last=now;
+    const dur=+scenes[cur].dataset.dur;
+    prog.style.width=Math.min(100,elapsed/dur*100)+'%';
+    if(elapsed>=dur)show(cur+1);
+  }
+  raf=requestAnimationFrame(tick);
+}
+const playBtn=document.getElementById('play');
+playBtn.onclick=function(){
+  playing=!playing;last=null;
+  this.innerHTML=playing?'<i data-lucide="pause"></i>':'<i data-lucide="play"></i>';
+  lucide.createIcons();
+};
+document.getElementById('next').onclick=()=>show(cur+1);
+document.getElementById('prev').onclick=()=>show(cur-1);
+document.addEventListener('keydown',e=>{
+  if(e.key===' '){e.preventDefault();playBtn.click();}
+  if(e.key==='ArrowRight')show(cur+1);
+  if(e.key==='ArrowLeft')show(cur-1);
+});
+lucide.createIcons();
+show(0);tick();
+</script>
+</body>
+</html>
