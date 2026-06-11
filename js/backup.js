@@ -55,6 +55,7 @@ function _backupGetData(){
     goals:        S.goals,
     notes:        S.notes,
     reviews:      S.reviews,
+    attachments:  S.attachments,
     geminiKey:    S.geminiKey,
     theme:        _baseMode,
     font:         typeof _curFont!=='undefined'?_curFont:null,
@@ -198,6 +199,7 @@ function backupRestore(id){
         if(d.goals)    {S.goals    =d.goals;    localStorage.setItem('pb_goals',    JSON.stringify(d.goals));}
         if(d.notes)    {S.notes    =d.notes;    localStorage.setItem('pb_notes',    JSON.stringify(d.notes));}
         if(d.reviews)  {S.reviews  =d.reviews;  localStorage.setItem('pb_reviews',  JSON.stringify(d.reviews));}
+        if(d.attachments){S.attachments=d.attachments;localStorage.setItem('pb_attachments',JSON.stringify(d.attachments));}
         if(d.colorPresets){localStorage.setItem('pb_color_presets',JSON.stringify(d.colorPresets));}
         if(d.customColors!==undefined&&d.customColors!==null){localStorage.setItem('pb_custom_colors',JSON.stringify(d.customColors));if(typeof _customColors!=='undefined')window._customColors=d.customColors;}
         if(d.theme&&typeof applyTheme==='function')applyTheme(d.theme);

@@ -112,20 +112,31 @@ function vGoalDetail(){
 
       <!-- Eigen werk toevoegen -->
       <div class="border-t border-gray-100 pt-3 space-y-2">
-        <label class="lbl">Voeg een werk-beschrijving toe</label>
-        <div class="flex gap-2">
+        <label class="lbl">Voeg werk toe — tekst, link of verslag</label>
+        <div class="flex gap-2 flex-wrap">
+          <select id="werk-type" class="inp text-sm" style="max-width:120px" onchange="toggleWerkFields(this.value)">
+            <option value="tekst">📝 Tekst</option>
+            <option value="link">🔗 Link</option>
+            <option value="verslag">📄 Verslag</option>
+          </select>
           <input id="werk-title" class="inp text-sm" style="max-width:200px" placeholder="Naam (bijv. Scriptie H3)">
+          <input id="werk-url" class="inp text-sm flex-1 hidden" placeholder="https://...">
           <input id="werk-body" class="inp text-sm flex-1" placeholder="Korte beschrijving of samenvatting van het werk...">
           <button class="btn bp text-sm flex-shrink-0" onclick="addWerkItem('${g.id}')">➕</button>
         </div>
         ${(g.werkItems||[]).length?`<div class="space-y-1.5 mt-2">
-          ${(g.werkItems||[]).map((w,i)=>`<div class="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+          ${(g.werkItems||[]).map((w,i)=>{
+            const wtype=w.type||'tekst';
+            const wic=wtype==='link'?'🔗':wtype==='verslag'?'📄':'📝';
+            return `<div class="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+            <span class="text-sm flex-shrink-0 mt-0.5">${wic}</span>
             <div class="flex-1 min-w-0">
               <div class="font-semibold text-xs">${w.title}</div>
-              <div class="text-xs text-gray-500 mt-0.5">${w.body.slice(0,100)}${w.body.length>100?'...':''}</div>
+              ${wtype==='link'&&w.url?`<a href="${w.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline mt-0.5 block truncate">${w.url}</a>`:''}
+              ${w.body?`<div class="text-xs text-gray-500 mt-0.5">${w.body.slice(0,100)}${w.body.length>100?'...':''}</div>`:''}
             </div>
             <button onclick="removeWerkItem('${g.id}',${i})" class="text-gray-300 hover:text-red-400 font-bold text-sm flex-shrink-0">✕</button>
-          </div>`).join('')}
+          </div>`;}).join('')}
         </div>`:''}
       </div>
     </div>
@@ -146,13 +157,28 @@ function toggleLinkedTask(gid,tid){
   if(idx>-1)g.linkedTasks.splice(idx,1);else g.linkedTasks.push(tid);
   saveGoals();S.gid=gid;render();
 }
+function toggleWerkFields(type){
+  const urlEl=document.getElementById('werk-url');
+  const bodyEl=document.getElementById('werk-body');
+  if(!urlEl||!bodyEl)return;
+  if(type==='link'){
+    urlEl.classList.remove('hidden');
+    bodyEl.placeholder='Korte omschrijving (optioneel)...';
+  } else {
+    urlEl.classList.add('hidden');
+    bodyEl.placeholder=type==='verslag'?'Samenvatting of inhoud van het verslag...':'Korte beschrijving of samenvatting van het werk...';
+  }
+}
 function addWerkItem(gid){
+  const type=document.getElementById('werk-type')?.value||'tekst';
   const title=document.getElementById('werk-title')?.value?.trim();
+  const url=document.getElementById('werk-url')?.value?.trim();
   const body=document.getElementById('werk-body')?.value?.trim();
-  if(!title&&!body){toast('⚠️ Vul naam of beschrijving in');return;}
+  if(type==='link'&&!url){toast('⚠️ Vul een link (URL) in');return;}
+  if(!title&&!body&&!url){toast('⚠️ Vul naam, link of beschrijving in');return;}
   const g=S.goals.find(x=>x.id===gid);if(!g)return;
   g.werkItems=g.werkItems||[];
-  g.werkItems.push({id:mkId(),title:title||'Werk',body:body||'',date:new Date().toISOString().slice(0,10)});
+  g.werkItems.push({id:mkId(),type,title:title||(type==='link'?'Link':'Werk'),url:url||'',body:body||'',date:new Date().toISOString().slice(0,10)});
   saveGoals();S.gid=gid;render();toast('💼 Werk toegevoegd!');
 }
 function removeWerkItem(gid,i){

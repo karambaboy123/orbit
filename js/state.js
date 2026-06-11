@@ -72,6 +72,7 @@ const S = {
   goals:     _safeJSON('pb_goals',    []),
   notes:     _safeJSON('pb_notes',    []),
   reviews:   _safeJSON('pb_reviews',  []),
+  attachments: _safeJSON('pb_attachments', []),
   tid: null, gid: null, nid: null,
   geminiKey: localStorage.getItem('pb_gemini')||'',
 };
@@ -92,6 +93,7 @@ const saveTemplates=() => { _safeSave('pb_templates',S.templates); if(typeof bac
 const saveGoals   = () => { _safeSave('pb_goals',    S.goals);     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
 const saveNotes   = () => { _safeSave('pb_notes',    S.notes);     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
 const saveReviews = () => { _safeSave('pb_reviews',  S.reviews);   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveAttachments=()=> { _safeSave('pb_attachments',S.attachments); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
 const getTask = () => S.tasks.find(t=>t.id===S.tid)||null;
 const mkId = () => 't'+Date.now()+Math.random().toString(36).slice(2,5);
 

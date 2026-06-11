@@ -87,10 +87,36 @@ function sendTemplateToAI(siteId){
 function toggleAcc(id){const b=document.getElementById('acc-body-'+id);const ic=document.getElementById('acc-ic-'+id);if(!b)return;b.classList.toggle('hidden');if(ic)ic.textContent=b.classList.contains('hidden')?'▼':'▲';}
 
 /* ── PDF EXPORT ─────────────────────────────────────────── */
-function exportPDF(title,html,extraStyle=''){
+function exportPDF(title,html,extraStyle='',useIcons=false){
   const win=window.open('','_blank');
   if(!win){toast('❌ Pop-up geblokkeerd — sta pop-ups toe');return;}
-  win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>${title}</title><style>
+
+  let iconHead='',iconScript='',printDelay=400,autoPrint=true;
+  if(useIcons&&_iconStyle!=='emoji'){
+    if(_iconStyle==='lu'){
+      iconHead=`<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>`;
+      iconScript=`<script>
+        var _printed=false;
+        function _doPrint(){if(_printed)return;_printed=true;window.print();}
+        window.addEventListener('load',function(){
+          try{if(window.lucide)lucide.createIcons();}catch(e){}
+          setTimeout(_doPrint,300);
+        });
+        setTimeout(_doPrint,2500);
+      </script>`;
+      autoPrint=false;
+    } else if(_iconStyle.startsWith('ma')){
+      const fam=_iconStyle==='ma-rnd'?'Rounded':_iconStyle==='ma-shp'?'Sharp':'Outlined';
+      iconHead=`<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+${fam}:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block">`;
+      printDelay=1000;
+    } else if(_iconStyle.startsWith('ph')){
+      iconHead=`<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>`;
+      printDelay=1000;
+    }
+  }
+
+  win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>${title}</title>${iconHead}<style>
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
     body{font-family:'Segoe UI',sans-serif;max-width:800px;margin:40px auto;color:#111;line-height:1.7;padding:0 20px}
     h1{color:#1e1b4b;border-bottom:2px solid #e5e7eb;padding-bottom:10px;margin-bottom:6px}
     h2{color:#1e1b4b;margin-top:24px} h3{color:#374151}
@@ -102,9 +128,9 @@ function exportPDF(title,html,extraStyle=''){
     blockquote{border-left:3px solid #4f46e5;margin:0;padding-left:16px;color:#6b7280}
     @media print{body{margin:20px}}
     ${extraStyle}
-  </style></head><body>${html}</body></html>`);
+  </style></head><body>${html}${iconScript}</body></html>`);
   win.document.close();win.focus();
-  setTimeout(()=>win.print(),400);
+  if(autoPrint)setTimeout(()=>win.print(),printDelay);
 }
 function exportNotePDF(id){
   const n=S.notes.find(x=>x.id===id);if(!n)return;
@@ -165,6 +191,33 @@ function exportPortfolioPDF(){
   document.getElementById('pdf-export-modal').classList.remove('hidden');
 }
 
+/* Render een 'mijn werk'/bijlage-item (tekst, link of verslag) als nette kaart */
+function renderWerkItem(w){
+  const title=(w.title||'Werk').replace(/</g,'&lt;');
+  const body=(w.body||'').replace(/</g,'&lt;');
+  if(w.type==='link'&&w.url){
+    const url=w.url.replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    return `<div class="link-card">
+      <div class="link-card-ic">${ic('link',16)}</div>
+      <div class="link-card-body">
+        <div class="link-card-title">${title}</div>
+        <a class="link-card-url" href="${url}">${url}</a>
+        ${body?`<div class="link-card-desc">${body}</div>`:''}
+      </div>
+    </div>`;
+  }
+  if(w.type==='verslag'||w.type==='doc'){
+    return `<div class="link-card">
+      <div class="link-card-ic">${ic('doc',16)}</div>
+      <div class="link-card-body">
+        <div class="link-card-title">${title}</div>
+        ${body?`<div class="link-card-desc">${body}</div>`:''}
+      </div>
+    </div>`;
+  }
+  return `<div class="timeline-item"><strong>${title}</strong>${body?': '+body:''}</div>`;
+}
+
 /* ── Portfolio PDF: stap 2 — genereer professioneel document ── */
 function generatePortfolioPDF(){
   const personal={
@@ -180,7 +233,7 @@ function generatePortfolioPDF(){
   const accent=color.hex;
   const datum=new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
 
-  const logoSvg=`<svg viewBox="0 0 100 100" width="90" height="90" xmlns="http://www.w3.org/2000/svg" style="color:${accent}">
+  const logoSvg=(clr,w=90)=>`<svg viewBox="0 0 100 100" width="${w}" height="${w}" xmlns="http://www.w3.org/2000/svg" style="color:${clr}">
     <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
     <circle cx="50" cy="50" r="31" fill="none" stroke="currentColor" stroke-width="10.5"/>
     <path d="M 88 23 A 47 13 -35 0 1 12 77" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
@@ -202,7 +255,7 @@ function generatePortfolioPDF(){
     <div class="cover-shape cover-shape-1"></div>
     <div class="cover-shape cover-shape-2"></div>
     <div class="cover-card">
-      <div class="cover-logo">${logoSvg}</div>
+      <div class="cover-logo">${logoSvg('#fff',90)}</div>
       <div class="cover-eyebrow">AI WORKFLOW TOOL · ORBIT</div>
       <h1>Portfolio</h1>
       <div class="cover-sub">Persoonlijk ontwikkelportfolio</div>
@@ -219,7 +272,7 @@ function generatePortfolioPDF(){
   const experts=S.goals.filter(g=>g.level>=80).length;
   const growth=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
   const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
-  html+=`<div class="section-hd"><span class="section-ic">📊</span><h2>Overzicht</h2></div>
+  html+=`<div class="section-hd"><span class="section-ic">${ic('dashboard',18)}</span><h2>Overzicht</h2></div>
   <div class="stats-grid">
     <div class="stat-box"><div class="num">${S.goals.length}</div><div class="lbl">Leerdoelen</div></div>
     <div class="stat-box"><div class="num">${avgLevel}</div><div class="lbl">Gemiddeld niveau</div></div>
@@ -229,7 +282,7 @@ function generatePortfolioPDF(){
 
   /* ── Vaardighedenradar ── */
   if(S.goals.length>=2){
-    html+=`<div class="section-hd"><span class="section-ic">🕸️</span><h2>Vaardighedenradar</h2></div>
+    html+=`<div class="section-hd"><span class="section-ic">${ic('radar',18)}</span><h2>Vaardighedenradar</h2></div>
     <div class="radar-card">${buildRadarChart(S.goals,300)}</div>`;
   }
 
@@ -253,16 +306,22 @@ function generatePortfolioPDF(){
           </div>
           <div class="goal-tag" style="background:${lc}1a;color:${lc}">${lvlLabel(g.level||1)}</div>
         </div>
-        ${g.notes?`<div class="goal-section-lbl">💭 Reflectie</div><div class="goal-text">${g.notes.replace(/</g,'&lt;')}</div>`:''}
-        ${hist.length?`<div class="goal-section-lbl">📈 Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${h.reason.replace(/</g,'&lt;')} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
-        ${(g.werkItems&&g.werkItems.length)?`<div class="goal-section-lbl">💼 Mijn werk</div>${g.werkItems.map(w=>`<div class="timeline-item"><strong>${w.title.replace(/</g,'&lt;')}</strong>${w.body?': '+w.body.replace(/</g,'&lt;'):''}</div>`).join('')}`:''}
+        ${g.notes?`<div class="goal-section-lbl">${ic('thought',13)} Reflectie</div><div class="goal-text">${g.notes.replace(/</g,'&lt;')}</div>`:''}
+        ${hist.length?`<div class="goal-section-lbl">${ic('growth',13)} Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${h.reason.replace(/</g,'&lt;')} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
+        ${(g.werkItems&&g.werkItems.length)?`<div class="goal-section-lbl">${ic('briefcase',13)} Mijn werk</div><div class="werk-grid">${g.werkItems.map(w=>renderWerkItem(w)).join('')}</div>`:''}
       </div>`;
     });
     html+=`</div>`;
   });
 
+  /* ── Bijlagen & links ── */
+  if((S.attachments||[]).length){
+    html+=`<div class="section-hd"><span class="section-ic">${ic('paperclip',18)}</span><h2>Bijlagen & links</h2></div>
+    <div class="werk-grid">${S.attachments.map(a=>renderWerkItem(a)).join('')}</div>`;
+  }
+
   html+=`<div class="pdf-footer">
-    <div class="pdf-footer-logo">${logoSvg.replace('width="90" height="90"','width="22" height="22"')}</div>
+    <div class="pdf-footer-logo">${logoSvg(accent,22)}</div>
     <div>Gemaakt met <strong>Orbit</strong> — AI Workflow Tool</div>
   </div>`;
 
@@ -322,8 +381,17 @@ function generatePortfolioPDF(){
     .pdf-footer{margin-top:40px;padding-top:16px;border-top:1px solid #ececf2;display:flex;align-items:center;
       justify-content:center;gap:8px;color:#9ca3af;font-size:11px}
     .pdf-footer-logo svg{display:block}
+    .werk-grid{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+    .link-card{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:9px;
+      background:color-mix(in srgb,${accent} 6%,white);border:1px solid color-mix(in srgb,${accent} 16%,transparent)}
+    .link-card-ic{flex-shrink:0;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+      background:color-mix(in srgb,${accent} 16%,white);color:${accent};font-size:14px}
+    .link-card-body{flex:1;min-width:0}
+    .link-card-title{font-size:12px;font-weight:700;color:#1e1b4b}
+    .link-card-url{font-size:11px;color:${accent};word-break:break-all;text-decoration:none}
+    .link-card-desc{font-size:11px;color:#6b7280;margin-top:2px}
   `;
-  exportPDF('Portfolio',html,extraStyle);
+  exportPDF('Portfolio',html,extraStyle,true);
 }
 
 /* ── GLOBAL SEARCH ──────────────────────────────────────── */

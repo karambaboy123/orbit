@@ -209,6 +209,7 @@ function vPortfolio(){
       <div class="flex gap-2 flex-wrap">
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-discover')">🧭 Nieuwe doelen ontdekken</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-analyse')">🔬 Groei analyseren</button>
+        <button class="btn bs text-sm" onclick="toggleAcc('portfolio-bijlagen')">📎 Bijlagen & links</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-maker')">📄 Portfolio maken</button>
         <button class="btn bs text-sm" onclick="exportPortfolioPDF()">📄 PDF exporteren</button>
         <button class="btn bs text-sm" style="color:#ef4444" onclick="clearAllGrowth()">🗑️ Alle groei wissen</button>
@@ -280,6 +281,42 @@ ${(()=>{
             <button class="btn bs text-sm" onclick="document.getElementById('new-goals-dump').value=''">Wis</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Bijlagen & links accordion -->
+    <div class="card overflow-hidden">
+      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('portfolio-bijlagen')">
+        <div class="flex items-center gap-3"><span class="text-lg">📎</span><div>
+          <div class="font-bold text-sm">Bijlagen & links</div>
+          <div class="text-xs text-gray-500">Algemene links en bestanden/verslagen die bij je portfolio horen</div>
+        </div></div>
+        <span id="acc-ic-portfolio-bijlagen" class="text-gray-400 text-xs">▼</span>
+      </button>
+      <div id="acc-body-portfolio-bijlagen" class="hidden border-t border-gray-100 p-4 space-y-3">
+        <div class="flex gap-2 flex-wrap">
+          <select id="att-type" class="inp text-sm" style="max-width:120px" onchange="toggleAttFields(this.value)">
+            <option value="link">🔗 Link</option>
+            <option value="doc">📄 Verslag/bestand</option>
+          </select>
+          <input id="att-title" class="inp text-sm" style="max-width:220px" placeholder="Naam (bijv. LinkedIn profiel, Eindverslag)">
+          <input id="att-url" class="inp text-sm flex-1" placeholder="https://...">
+          <input id="att-body" class="inp text-sm flex-1 hidden" placeholder="Korte omschrijving / samenvatting...">
+          <button class="btn bp text-sm flex-shrink-0" onclick="addAttachment()">➕ Toevoegen</button>
+        </div>
+        ${(S.attachments||[]).length?`<div class="space-y-1.5 mt-2">
+          ${S.attachments.map((a,i)=>{
+            const aic=a.type==='doc'?'📄':'🔗';
+            return `<div class="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+            <span class="text-sm flex-shrink-0 mt-0.5">${aic}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-xs">${a.title}</div>
+              ${a.url?`<a href="${a.url.replace(/"/g,'&quot;')}" target="_blank" rel="noopener" class="text-xs text-indigo-600 hover:underline mt-0.5 block truncate">${a.url}</a>`:''}
+              ${a.body?`<div class="text-xs text-gray-500 mt-0.5">${a.body.slice(0,120)}${a.body.length>120?'...':''}</div>`:''}
+            </div>
+            <button onclick="removeAttachment(${i})" class="text-gray-300 hover:text-red-400 font-bold text-sm flex-shrink-0">✕</button>
+          </div>`;}).join('')}
+        </div>`:'<div class="text-sm text-gray-400 py-1">Nog geen bijlagen of links toegevoegd</div>'}
       </div>
     </div>
 
@@ -700,6 +737,31 @@ function acceptAllProposals(){
 }
 
 /* ── Alle groei wissen ── */
+function toggleAttFields(type){
+  const urlEl=document.getElementById('att-url');
+  const bodyEl=document.getElementById('att-body');
+  if(!urlEl||!bodyEl)return;
+  if(type==='doc'){urlEl.classList.add('hidden');bodyEl.classList.remove('hidden');}
+  else{urlEl.classList.remove('hidden');bodyEl.classList.add('hidden');}
+}
+function addAttachment(){
+  const type=document.getElementById('att-type')?.value||'link';
+  const title=document.getElementById('att-title')?.value?.trim();
+  const url=document.getElementById('att-url')?.value?.trim();
+  const body=document.getElementById('att-body')?.value?.trim();
+  if(type==='link'&&!url){toast('⚠️ Vul een link (URL) in');return;}
+  if(!title&&!url&&!body){toast('⚠️ Vul minimaal een naam of link in');return;}
+  S.attachments=S.attachments||[];
+  S.attachments.push({id:mkId(),type,title:title||(type==='doc'?'Verslag':'Link'),url:url||'',body:body||'',date:new Date().toISOString().slice(0,10)});
+  saveAttachments();
+  document.getElementById('att-title').value='';
+  document.getElementById('att-url').value='';
+  document.getElementById('att-body').value='';
+  render();toast('📎 Toegevoegd!');
+}
+function removeAttachment(i){
+  S.attachments.splice(i,1);saveAttachments();render();
+}
 function clearAllGrowth(){
   if(!S.goals.some(g=>(g.history||[]).length)){toast('ℹ️ Er is nog geen groeigeschiedenis om te wissen');return;}
   orbitConfirm('Weet je zeker dat je ALLE groeigeschiedenis wilt wissen? Elk leerdoel wordt teruggezet naar het startniveau (of 1 als er geen geschiedenis is). Dit kan niet ongedaan worden gemaakt.',()=>{
