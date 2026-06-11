@@ -131,7 +131,7 @@ function vPortfolio(){
       <button onclick="_pgPickerOpen=false;render()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
     </div>
     <input id="picker-search" class="inp text-sm" placeholder="Zoek een vaardigheid..."
-      value="${_pgPickerSearch}" oninput="_pgPickerSearch=this.value;render()">
+      value="${_pgPickerSearch}" oninput="pgSearchInput(this.value)">
     <div>
       <!-- Category tabs -->
       <div class="flex flex-wrap gap-1.5 mb-3">
@@ -139,15 +139,8 @@ function vPortfolio(){
         ${PRESET_GOALS.map(pg=>`<button onclick="_pgPickerCat='${pg.cat}';render()" class="text-xs px-2.5 py-1 rounded-full border" style="${_pgPickerCat===pg.cat?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">${pg.cat}</button>`).join('')}
       </div>
       <!-- Preset list -->
-      <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pb-1">
-        ${PRESET_GOALS
-          .filter(pg=>!_pgPickerCat||pg.cat===_pgPickerCat)
-          .flatMap(pg=>pg.goals.map(gl=>({gl,cat:pg.cat})))
-          .filter(({gl})=>!_pgPickerSearch||gl.toLowerCase().includes(_pgPickerSearch.toLowerCase()))
-          .filter(({gl})=>!S.goals.some(g=>g.name.toLowerCase()===gl.toLowerCase()))
-          .map(({gl,cat})=>`<button onclick="quickAddGoal('${gl.replace(/'/g,"\\'")}','${cat}')"
-            class="text-sm border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">${gl}</button>`)
-          .join('')||'<span class="text-sm text-gray-400">Geen resultaten gevonden</span>'}
+      <div id="picker-results" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pb-1">
+        ${pgPickerResultsHTML()}
       </div>
     </div>
     <!-- Eigen doel -->
@@ -369,6 +362,21 @@ ${(()=>{
   </div>`;
 }
 
+function pgPickerResultsHTML(){
+  return PRESET_GOALS
+    .filter(pg=>!_pgPickerCat||pg.cat===_pgPickerCat)
+    .flatMap(pg=>pg.goals.map(gl=>({gl,cat:pg.cat})))
+    .filter(({gl})=>!_pgPickerSearch||gl.toLowerCase().includes(_pgPickerSearch.toLowerCase()))
+    .filter(({gl})=>!S.goals.some(g=>g.name.toLowerCase()===gl.toLowerCase()))
+    .map(({gl,cat})=>`<button onclick="quickAddGoal('${gl.replace(/'/g,"\\'")}','${cat}')"
+      class="text-sm border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">${gl}</button>`)
+    .join('')||'<span class="text-sm text-gray-400">Geen resultaten gevonden</span>';
+}
+function pgSearchInput(val){
+  _pgPickerSearch=val;
+  const el=document.getElementById('picker-results');
+  if(el)el.innerHTML=pgPickerResultsHTML();
+}
 function quickAddGoal(name,cat){
   openStartLevel(name,cat);
   return;
@@ -513,6 +521,7 @@ function generatePortfolioPrompt(){
   let prompt=customBase||`Maak een ${style.l} voor mij op basis van de onderstaande informatie. Schrijf het volledig uit in het Nederlands, professioneel en overtuigend.\n\n`;
   prompt+=`**Stijl:** ${style.l} — ${style.desc}\n`;
   prompt+=`**Kleurschema:** ${color.l} (${color.hex}) — gebruik dit als accent door de hele opmaak\n\n`;
+  prompt+=`**Belangrijkste opdracht:** beschrijf niet alleen WAT ik gedaan heb, maar vooral HOE ik gegroeid ben, WAAROM die groei heeft plaatsgevonden en welke ontwikkeling daarin zichtbaar is. Leg per leerdoel een duidelijke lijn van mijn leerproces: waar ik begon, welke acties/ervaringen tot groei hebben geleid, wat ik daarvan geleerd heb en hoe ik dit in de toekomst ga toepassen. Reflectie en persoonlijke ontwikkeling staan centraal — gebruik concrete voorbeelden uit mijn groeigeschiedenis en werk hieronder.\n\n`;
   if(sec.goals){
     prompt+=`## Mijn leerdoelen & vaardigheidsniveaus (schaal 1-100)\n\n`;
     S.goals.forEach(g=>{
@@ -545,13 +554,19 @@ function generatePortfolioPrompt(){
   if(sec.reflection){
     const goalsWithNotes=S.goals.filter(g=>g.notes||(g.history&&g.history.length));
     if(goalsWithNotes.length){
-      prompt+=`## Reflectie per leerdoel\n\n`;
+      prompt+=`## Reflectie & groeitraject per leerdoel\n\n`;
+      prompt+=`Voor elk leerdoel hieronder staat het startniveau, het huidige niveau, mijn eigen aantekeningen en de stappen waarin ik gegroeid ben (met reden). Gebruik dit om per leerdoel te beschrijven: waar ik begon, welke ontwikkeling ik heb doorgemaakt, waarom die groei heeft plaatsgevonden, wat ik ervan geleerd heb en wat dit zegt over mijn persoonlijke ontwikkeling.\n\n`;
       goalsWithNotes.forEach(g=>{
+        const hist=g.history||[];
+        const startLevel=hist.length?hist[0].oldLevel:(g.level||1);
         prompt+=`### ${g.name}\n`;
-        if(g.notes)prompt+=g.notes+'\n';
-        if(g.history&&g.history.length){
-          const last=g.history[g.history.length-1];
-          prompt+=`*Recentste groei: ${last.reason}*\n`;
+        prompt+=`Startniveau: ${startLevel}/100 → Huidig niveau: ${g.level||1}/100 (${lvlLabel(g.level||1)})\n`;
+        if(g.notes)prompt+=`Eigen aantekeningen/reflectie: ${g.notes}\n`;
+        if(hist.length){
+          prompt+=`Groeistappen (van begin tot nu):\n`;
+          hist.forEach(h=>{
+            prompt+=`- ${h.oldLevel} → ${h.newLevel} (${h.delta>=0?'+':''}${h.delta}): ${h.reason} *(${h.date})*\n`;
+          });
         }
         prompt+='\n';
       });
@@ -581,7 +596,12 @@ function generatePortfolioPrompt(){
     prompt+=`\nGeef een korte narratieve beschrijving van dit diagram: wat valt op, waar zijn sterke punten, waar is nog ruimte voor groei?\n\n`;
   }
   if(_portfolioCustomPrompt){prompt+=`\n## Extra instructies\n${_portfolioCustomPrompt}\n`;}
-  prompt+=`\n---\n\nMaak op basis van bovenstaande informatie een volledig uitgewerkt ${style.l}. Maak het sterk, concreet en authentiek. Schrijf in het Nederlands. Zorg dat het direct bruikbaar is.`;
+  prompt+=`\n---\n\nMaak op basis van bovenstaande informatie een volledig uitgewerkt ${style.l}. Maak het sterk, concreet en authentiek. Schrijf in het Nederlands. Zorg dat het direct bruikbaar is.\n\n`;
+  prompt+=`Let hierbij specifiek op:\n`;
+  prompt+=`- Beschrijf per leerdoel/onderdeel niet alleen het resultaat, maar ook de groei: waar begon ik, wat is er veranderd en hoe is dat te zien?\n`;
+  prompt+=`- Leg uit WAAROM die groei heeft plaatsgevonden — welke acties, ervaringen, projecten of inzichten hebben hieraan bijgedragen?\n`;
+  prompt+=`- Maak het leerproces zichtbaar: wat heb ik geleerd, welke inzichten heb ik opgedaan en hoe pas ik dat in de toekomst toe?\n`;
+  prompt+=`- Zorg voor een persoonlijke, reflectieve toon (ik-vorm) die laat zien dat ik bewust nadenk over mijn eigen ontwikkeling, naast een professionele presentatie van mijn vaardigheden.`;
   document.getElementById('portfolio-prompt-txt').value=prompt;
   document.getElementById('portfolio-prompt-out').classList.remove('hidden');
   toast('✅ Portfolio-prompt gegenereerd!');

@@ -87,7 +87,7 @@ function sendTemplateToAI(siteId){
 function toggleAcc(id){const b=document.getElementById('acc-body-'+id);const ic=document.getElementById('acc-ic-'+id);if(!b)return;b.classList.toggle('hidden');if(ic)ic.textContent=b.classList.contains('hidden')?'▼':'▲';}
 
 /* ── PDF EXPORT ─────────────────────────────────────────── */
-function exportPDF(title,html){
+function exportPDF(title,html,extraStyle=''){
   const win=window.open('','_blank');
   if(!win){toast('❌ Pop-up geblokkeerd — sta pop-ups toe');return;}
   win.document.write(`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><title>${title}</title><style>
@@ -101,6 +101,7 @@ function exportPDF(title,html){
     .meta{color:#6b7280;font-size:13px;margin-bottom:24px;border-bottom:1px solid #f3f4f6;padding-bottom:12px}
     blockquote{border-left:3px solid #4f46e5;margin:0;padding-left:16px;color:#6b7280}
     @media print{body{margin:20px}}
+    ${extraStyle}
   </style></head><body>${html}</body></html>`);
   win.document.close();win.focus();
   setTimeout(()=>win.print(),400);
@@ -152,36 +153,133 @@ function exportChecklistPDF(id){
     ${rows}`;
   exportPDF(t.name||'Checklist',html);
 }
+/* ── Portfolio PDF: stap 1 — vraag persoonlijke gegevens ── */
 function exportPortfolioPDF(){
-  const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))].sort();
-  let html=`<h1>Portfolio — Leerdoelen</h1>
-    <div class="meta">Geëxporteerd: ${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})} · ${S.goals.length} doelen</div>`;
-  const lvlLabel=l=>l>=90?'Expert':l>=70?'Gevorderd':l>=40?'Gemiddeld':l>=20?'Beginner':'Start';
-  const lvlColor=l=>l>=90?'#7c3aed':l>=70?'#2563eb':l>=40?'#0891b2':l>=20?'#16a34a':'#6b7280';
+  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  const saved=_safeJSON('pb_portfolio_personal',{});
+  document.getElementById('pdf-naam').value=saved.naam||'';
+  document.getElementById('pdf-opleiding').value=saved.opleiding||'';
+  document.getElementById('pdf-klas').value=saved.klas||'';
+  document.getElementById('pdf-periode').value=saved.periode||'';
+  document.getElementById('pdf-export-modal').classList.remove('hidden');
+}
+
+/* ── Portfolio PDF: stap 2 — genereer professioneel document ── */
+function generatePortfolioPDF(){
+  const personal={
+    naam:document.getElementById('pdf-naam')?.value?.trim()||'',
+    opleiding:document.getElementById('pdf-opleiding')?.value?.trim()||'',
+    klas:document.getElementById('pdf-klas')?.value?.trim()||'',
+    periode:document.getElementById('pdf-periode')?.value?.trim()||'',
+  };
+  _safeSave('pb_portfolio_personal',personal);
+  document.getElementById('pdf-export-modal').classList.add('hidden');
+
+  const color=PORTFOLIO_COLORS.find(c=>c.id===_portfolioColor)||PORTFOLIO_COLORS[0];
+  const accent=color.hex;
+  const datum=new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
+
+  const logoSvg=`<svg viewBox="0 0 100 100" width="90" height="90" xmlns="http://www.w3.org/2000/svg" style="color:${accent}">
+    <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="50" cy="50" r="31" fill="none" stroke="currentColor" stroke-width="10.5"/>
+    <path d="M 88 23 A 47 13 -35 0 1 12 77" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="12" cy="77" r="8" fill="currentColor"/>
+    <circle cx="88" cy="23" r="5" fill="currentColor"/>
+  </svg>`;
+
+  /* ── Voorpagina ── */
+  let html=`<div class="cover">
+    <div class="cover-logo">${logoSvg}</div>
+    <h1>Portfolio</h1>
+    <div class="cover-sub">Persoonlijk ontwikkelportfolio</div>
+    ${(personal.naam||personal.opleiding||personal.klas)?`<div class="cover-info">
+      ${personal.naam?`<div class="cover-naam">${personal.naam}</div>`:''}
+      ${personal.opleiding?`<div>${personal.opleiding}</div>`:''}
+      ${personal.klas?`<div>${personal.klas}</div>`:''}
+    </div>`:''}
+    ${personal.periode?`<div class="cover-periode" style="color:${accent}">${personal.periode}</div>`:''}
+    <div class="cover-date">Gegenereerd op ${datum} met Orbit</div>
+  </div>`;
+
+  /* ── Overzicht / statistieken ── */
+  const experts=S.goals.filter(g=>g.level>=80).length;
+  const growth=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
+  const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
+  html+=`<h2 style="color:${accent};border-bottom-color:${accent}33">Overzicht</h2>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="num" style="color:${accent}">${S.goals.length}</div><div class="lbl">Leerdoelen</div></div>
+    <div class="stat-box"><div class="num" style="color:${accent}">${avgLevel}</div><div class="lbl">Gemiddeld niveau</div></div>
+    <div class="stat-box"><div class="num" style="color:${accent}">${experts}</div><div class="lbl">Expert (80+)</div></div>
+    <div class="stat-box"><div class="num" style="color:${accent}">${growth}</div><div class="lbl">Groeimomenten</div></div>
+  </div>`;
+
+  /* ── Vaardighedenradar ── */
+  if(S.goals.length>=2){
+    html+=`<h2 style="color:${accent};border-bottom-color:${accent}33">Vaardighedenradar</h2>
+    <div class="radar-wrap">${buildRadarChart(S.goals,300)}</div>`;
+  }
+
+  /* ── Per categorie ── */
+  const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))];
   cats.forEach(cat=>{
     const goals=S.goals.filter(g=>(g.category||'Overig')===cat);
-    html+=`<h2 style="margin-top:24px;padding-bottom:4px;border-bottom:2px solid #e5e7eb">${cat}</h2>`;
+    html+=`<div class="cat-section"><div class="cat-title" style="color:${accent};border-bottom-color:${accent}33">${cat}</div>`;
     goals.forEach(g=>{
+      const lc=lvlColor(g.level||1);
       const done=g.milestones.filter(m=>m.done).length,tot=g.milestones.length;
-      const pct=tot?Math.round(done/tot*100):0;
-      const lv=g.level||1;
-      const color=lvlColor(lv);
-      html+=`<div style="margin:10px 0;padding:12px;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;gap:16px">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px">${g.name}</div>
-          ${tot>0?`<div style="font-size:12px;color:#6b7280;margin-top:2px">${done}/${tot} mijlpalen afgerond</div>`:''}
-          <div style="height:6px;background:#f3f4f6;border-radius:3px;margin-top:6px">
-            <div style="height:100%;width:${lv}%;background:${color};border-radius:3px"></div>
+      const hist=g.history||[];
+      html+=`<div class="goal-card">
+        <div class="goal-head">
+          <div style="flex:1;min-width:0">
+            <div class="goal-name">${g.name}</div>
+            ${g.desc?`<div class="goal-desc">${g.desc}</div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="goal-level" style="color:${lc}">${g.level||1}</div>
+            <div style="font-size:10px;color:${lc};font-weight:700">${lvlLabel(g.level||1)}</div>
           </div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:22px;font-weight:800;color:${color}">${lv}</div>
-          <div style="font-size:10px;color:${color};font-weight:600">${lvlLabel(lv)}</div>
-        </div>
+        <div class="goal-bar"><div class="goal-bar-fill" style="width:${g.level||1}%;background:${lc}"></div></div>
+        ${tot>0?`<div class="goal-meta">${done}/${tot} mijlpalen afgerond</div>`:''}
+        ${g.notes?`<div class="goal-section-lbl" style="color:${accent}">Reflectie</div><div class="goal-text">${g.notes.replace(/</g,'&lt;')}</div>`:''}
+        ${hist.length?`<div class="goal-section-lbl" style="color:${accent}">Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${h.reason.replace(/</g,'&lt;')} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
+        ${(g.werkItems&&g.werkItems.length)?`<div class="goal-section-lbl" style="color:${accent}">Mijn werk</div>${g.werkItems.map(w=>`<div class="timeline-item"><strong>${w.title.replace(/</g,'&lt;')}</strong>${w.body?': '+w.body.replace(/</g,'&lt;'):''}</div>`).join('')}`:''}
       </div>`;
     });
+    html+=`</div>`;
   });
-  exportPDF('Portfolio',html);
+
+  const extraStyle=`
+    .cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:90vh;page-break-after:always}
+    .cover-logo{margin-bottom:16px}
+    .cover h1{font-size:38px;border:none;color:${accent};margin:0 0 4px;padding:0}
+    .cover-sub{color:#6b7280;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+    .cover-info{margin-top:36px;font-size:14px;color:#374151}
+    .cover-info div{margin:3px 0}
+    .cover-naam{font-size:20px;font-weight:700;color:#1e1b4b}
+    .cover-periode{margin-top:14px;font-weight:600;font-size:13px}
+    .cover-date{margin-top:60px;color:#9ca3af;font-size:12px}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 8px}
+    .stat-box{border:1px solid #e5e7eb;border-radius:10px;padding:14px 8px;text-align:center}
+    .stat-box .num{font-size:24px;font-weight:800}
+    .stat-box .lbl{font-size:10px;color:#6b7280;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+    .radar-wrap{display:flex;justify-content:center;margin:16px 0}
+    .cat-section{margin-top:28px}
+    .cat-title{font-size:17px;font-weight:700;border-bottom:2px solid;padding-bottom:6px;margin-bottom:12px}
+    .goal-card{border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:14px;page-break-inside:avoid}
+    .goal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .goal-name{font-size:15px;font-weight:700}
+    .goal-desc{font-size:12px;color:#6b7280;margin-top:2px}
+    .goal-level{font-size:24px;font-weight:800;line-height:1.1}
+    .goal-bar{height:6px;background:#f3f4f6;border-radius:3px;margin-top:10px}
+    .goal-bar-fill{height:100%;border-radius:3px}
+    .goal-meta{font-size:11px;color:#9ca3af;margin-top:6px}
+    .goal-section-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:10px}
+    .goal-text{font-size:13px;color:#374151;margin-top:3px;white-space:pre-wrap}
+    .timeline-item{font-size:12px;color:#4b5563;padding:3px 0;border-bottom:1px dashed #f3f4f6}
+    .timeline-date{color:#9ca3af}
+  `;
+  exportPDF('Portfolio',html,extraStyle);
 }
 
 /* ── GLOBAL SEARCH ──────────────────────────────────────── */
