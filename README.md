@@ -30,7 +30,7 @@ Maak van elk idee direct een uitvoerbare AI-workflow.
 | **Bestand naar AI** | Upload tekst of briefings en analyseer ze met AI-presets |
 | **AI naar Checklist** | Plak een AI-antwoord en maak er een interactieve checklist van |
 | **AI Launcher** | Start direct bij ChatGPT, Gemini, Claude of Copilot |
-| **Portfolio & Doelen** | Beheer persoonlijke doelen en volg je voortgang |
+| **Portfolio & Doelen** | Beheer persoonlijke leerdoelen, volg je groei (met groeigeschiedenis & groeidiagram), ontdek nieuwe doelen via AI-vragen, laat groei kritisch beoordelen volgens een HBO-rubric, koppel werk/links/verslagen per doel en algemene bijlagen, en exporteer alles als professionele PDF |
 | **Notities** | Bewaar ideeën en AI-antwoorden met Markdown-ondersteuning |
 | **Weekreview** | Reflecteer op je week en genereer een weekplanning met AI |
 | **Globale zoekfunctie** | Zoek direct door taken, notities en doelen (Ctrl+K) |
@@ -38,6 +38,20 @@ Maak van elk idee direct een uitvoerbare AI-workflow.
 | **Tags voor taken** | Label en filter je opdrachten op categorie |
 | **Taak-templates** | Snelstart-sjablonen voor HBO, project, presentatie en meer |
 | **AI Output naar Opdracht** | Plak ChatGPT-output en sla op als volledige analyseopdracht |
+
+---
+
+## Portfolio & Doelen — in detail
+
+| Functie | Beschrijving |
+|---|---|
+| **Nieuwe doelen ontdekken** | Beantwoord ~20 AI-vragen over je werk, interesses en ambities en krijg automatisch passende nieuwe leerdoelen voorgesteld (per voorstel accepteren of weigeren) |
+| **Groei analyseren** | Plak je werk/verslagen en laat AI je groei per leerdoel beoordelen volgens een **strenge HBO-rubric** (0–25 punten, met onderbouwing per niveau) — voorgestelde groei per doel accepteren of weigeren |
+| **Groeigeschiedenis & groeidiagram** | Elke aanpassing van je niveau wordt gelogd met reden en datum; in de PDF-export verschijnt een lijndiagram van je niveauverloop per doel |
+| **Mijn werk per doel** | Voeg tekst, een link naar een site, of een verslag toe aan elk leerdoel — links worden als nette kaarten getoond |
+| **Bijlagen & links** | Algemene links/bestanden die niet aan één doel hangen, apart bewaard en meegenomen in de PDF |
+| **Alle groei wissen** | Zet alle niveaus terug naar het startniveau en wis de groeigeschiedenis |
+| **Professionele PDF-export** | Kleurkeuze, voorpagina met logo, statistieken, vaardighedenradar, groeidiagram, werk/links als kaarten — alles in je gekozen icoonstijl |
 
 ---
 

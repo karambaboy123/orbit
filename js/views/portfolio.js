@@ -939,11 +939,13 @@ function buildGrowthChart(goals,width=560,height=240){
   if(withHist.length<1)return'';
   const dateSet=new Set();
   withHist.forEach(g=>g.history.forEach(h=>dateSet.add(h.date)));
-  const dates=[...dateSet].sort();
-  if(!dates.length)return'';
+  const histDates=[...dateSet].sort();
+  if(!histDates.length)return'';
+  // Eerste kolom = startpunt (vóór de eerste meting), daarna 1 kolom per meetmoment
+  const cols=['start',...histDates];
   const pad={l:32,r:14,t:14,b:24};
   const w=width-pad.l-pad.r, h=height-pad.t-pad.b;
-  const xFor=i=>pad.l+(dates.length>1?(i/(dates.length-1))*w:w/2);
+  const xFor=i=>pad.l+(cols.length>1?(i/(cols.length-1))*w:w/2);
   const yFor=lv=>pad.t+h-(lv/100*h);
   let grid='';
   [0,25,50,75,100].forEach(v=>{
@@ -952,9 +954,11 @@ function buildGrowthChart(goals,width=560,height=240){
     grid+=`<text x="${pad.l-6}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="8" fill="#9ca3af" font-family="system-ui,sans-serif">${v}</text>`;
   });
   let xlabels='';
-  dates.forEach((d,i)=>{
-    if(i===0||i===dates.length-1||(dates.length<=4))
-      xlabels+=`<text x="${xFor(i).toFixed(1)}" y="${height-6}" text-anchor="middle" font-size="8" fill="#9ca3af" font-family="system-ui,sans-serif">${d.slice(5)}</text>`;
+  cols.forEach((d,i)=>{
+    if(i===0||i===cols.length-1||(cols.length<=5)){
+      const lbl=d==='start'?'Start':d.slice(5);
+      xlabels+=`<text x="${xFor(i).toFixed(1)}" y="${height-6}" text-anchor="middle" font-size="8" fill="#9ca3af" font-family="system-ui,sans-serif">${lbl}</text>`;
+    }
   });
   let lines='', legend='';
   withHist.forEach(g=>{
@@ -962,15 +966,15 @@ function buildGrowthChart(goals,width=560,height=240){
     const dateLevel={};
     g.history.forEach(hh=>{dateLevel[hh.date]=hh.newLevel;});
     let curLvl=g.history[0].oldLevel;
-    const series=dates.map((d,i)=>{
-      if(dateLevel[d]!==undefined)curLvl=dateLevel[d];
+    const series=cols.map((d,i)=>{
+      if(d!=='start'&&dateLevel[d]!==undefined)curLvl=dateLevel[d];
       return{x:xFor(i),y:yFor(curLvl)};
     });
     const path=series.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
-    lines+=`<path d="${path}" fill="none" stroke="${lc}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    lines+=`<path d="${path}" fill="none" stroke="${lc}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
     series.forEach(p=>{lines+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${lc}" stroke="#fff" stroke-width="1"/>`;});
     const name=g.name.length>18?g.name.slice(0,17)+'…':g.name;
-    legend+=`<div style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:${lc};display:inline-block;flex-shrink:0"></span><span style="font-size:10px;color:#374151">${name.replace(/</g,'&lt;')}</span></div>`;
+    legend+=`<div style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:2.5px;border-radius:2px;background:${lc};display:inline-block;flex-shrink:0"></span><span style="font-size:10px;color:#374151">${name.replace(/</g,'&lt;')}</span></div>`;
   });
   return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;max-width:${width}px;display:block;margin:0 auto">${grid}${lines}${xlabels}</svg>
   <div style="display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:10px">${legend}</div>`;
