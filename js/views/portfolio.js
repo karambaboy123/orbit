@@ -40,11 +40,41 @@ const PORTFOLIO_COLORS=[
 
 function mkGoal(name,cat='Overig'){
   const g={id:mkId(),name,desc:'',category:cat,level:1,
+    ws:S.activeWs,    // werkruimte waar dit doel bij hoort
     milestones:[],notes:'',history:[],
     linkedTasks:[],   // array van task-ids
     werkItems:[],     // [{id,title,body,date}] — eigen werk-beschrijvingen
     createdAt:new Date().toISOString()};
   S.goals.unshift(g);saveGoals();return g;
+}
+
+/* ── Werkruimtes beheren ── */
+function switchWs(id){ if(id===S.activeWs)return; setActiveWs(id); S._goalCat=''; _pgPickerOpen=false; render(); }
+function addWorkspace(){
+  orbitPrompt('Naam voor de nieuwe werkruimte (bijv. School, Werk, Stage):','',name=>{
+    name=(name||'').trim(); if(!name)return;
+    const id='ws'+Date.now()+Math.random().toString(36).slice(2,5);
+    S.workspaces.push({id,name}); saveWorkspaces(); setActiveWs(id); S._goalCat=''; _pgPickerOpen=false; render();
+    toast('✅ Werkruimte "'+name+'" aangemaakt');
+  },'Nieuwe werkruimte');
+}
+function renameWorkspace(){
+  const w=S.workspaces.find(x=>x.id===S.activeWs); if(!w)return;
+  orbitPrompt('Nieuwe naam voor deze werkruimte:',w.name,name=>{
+    name=(name||'').trim(); if(!name)return;
+    w.name=name; saveWorkspaces(); render(); toast('✅ Naam aangepast');
+  },'Werkruimte hernoemen');
+}
+function deleteWorkspace(){
+  if(S.workspaces.length<=1){toast('⚠️ Je hebt minstens één werkruimte nodig');return;}
+  const w=S.workspaces.find(x=>x.id===S.activeWs); if(!w)return;
+  const n=wsGoals().length;
+  orbitConfirm(`Werkruimte "${w.name}" verwijderen?${n?` De ${n} leerdoel${n===1?'':'en'} hierin worden ook verwijderd.`:''}`,()=>{
+    S.goals=S.goals.filter(g=>(g.ws||'default')!==S.activeWs);
+    S.workspaces=S.workspaces.filter(x=>x.id!==S.activeWs);
+    saveGoals(); saveWorkspaces(); setActiveWs(S.workspaces[0].id); S._goalCat=''; render();
+    toast('🗑️ Werkruimte verwijderd');
+  },null,'Werkruimte verwijderen');
 }
 function goalPct(g){
   const m=g.milestones||[];return m.length?Math.round(m.filter(x=>x.done).length/m.length*100):0;
@@ -73,8 +103,10 @@ let _pdfColor=localStorage.getItem('pb_pdf_color')||'indigo';
 
 function vPortfolio(){
   const catFilter=S._goalCat||'';
-  const shown=catFilter?S.goals.filter(g=>g.category===catFilter):S.goals;
-  const avgLevel=S.goals.length?Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length):0;
+  const goals=wsGoals();
+  const shown=catFilter?goals.filter(g=>g.category===catFilter):goals;
+  const avgLevel=goals.length?Math.round(goals.reduce((a,g)=>a+(g.level||1),0)/goals.length):0;
+  const activeWsName=(S.workspaces.find(w=>w.id===S.activeWs)||{}).name||'Werkruimte';
 
   const cards=shown.map(g=>{
     const lc=lvlColor(g.level||1);
@@ -188,23 +220,40 @@ function vPortfolio(){
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-discover')">🧭 Nieuwe doelen ontdekken</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-analyse')">🔬 Groei analyseren</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-bijlagen')">📎 Bijlagen & links</button>
-        <button class="btn bs text-sm" onclick="exportPOP()">📋 POP maken</button>
-        <button class="btn bs text-sm" onclick="exportPortfolioPDF()">📄 Portfolio uitdraaien</button>
         <button class="btn bs text-sm" style="color:#ef4444" onclick="clearAllGrowth()">🗑️ Alle groei wissen</button>
         <button class="btn bp text-sm" onclick="_pgPickerOpen=!_pgPickerOpen;render()">➕ Nieuw doel</button>
       </div>
     </div>
 
+    <!-- Werkruimte-switcher -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-xs font-semibold text-gray-500">Werkruimte:</span>
+      ${S.workspaces.map(w=>`<button onclick="switchWs('${w.id}')" class="text-sm px-3 py-1 rounded-full border transition-all" style="${w.id===S.activeWs?'background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p);font-weight:700':'background:var(--card);color:var(--txt2);border-color:var(--card-border)'}">${esc(w.name)}</button>`).join('')}
+      <button onclick="addWorkspace()" class="text-sm px-3 py-1 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-500">+ werkruimte</button>
+      <button onclick="renameWorkspace()" title="Naam wijzigen" class="text-gray-400 hover:text-indigo-500 text-base px-1">✏️</button>
+      ${S.workspaces.length>1?`<button onclick="deleteWorkspace()" title="Werkruimte verwijderen" class="text-gray-400 hover:text-red-500 text-base px-1">🗑️</button>`:''}
+    </div>
+
+    <!-- Exporteren-balk -->
+    <div class="card p-4 flex items-center gap-3 flex-wrap" style="border:1.5px solid color-mix(in srgb,var(--p) 30%,transparent);background:color-mix(in srgb,var(--p) 5%,var(--card))">
+      <div class="flex-1 min-w-0">
+        <div class="font-bold text-sm">📤 Exporteren</div>
+        <div class="text-xs text-gray-500">Maak een professionele PDF van werkruimte "<strong>${esc(activeWsName)}</strong>"</div>
+      </div>
+      <button class="btn bp px-5 py-2.5 font-semibold" onclick="exportPortfolioPDF()">📄 Portfolio uitdraaien</button>
+      <button class="btn bp px-5 py-2.5 font-semibold" style="background:#7c3aed" onclick="exportPOP()">📋 POP maken</button>
+    </div>
+
     <!-- Stats -->
     <div class="grid grid-cols-4 gap-3">
 ${(()=>{
-        const experts=S.goals.filter(g=>g.level>=80).length;
-        const growth=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
+        const experts=goals.filter(g=>g.level>=80).length;
+        const growth=goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
         const avgClr=avgLevel>=80?'#10b981':avgLevel>=50?'#f59e0b':avgLevel>=25?'#f97316':'#ef4444';
         const expertClr=experts===0?'#6b7280':experts>=3?'#a855f7':experts>=1?'#10b981':'#10b981';
         const expertLabel=experts===0?'🏆 Expert (80+)':experts>=5?'🔥 Expert (80+)':'⭐ Expert (80+)';
         return`
-        <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:var(--p)">${S.goals.length}</div><div class="text-xs text-gray-400">Doelen</div></div>
+        <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:var(--p)">${goals.length}</div><div class="text-xs text-gray-400">Doelen</div></div>
         <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:${expertClr}">${experts}</div><div class="text-xs text-gray-400">${expertLabel}</div></div>
         <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:${avgClr}">${avgLevel}</div><div class="text-xs text-gray-400">Gemiddeld niveau</div></div>
         <div class="card p-3 text-center"><div class="text-2xl font-bold" style="color:${growth>20?'#a855f7':growth>5?'#f59e0b':'#6b7280'}">${growth}</div><div class="text-xs text-gray-400">Groeimomenten</div></div>`;
@@ -346,7 +395,7 @@ ${(()=>{
     </div>
 
     <!-- Radar/Spiderweb chart + Groeiverloop -->
-    ${S.goals.length>=2?(()=>{const growthChart=buildGrowthChart(S.goals,560,240);return `<div class="card overflow-hidden">
+    ${goals.length>=2?(()=>{const growthChart=buildGrowthChart(goals,560,240);return `<div class="card overflow-hidden">
       <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('radar-chart')">
         <div class="flex items-center gap-3"><span class="text-lg">🕸️</span><div>
           <div class="font-bold text-sm">Vaardigheidsradar &amp; groeiverloop</div>
@@ -357,11 +406,11 @@ ${(()=>{
       <div id="acc-body-radar-chart" class="hidden border-t border-gray-100 p-5">
         <div class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 text-center">Vaardigheidsradar</div>
         <div class="max-w-xs mx-auto">
-          ${buildRadarChart(S.goals)}
+          ${buildRadarChart(goals)}
         </div>
-        ${S.goals.length>10?`<div class="text-xs text-gray-400 text-center mt-2">Toont de eerste 10 van ${S.goals.length} doelen</div>`:''}
+        ${goals.length>10?`<div class="text-xs text-gray-400 text-center mt-2">Toont de eerste 10 van ${goals.length} doelen</div>`:''}
         <div class="mt-4 flex flex-wrap gap-2 justify-center">
-          ${S.goals.slice(0,10).map(g=>`<div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${lvlColor(g.level||1)}"></span><span class="text-xs text-gray-600">${esc(g.name.slice(0,20))}: <strong>${g.level||1}</strong></span></div>`).join('')}
+          ${goals.slice(0,10).map(g=>`<div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${lvlColor(g.level||1)}"></span><span class="text-xs text-gray-600">${esc(g.name.slice(0,20))}: <strong>${g.level||1}</strong></span></div>`).join('')}
         </div>
         ${growthChart?`<div class="mt-6 pt-5 border-t border-gray-100">
           <div class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 text-center">Groeiverloop per leerdoel</div>
@@ -371,10 +420,10 @@ ${(()=>{
     </div>`;})():''}
 
     <!-- Filter -->
-    ${S.goals.length>3?`<div class="flex flex-wrap gap-2 items-center">
+    ${goals.length>3?`<div class="flex flex-wrap gap-2 items-center">
       <span class="text-xs text-gray-500 font-semibold">Filter:</span>
       <button onclick="S._goalCat='';nav('portfolio')" class="text-xs px-3 py-1 rounded-full border" style="${!catFilter?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">Alle</button>
-      ${GOAL_CATS.filter(c=>S.goals.some(g=>g.category===c)).map(c=>`<button onclick="S._goalCat='${c}';nav('portfolio')" class="text-xs px-3 py-1 rounded-full border" style="${catFilter===c?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">${c}</button>`).join('')}
+      ${GOAL_CATS.filter(c=>goals.some(g=>g.category===c)).map(c=>`<button onclick="S._goalCat='${c}';nav('portfolio')" class="text-xs px-3 py-1 rounded-full border" style="${catFilter===c?`background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p)`:`background:var(--card);color:var(--txt2);border-color:var(--card-border)`}">${c}</button>`).join('')}
     </div>`:''}
 
     <!-- Doelen grid -->
@@ -393,7 +442,7 @@ function pgPickerResultsHTML(){
     .filter(pg=>!_pgPickerCat||pg.cat===_pgPickerCat)
     .flatMap(pg=>pg.goals.map(gl=>({gl,cat:pg.cat})))
     .filter(({gl})=>!_pgPickerSearch||gl.toLowerCase().includes(_pgPickerSearch.toLowerCase()))
-    .filter(({gl})=>!S.goals.some(g=>g.name.toLowerCase()===gl.toLowerCase()))
+    .filter(({gl})=>!wsGoals().some(g=>g.name.toLowerCase()===gl.toLowerCase()))
     .map(({gl,cat})=>`<button onclick="quickAddGoal('${gl.replace(/'/g,"\\'")}','${cat}')"
       class="text-sm border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">${gl}</button>`)
     .join('')||'<span class="text-sm text-gray-400">Geen resultaten gevonden</span>';
@@ -426,9 +475,9 @@ function addWorkToPrompt(targetId,tid){
 }
 
 function generateAnalysePrompt(){
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  if(!wsGoals().length){toast('⚠️ Voeg eerst leerdoelen toe in deze werkruimte');return;}
   const work=document.getElementById('work-context')?.value?.trim()||'';
-  const goalLines=S.goals.map(g=>`LEERDOEL: ${g.name}\nHuidig niveau: ${g.level||1}/100`).join('\n\n');
+  const goalLines=wsGoals().map(g=>`LEERDOEL: ${g.name}\nHuidig niveau: ${g.level||1}/100`).join('\n\n');
 
   const customTpl=localStorage.getItem('pb_analyse_prompt_tpl')||'';
 
@@ -497,7 +546,7 @@ function sendAnalyseToAI(siteId){
 /* ── Nieuwe doelen ontdekken: prompt genereren (Stap 1) ── */
 function generateNewGoalsPrompt(){
   const work=document.getElementById('ng-work-context')?.value?.trim()||'';
-  const existing=S.goals.length?S.goals.map(g=>`- ${g.name} (${g.category})`).join('\n'):'(nog geen leerdoelen)';
+  const existing=wsGoals().length?wsGoals().map(g=>`- ${g.name} (${g.category})`).join('\n'):'(nog geen leerdoelen)';
   const catList=GOAL_CATS.join(', ');
 
   const customTpl=localStorage.getItem('pb_new_goals_prompt_tpl')||'';
@@ -564,7 +613,7 @@ function processNewGoalsDump(){
     const reasonMatch=block.match(/REDEN:\s*(.+)/is);
     if(!nameMatch)return;
     const name=nameMatch[1].trim();
-    if(S.goals.some(g=>g.name.toLowerCase()===name.toLowerCase()))return;
+    if(wsGoals().some(g=>g.name.toLowerCase()===name.toLowerCase()))return;
     const rawCat=catMatch?catMatch[1].trim():'Overig';
     const category=GOAL_CATS.find(c=>c.toLowerCase()===rawCat.toLowerCase())||'Overig';
     const level=lvlMatch?Math.max(1,Math.min(100,parseInt(lvlMatch[1],10))):1;
@@ -597,7 +646,8 @@ function acceptAllNewGoalProposals(){
 function processAnalysisDump(){
   const txt=document.getElementById('analysis-dump')?.value?.trim();
   if(!txt){toast('⚠️ Plak eerst het AI-antwoord');return;}
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  const goals=wsGoals();
+  if(!goals.length){toast('⚠️ Voeg eerst leerdoelen toe in deze werkruimte');return;}
 
   const proposals=[];
   const blocks=txt.split(/={3,}/g).map(b=>b.trim()).filter(Boolean);
@@ -609,9 +659,9 @@ function processAnalysisDump(){
     const rawName=nameMatch[1].trim();
     const delta=parseInt(deltaMatch[1],10);
     const reason=(reasonMatch?reasonMatch[1].trim():'Geen reden opgegeven').replace(/\n/g,' ').slice(0,200);
-    const g=S.goals.find(x=>x.name.toLowerCase()===rawName.toLowerCase())
-      ||S.goals.find(x=>x.name.toLowerCase().includes(rawName.toLowerCase()))
-      ||S.goals.find(x=>rawName.toLowerCase().includes(x.name.toLowerCase()));
+    const g=goals.find(x=>x.name.toLowerCase()===rawName.toLowerCase())
+      ||goals.find(x=>x.name.toLowerCase().includes(rawName.toLowerCase()))
+      ||goals.find(x=>rawName.toLowerCase().includes(x.name.toLowerCase()));
     if(!g||delta===0)return;
     const oldLevel=g.level||1;
     const newLevel=Math.max(1,Math.min(100,oldLevel+delta));
@@ -630,9 +680,9 @@ function processAnalysisDump(){
       if(rm&&cur.name){
         cur.reason=rm[1].trim();
         if(cur.delta!==undefined&&cur.delta!==0){
-          const g=S.goals.find(x=>x.name.toLowerCase()===cur.name.toLowerCase())
-            ||S.goals.find(x=>x.name.toLowerCase().includes(cur.name.toLowerCase()))
-            ||S.goals.find(x=>cur.name.toLowerCase().includes(x.name.toLowerCase()));
+          const g=goals.find(x=>x.name.toLowerCase()===cur.name.toLowerCase())
+            ||goals.find(x=>x.name.toLowerCase().includes(cur.name.toLowerCase()))
+            ||goals.find(x=>cur.name.toLowerCase().includes(x.name.toLowerCase()));
           if(g){
             const old=g.level||1;
             const nw=Math.max(1,Math.min(100,old+cur.delta));
@@ -693,9 +743,9 @@ function removeAttachment(i){
   S.attachments.splice(i,1);saveAttachments();render();
 }
 function clearAllGrowth(){
-  if(!S.goals.some(g=>(g.history||[]).length)){toast('ℹ️ Er is nog geen groeigeschiedenis om te wissen');return;}
-  orbitConfirm('Weet je zeker dat je ALLE groeigeschiedenis wilt wissen? Elk leerdoel wordt teruggezet naar het startniveau (of 1 als er geen geschiedenis is). Dit kan niet ongedaan worden gemaakt.',()=>{
-    S.goals.forEach(g=>{
+  if(!wsGoals().some(g=>(g.history||[]).length)){toast('ℹ️ Er is nog geen groeigeschiedenis om te wissen');return;}
+  orbitConfirm('Weet je zeker dat je ALLE groeigeschiedenis in deze werkruimte wilt wissen? Elk leerdoel wordt teruggezet naar het startniveau (of 1 als er geen geschiedenis is). Dit kan niet ongedaan worden gemaakt.',()=>{
+    wsGoals().forEach(g=>{
       const hist=g.history||[];
       g.level=hist.length?hist[0].oldLevel:1;
       g.history=[];

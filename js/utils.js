@@ -197,13 +197,13 @@ function _setPdfModalTitle(emoji,txt){
   if(el)el.innerHTML=`<span data-ic="upload" data-ic-size="18">${emoji}</span> ${txt}`;
 }
 function exportPortfolioPDF(){
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  if(!wsGoals().length){toast('⚠️ Voeg eerst leerdoelen toe in deze werkruimte');return;}
   _pdfMode='portfolio';
   _setPdfModalTitle('📄','Portfolio uitdraaien (PDF)');
   _openPdfModal(_safeJSON('pb_portfolio_personal',{}));
 }
 function exportPOP(){
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  if(!wsGoals().length){toast('⚠️ Voeg eerst leerdoelen toe in deze werkruimte');return;}
   _pdfMode='pop';
   _setPdfModalTitle('📋','POP — Persoonlijk ontwikkelplan (PDF)');
   _openPdfModal(_safeJSON('pb_portfolio_personal',{}));
@@ -242,7 +242,7 @@ function renderWerkItem(w){
 
 /* ── Portfolio PDF: stap 2 — genereer professioneel document ── */
 function generatePortfolioPDF(){
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  if(!wsGoals().length){toast('⚠️ Voeg eerst leerdoelen toe in deze werkruimte');return;}
   const personal={
     naam:document.getElementById('pdf-naam')?.value?.trim()||'',
     opleiding:document.getElementById('pdf-opleiding')?.value?.trim()||'',
@@ -255,16 +255,17 @@ function generatePortfolioPDF(){
   const color=PORTFOLIO_COLORS.find(c=>c.id===_pdfColor)||PORTFOLIO_COLORS[0];
   const accent=color.hex;
   const datum=new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
+  const goals=wsGoals();
 
   /* Statistieken & samenvatting (één keer berekenen) */
-  const experts=S.goals.filter(g=>g.level>=80).length;
-  const growthCount=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
-  const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
+  const experts=goals.filter(g=>g.level>=80).length;
+  const growthCount=goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
+  const avgLevel=Math.round(goals.reduce((a,g)=>a+(g.level||1),0)/goals.length);
   const startOf=g=>(g.history&&g.history.length)?g.history[0].oldLevel:(g.level||1);
-  const avgStart=Math.round(S.goals.reduce((a,g)=>a+startOf(g),0)/S.goals.length);
-  const topGrower=S.goals.map(g=>({name:g.name,d:(g.level||1)-startOf(g)})).sort((a,b)=>b.d-a.d)[0];
-  const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))];
-  const catGoals=cat=>S.goals.filter(g=>(g.category||'Overig')===cat);
+  const avgStart=Math.round(goals.reduce((a,g)=>a+startOf(g),0)/goals.length);
+  const topGrower=goals.map(g=>({name:g.name,d:(g.level||1)-startOf(g)})).sort((a,b)=>b.d-a.d)[0];
+  const cats=[...new Set(goals.map(g=>g.category||'Overig'))];
+  const catGoals=cat=>goals.filter(g=>(g.category||'Overig')===cat);
   const catAvgOf=cat=>{const gs=catGoals(cat);return Math.round(gs.reduce((a,g)=>a+(g.level||1),0)/gs.length);};
 
   const logoSvg=(clr,w=90)=>`<svg viewBox="0 0 100 100" width="${w}" height="${w}" xmlns="http://www.w3.org/2000/svg" style="color:${clr}">
@@ -310,14 +311,14 @@ function generatePortfolioPDF(){
 
   /* ── Samenvatting ── */
   html+=`<div class="intro-card">
-    <p>In dit portfolio werkt <strong>${personal.naam?esc(personal.naam):'de student'}</strong> aan <strong>${S.goals.length} leerdoel${S.goals.length===1?'':'en'}</strong>${personal.opleiding?` binnen de opleiding <strong>${esc(personal.opleiding)}</strong>`:''}.
+    <p>In dit portfolio werkt <strong>${personal.naam?esc(personal.naam):'de student'}</strong> aan <strong>${goals.length} leerdoel${goals.length===1?'':'en'}</strong>${personal.opleiding?` binnen de opleiding <strong>${esc(personal.opleiding)}</strong>`:''}.
     Het gemiddelde niveau ${avgLevel>avgStart?'steeg van':avgLevel<avgStart?'ging van':'staat op'} <strong>${avgStart}</strong>${avgLevel!==avgStart?` naar <strong>${avgLevel}</strong>`:''} van de 100.${topGrower&&topGrower.d>0?` De grootste groei is zichtbaar bij <strong>${esc(topGrower.name)}</strong> (+${topGrower.d} punten).`:''}</p>
   </div>`;
 
   /* ── Overzicht / statistieken ── */
   html+=`<div class="section-hd"><span class="section-ic">${ic('dashboard',18)}</span><h2>Overzicht</h2></div>
   <div class="stats-grid">
-    <div class="stat-box"><div class="num">${S.goals.length}</div><div class="lbl">Leerdoelen</div></div>
+    <div class="stat-box"><div class="num">${goals.length}</div><div class="lbl">Leerdoelen</div></div>
     <div class="stat-box"><div class="num">${avgLevel}</div><div class="lbl">Gemiddeld niveau</div></div>
     <div class="stat-box"><div class="num">${experts}</div><div class="lbl">Expert (80+)</div></div>
     <div class="stat-box"><div class="num">${growthCount}</div><div class="lbl">Groeimomenten</div></div>
@@ -331,8 +332,8 @@ function generatePortfolioPDF(){
   </div>`;
 
   /* ── Vaardigheden & groei (naast elkaar) ── */
-  const radarHtml=S.goals.length>=2?buildRadarChart(S.goals,260):'';
-  const growthChart=buildGrowthChart(S.goals,560,240);
+  const radarHtml=goals.length>=2?buildRadarChart(goals,260):'';
+  const growthChart=buildGrowthChart(goals,560,240);
   if(radarHtml||growthChart){
     html+=`<div class="section-hd"><span class="section-ic">${ic('radar',18)}</span><h2>Vaardigheden &amp; groei</h2></div>
     <div class="charts-row">
@@ -475,7 +476,7 @@ function generatePortfolioPDF(){
 
 /* ── POP (Persoonlijk Ontwikkelingsplan): toekomstgericht plan als PDF ── */
 function generatePOPPDF(){
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  if(!wsGoals().length){toast('⚠️ Voeg eerst leerdoelen toe in deze werkruimte');return;}
   const personal={
     naam:document.getElementById('pdf-naam')?.value?.trim()||'',
     opleiding:document.getElementById('pdf-opleiding')?.value?.trim()||'',
@@ -504,11 +505,12 @@ function generatePOPPDF(){
     <text x="18" y="25.5" text-anchor="middle" font-size="5.5" font-weight="700" fill="#9ca3af" font-family="'Plus Jakarta Sans',sans-serif">/100</text>
   </svg>`;
 
-  const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
+  const goals=wsGoals();
+  const avgLevel=Math.round(goals.reduce((a,g)=>a+(g.level||1),0)/goals.length);
   const nextTarget=lv=>lv<20?20:lv<40?40:lv<60?60:lv<80?80:100;
-  const sorted=[...S.goals].sort((a,b)=>(a.level||1)-(b.level||1));
+  const sorted=[...goals].sort((a,b)=>(a.level||1)-(b.level||1));
   const focus=sorted.slice(0,Math.min(4,sorted.length));
-  const openByGoal=S.goals.map(g=>({name:g.name,items:(g.milestones||[]).filter(m=>!m.done)})).filter(x=>x.items.length);
+  const openByGoal=goals.map(g=>({name:g.name,items:(g.milestones||[]).filter(m=>!m.done)})).filter(x=>x.items.length);
   const totalOpen=openByGoal.reduce((a,x)=>a+x.items.length,0);
 
   /* ── Voorpagina ── */
@@ -532,11 +534,11 @@ function generatePOPPDF(){
 
   /* ── Inleiding ── */
   html+=`<div class="section-hd"><span class="section-ic">${ic('thought',18)}</span><h2>Inleiding</h2></div>
-  <div class="intro-card"><p>Dit persoonlijk ontwikkelingsplan beschrijft waar ${personal.naam?`<strong>${esc(personal.naam)}</strong>`:'ik'} nu sta op <strong>${S.goals.length} leerdoel${S.goals.length===1?'':'en'}</strong> (gemiddeld niveau <strong>${avgLevel}/100</strong>) en welke concrete stappen er nog gezet worden om verder te groeien. De focus ligt op de leerdoelen waar op dit moment de meeste ontwikkeling mogelijk is.</p></div>`;
+  <div class="intro-card"><p>Dit persoonlijk ontwikkelingsplan beschrijft waar ${personal.naam?`<strong>${esc(personal.naam)}</strong>`:'ik'} nu sta op <strong>${goals.length} leerdoel${goals.length===1?'':'en'}</strong> (gemiddeld niveau <strong>${avgLevel}/100</strong>) en welke concrete stappen er nog gezet worden om verder te groeien. De focus ligt op de leerdoelen waar op dit moment de meeste ontwikkeling mogelijk is.</p></div>`;
 
   /* ── Mijn startpunt ── */
   html+=`<div class="section-hd"><span class="section-ic">${ic('dashboard',18)}</span><h2>Mijn startpunt</h2></div>
-  <div class="start-list">${[...S.goals].sort((a,b)=>(b.level||1)-(a.level||1)).map(g=>{const lc=lvlColor(g.level||1);return `<div class="start-row">
+  <div class="start-list">${[...goals].sort((a,b)=>(b.level||1)-(a.level||1)).map(g=>{const lc=lvlColor(g.level||1);return `<div class="start-row">
     <span class="start-name">${esc(g.name)}</span>
     <span class="start-bar"><span class="start-fill" style="width:${g.level||1}%;background:${lc}"></span></span>
     <span class="start-lvl" style="color:${lc}">${g.level||1} · ${lvlLabel(g.level||1)}</span>

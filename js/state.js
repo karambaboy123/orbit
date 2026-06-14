@@ -78,6 +78,13 @@ const S = {
 };
 if(!S.presets){S.presets=DFLT_PRESETS.map(p=>({...p}));localStorage.setItem('pb_presets',JSON.stringify(S.presets));}
 if(!S.templates){S.templates=DFLT_TMPLS.map(t=>({...t}));localStorage.setItem('pb_templates',JSON.stringify(S.templates));}
+
+/* ── Werkruimtes (gescheiden sets leerdoelen: School/Werk/Stage...) ── */
+S.workspaces=_safeJSON('pb_workspaces',null);
+if(!S.workspaces||!S.workspaces.length){S.workspaces=[{id:'default',name:'Algemeen'}];localStorage.setItem('pb_workspaces',JSON.stringify(S.workspaces));}
+S.activeWs=localStorage.getItem('pb_active_ws')||S.workspaces[0].id;
+if(!S.workspaces.some(w=>w.id===S.activeWs))S.activeWs=S.workspaces[0].id;
+
 let _ftaSelId=S.presets[0]?.id||'summary';
 let _ntSelTmplId=S.templates[0]?.id||'blank';
 let _editingPresetId=null;
@@ -94,6 +101,10 @@ const saveGoals   = () => { _safeSave('pb_goals',    S.goals);     if(typeof bac
 const saveNotes   = () => { _safeSave('pb_notes',    S.notes);     if(typeof backupBumpCounter==='function')backupBumpCounter(); };
 const saveReviews = () => { _safeSave('pb_reviews',  S.reviews);   if(typeof backupBumpCounter==='function')backupBumpCounter(); };
 const saveAttachments=()=> { _safeSave('pb_attachments',S.attachments); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const saveWorkspaces=()=> { _safeSave('pb_workspaces',S.workspaces); if(typeof backupBumpCounter==='function')backupBumpCounter(); };
+const setActiveWs=(id)=>{ S.activeWs=id; try{localStorage.setItem('pb_active_ws',id);}catch(_){} };
+/* Leerdoelen van de actieve werkruimte (legacy doelen zonder ws horen bij 'default') */
+function wsGoals(){ return S.goals.filter(g=>(g.ws||'default')===S.activeWs); }
 const getTask = () => S.tasks.find(t=>t.id===S.tid)||null;
 const mkId = () => 't'+Date.now()+Math.random().toString(36).slice(2,5);
 
