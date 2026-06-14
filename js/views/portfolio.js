@@ -225,15 +225,6 @@ function vPortfolio(){
       </div>
     </div>
 
-    <!-- Werkruimte-switcher -->
-    <div class="flex items-center gap-2 flex-wrap">
-      <span class="text-xs font-semibold text-gray-500">Werkruimte:</span>
-      ${S.workspaces.map(w=>`<button onclick="switchWs('${w.id}')" class="text-sm px-3 py-1 rounded-full border transition-all" style="${w.id===S.activeWs?'background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p);font-weight:700':'background:var(--card);color:var(--txt2);border-color:var(--card-border)'}">${esc(w.name)}</button>`).join('')}
-      <button onclick="addWorkspace()" class="text-sm px-3 py-1 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-500">+ werkruimte</button>
-      <button onclick="renameWorkspace()" title="Naam wijzigen" class="text-gray-400 hover:text-indigo-500 text-base px-1">✏️</button>
-      ${S.workspaces.length>1?`<button onclick="deleteWorkspace()" title="Werkruimte verwijderen" class="text-gray-400 hover:text-red-500 text-base px-1">🗑️</button>`:''}
-    </div>
-
     <!-- Exporteren-balk -->
     <div class="card p-4 flex items-center gap-3 flex-wrap" style="border:1.5px solid color-mix(in srgb,var(--p) 30%,transparent);background:color-mix(in srgb,var(--p) 5%,var(--card))">
       <div class="flex-1 min-w-0">
@@ -242,6 +233,15 @@ function vPortfolio(){
       </div>
       <button class="btn bp px-5 py-2.5 font-semibold" onclick="exportPortfolioPDF()">📄 Portfolio uitdraaien</button>
       <button class="btn bp px-5 py-2.5 font-semibold" style="background:#7c3aed" onclick="exportPOP()">📋 POP maken</button>
+    </div>
+
+    <!-- Werkruimte-switcher -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-xs font-semibold text-gray-500">Werkruimte:</span>
+      ${S.workspaces.map(w=>`<button onclick="switchWs('${w.id}')" class="text-sm px-3 py-1 rounded-full border transition-all" style="${w.id===S.activeWs?'background:var(--p);color:var(--icon-txt,#fff);border-color:var(--p);font-weight:700':'background:var(--card);color:var(--txt2);border-color:var(--card-border)'}">${esc(w.name)}</button>`).join('')}
+      <button onclick="addWorkspace()" class="text-sm px-3 py-1 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-500">+ werkruimte</button>
+      <button onclick="renameWorkspace()" title="Naam wijzigen" class="text-gray-400 hover:text-indigo-500 text-base px-1">✏️</button>
+      ${S.workspaces.length>1?`<button onclick="deleteWorkspace()" title="Werkruimte verwijderen" class="text-gray-400 hover:text-red-500 text-base px-1">🗑️</button>`:''}
     </div>
 
     <!-- Stats -->
