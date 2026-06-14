@@ -767,7 +767,7 @@ function orbitPrompt(msg,defaultVal,onOk,title){
   _omOk=onOk||null;_omCancel=null;
   document.getElementById('orbit-modal-ok-btn').onclick=()=>{
     const v=document.getElementById('orbit-modal-input').value;
-    _omClose();if(_omOk)_omOk(v);
+    const cb=_omOk;_omClose();if(cb)cb(v);
   };
   inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('orbit-modal-ok-btn')?.click();}};
   document.getElementById('orbit-modal').classList.remove('hidden');
