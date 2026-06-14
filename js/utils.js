@@ -223,6 +223,7 @@ function renderWerkItem(w){
 
 /* ── Portfolio PDF: stap 2 — genereer professioneel document ── */
 function generatePortfolioPDF(){
+  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
   const personal={
     naam:document.getElementById('pdf-naam')?.value?.trim()||'',
     opleiding:document.getElementById('pdf-opleiding')?.value?.trim()||'',
@@ -235,6 +236,17 @@ function generatePortfolioPDF(){
   const color=PORTFOLIO_COLORS.find(c=>c.id===_pdfColor)||PORTFOLIO_COLORS[0];
   const accent=color.hex;
   const datum=new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
+
+  /* Statistieken & samenvatting (één keer berekenen) */
+  const experts=S.goals.filter(g=>g.level>=80).length;
+  const growthCount=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
+  const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
+  const startOf=g=>(g.history&&g.history.length)?g.history[0].oldLevel:(g.level||1);
+  const avgStart=Math.round(S.goals.reduce((a,g)=>a+startOf(g),0)/S.goals.length);
+  const topGrower=S.goals.map(g=>({name:g.name,d:(g.level||1)-startOf(g)})).sort((a,b)=>b.d-a.d)[0];
+  const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))];
+  const catGoals=cat=>S.goals.filter(g=>(g.category||'Overig')===cat);
+  const catAvgOf=cat=>{const gs=catGoals(cat);return Math.round(gs.reduce((a,g)=>a+(g.level||1),0)/gs.length);};
 
   const logoSvg=(clr,w=90)=>`<svg viewBox="0 0 100 100" width="${w}" height="${w}" xmlns="http://www.w3.org/2000/svg" style="color:${clr}">
     <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
@@ -254,7 +266,8 @@ function generatePortfolioPDF(){
   </svg>`;
 
   /* ── Voorpagina ── */
-  let html=`<div class="cover">
+  let html=`<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <div class="cover">
     <div class="cover-shape cover-shape-1"></div>
     <div class="cover-shape cover-shape-2"></div>
     <div class="cover-card">
@@ -263,44 +276,56 @@ function generatePortfolioPDF(){
       <h1>Portfolio</h1>
       <div class="cover-sub">Persoonlijk ontwikkelportfolio</div>
       ${(personal.naam||personal.opleiding||personal.klas)?`<div class="cover-info">
-        ${personal.naam?`<div class="cover-naam">${personal.naam}</div>`:''}
-        ${(personal.opleiding||personal.klas)?`<div class="cover-sub2">${[personal.opleiding,personal.klas].filter(Boolean).join(' · ')}</div>`:''}
+        ${personal.naam?`<div class="cover-naam">${esc(personal.naam)}</div>`:''}
+        ${(personal.opleiding||personal.klas)?`<div class="cover-sub2">${esc([personal.opleiding,personal.klas].filter(Boolean).join(' · '))}</div>`:''}
       </div>`:''}
-      ${personal.periode?`<div class="cover-periode">${personal.periode}</div>`:''}
+      ${personal.periode?`<div class="cover-periode">${esc(personal.periode)}</div>`:''}
     </div>
     <div class="cover-date">Gegenereerd op ${datum} · Orbit AI Workflow Tool</div>
   </div>`;
 
+  /* ── Inhoudsopgave ── */
+  html+=`<div class="section-hd"><span class="section-ic">${ic('layout',18)}</span><h2>Inhoud</h2></div>
+  <div class="toc">${cats.map((cat,ci)=>`<div class="toc-cat"><span class="toc-num">${ci+1}</span><span class="toc-cat-name">${esc(cat)}</span><span class="toc-cat-avg">gem. ${catAvgOf(cat)}/100</span></div>
+    ${catGoals(cat).map(g=>`<div class="toc-goal"><span class="toc-goal-name">${esc(g.name)}</span><span class="toc-lvl" style="color:${lvlColor(g.level||1)}">${g.level||1}/100 · ${lvlLabel(g.level||1)}</span></div>`).join('')}`).join('')}</div>`;
+
+  /* ── Samenvatting ── */
+  html+=`<div class="intro-card">
+    <p>In dit portfolio werkt <strong>${personal.naam?esc(personal.naam):'de student'}</strong> aan <strong>${S.goals.length} leerdoel${S.goals.length===1?'':'en'}</strong>${personal.opleiding?` binnen de opleiding <strong>${esc(personal.opleiding)}</strong>`:''}.
+    Het gemiddelde niveau ${avgLevel>avgStart?'steeg van':avgLevel<avgStart?'ging van':'staat op'} <strong>${avgStart}</strong>${avgLevel!==avgStart?` naar <strong>${avgLevel}</strong>`:''} van de 100.${topGrower&&topGrower.d>0?` De grootste groei is zichtbaar bij <strong>${esc(topGrower.name)}</strong> (+${topGrower.d} punten).`:''}</p>
+  </div>`;
+
   /* ── Overzicht / statistieken ── */
-  const experts=S.goals.filter(g=>g.level>=80).length;
-  const growth=S.goals.reduce((a,g)=>a+(g.history||[]).filter(h=>h.delta>0).length,0);
-  const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
   html+=`<div class="section-hd"><span class="section-ic">${ic('dashboard',18)}</span><h2>Overzicht</h2></div>
   <div class="stats-grid">
     <div class="stat-box"><div class="num">${S.goals.length}</div><div class="lbl">Leerdoelen</div></div>
     <div class="stat-box"><div class="num">${avgLevel}</div><div class="lbl">Gemiddeld niveau</div></div>
     <div class="stat-box"><div class="num">${experts}</div><div class="lbl">Expert (80+)</div></div>
-    <div class="stat-box"><div class="num">${growth}</div><div class="lbl">Groeimomenten</div></div>
+    <div class="stat-box"><div class="num">${growthCount}</div><div class="lbl">Groeimomenten</div></div>
+  </div>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(15)}"></span>Starter 1–20</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(30)}"></span>Beginner 21–40</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(50)}"></span>Gemiddeld 41–60</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(70)}"></span>Gevorderd 61–80</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(90)}"></span>Expert 81–100</span>
   </div>`;
 
-  /* ── Vaardighedenradar ── */
-  if(S.goals.length>=2){
-    html+=`<div class="section-hd"><span class="section-ic">${ic('radar',18)}</span><h2>Vaardighedenradar</h2></div>
-    <div class="radar-card">${buildRadarChart(S.goals,300)}</div>`;
-  }
-
-  /* ── Groeidiagram ── */
+  /* ── Vaardigheden & groei (naast elkaar) ── */
+  const radarHtml=S.goals.length>=2?buildRadarChart(S.goals,260):'';
   const growthChart=buildGrowthChart(S.goals,560,240);
-  if(growthChart){
-    html+=`<div class="section-hd"><span class="section-ic">${ic('growth',18)}</span><h2>Groeidiagram</h2></div>
-    <div class="radar-card" style="flex-direction:column">${growthChart}</div>`;
+  if(radarHtml||growthChart){
+    html+=`<div class="section-hd"><span class="section-ic">${ic('radar',18)}</span><h2>Vaardigheden &amp; groei</h2></div>
+    <div class="charts-row">
+      ${radarHtml?`<div class="radar-card chart-col"><div class="chart-cap">Vaardighedenradar</div>${radarHtml}</div>`:''}
+      ${growthChart?`<div class="radar-card chart-col"><div class="chart-cap">Groeiverloop per leerdoel</div>${growthChart}</div>`:''}
+    </div>`;
   }
 
   /* ── Per categorie ── */
-  const cats=[...new Set(S.goals.map(g=>g.category||'Overig'))];
   cats.forEach(cat=>{
-    const goals=S.goals.filter(g=>(g.category||'Overig')===cat);
-    html+=`<div class="cat-section"><div class="cat-title"><span class="cat-dot"></span>${cat}</div>`;
+    const goals=catGoals(cat);
+    html+=`<div class="cat-section"><div class="cat-title"><span class="cat-dot"></span><span class="cat-name">${esc(cat)}</span><span class="cat-avg">gem. ${catAvgOf(cat)}/100</span></div>`;
     goals.forEach(g=>{
       const lc=lvlColor(g.level||1);
       const done=g.milestones.filter(m=>m.done).length,tot=g.milestones.length;
@@ -311,11 +336,10 @@ function generatePortfolioPDF(){
           <div style="flex:1;min-width:0">
             <div class="goal-name">${esc(g.name)}</div>
             ${g.desc?`<div class="goal-desc">${esc(g.desc)}</div>`:''}
-            <div class="goal-bar"><div class="goal-bar-fill" style="width:${g.level||1}%;background:${lc}"></div></div>
-            ${tot>0?`<div class="goal-meta">${done}/${tot} mijlpalen afgerond</div>`:''}
           </div>
           <div class="goal-tag" style="background:${lc}1a;color:${lc}">${lvlLabel(g.level||1)}</div>
         </div>
+        ${tot>0?`<div class="goal-section-lbl">${ic('milestone',13)} Mijlpalen (${done}/${tot})</div><div class="ms-list">${g.milestones.map(m=>`<div class="ms-item"><span class="ms-box ${m.done?'ms-on':''}">${m.done?'✓':''}</span><span class="${m.done?'ms-done':''}">${esc(m.label)}</span></div>`).join('')}</div>`:''}
         ${g.notes?`<div class="goal-section-lbl">${ic('thought',13)} Reflectie</div><div class="goal-text">${esc(g.notes)}</div>`:''}
         ${hist.length?`<div class="goal-section-lbl">${ic('growth',13)} Groeitraject</div>${hist.map(h=>`<div class="timeline-item"><strong style="color:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</strong> · ${h.oldLevel} → ${h.newLevel} · ${esc(h.reason)} <span class="timeline-date">(${h.date})</span></div>`).join('')}`:''}
         ${(g.werkItems&&g.werkItems.length)?`<div class="goal-section-lbl">${ic('briefcase',13)} Mijn werk</div><div class="werk-grid">${g.werkItems.map(w=>renderWerkItem(w)).join('')}</div>`:''}
@@ -336,8 +360,8 @@ function generatePortfolioPDF(){
   </div>`;
 
   const extraStyle=`
-    body{font-family:'Segoe UI',sans-serif}
-    h1,h2,h3{font-family:'Segoe UI',sans-serif}
+    body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+    h1,h2,h3{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
     .cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
       min-height:96vh;page-break-after:always;overflow:hidden;border-radius:18px;
       background:linear-gradient(135deg,${accent} 0%,color-mix(in srgb,${accent} 55%,#1e1b4b) 100%);color:#fff}
@@ -356,7 +380,27 @@ function generatePortfolioPDF(){
     .cover-sub2{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px}
     .cover-periode{margin-top:14px;display:inline-block;padding:5px 16px;border-radius:999px;background:rgba(255,255,255,.18);font-weight:600;font-size:12px}
     .cover-date{position:relative;z-index:1;margin-top:40px;color:rgba(255,255,255,.7);font-size:11px;letter-spacing:.05em}
-    .section-hd{display:flex;align-items:center;gap:10px;margin-top:28px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid color-mix(in srgb,${accent} 22%,transparent)}
+    .section-hd{display:flex;align-items:center;gap:10px;margin-top:28px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid color-mix(in srgb,${accent} 22%,transparent);break-after:avoid;page-break-after:avoid}
+    .toc{border:1px solid color-mix(in srgb,${accent} 16%,transparent);border-radius:12px;padding:14px 18px;break-inside:avoid;page-break-inside:avoid}
+    .toc-cat{display:flex;align-items:center;gap:8px;margin-top:14px;font-weight:800;font-size:13px;color:#1e1b4b}
+    .toc-cat:first-child{margin-top:0}
+    .toc-num{flex-shrink:0;width:20px;height:20px;border-radius:6px;background:${accent};color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:800}
+    .toc-cat-name{flex:1}
+    .toc-cat-avg{font-size:11px;font-weight:700;color:${accent}}
+    .toc-goal{display:flex;align-items:baseline;gap:8px;font-size:12px;color:#4b5563;padding:3px 0 3px 28px}
+    .toc-goal-name{flex-shrink:0}
+    .toc-goal::before{content:'';flex:1;order:1;border-bottom:1px dotted #d1d5db;transform:translateY(-3px)}
+    .toc-lvl{order:2;font-weight:700;font-size:11px;flex-shrink:0}
+    .intro-card{margin-top:18px;padding:16px 20px;border-radius:12px;border-left:4px solid ${accent};
+      background:color-mix(in srgb,${accent} 7%,white);break-inside:avoid;page-break-inside:avoid}
+    .intro-card p{margin:0;font-size:13.5px;color:#374151;line-height:1.7}
+    .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;padding:10px 14px;border-radius:10px;
+      background:#f9fafb;border:1px solid #f1f2f6;break-inside:avoid;page-break-inside:avoid}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#4b5563}
+    .legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+    .charts-row{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap;break-inside:avoid;page-break-inside:avoid}
+    .chart-col{flex:1;min-width:240px;flex-direction:column}
+    .chart-cap{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:${accent};margin-bottom:8px;text-align:center}
     .section-hd h2{margin:0;padding:0;border:none;font-size:18px;color:${accent};font-weight:800}
     .section-ic{font-size:18px;display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;
       border-radius:9px;background:color-mix(in srgb,${accent} 14%,white)}
@@ -372,16 +416,22 @@ function generatePortfolioPDF(){
     .cat-section{margin-top:30px}
     .cat-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:#1e1b4b;
       border-bottom:2px solid color-mix(in srgb,${accent} 20%,transparent);padding-bottom:8px;margin-bottom:14px;
-      letter-spacing:.02em}
+      letter-spacing:.02em;break-after:avoid;page-break-after:avoid}
     .cat-dot{width:10px;height:10px;border-radius:50%;background:${accent};flex-shrink:0}
+    .cat-name{flex:1}
+    .cat-avg{font-size:11px;font-weight:700;color:${accent};background:color-mix(in srgb,${accent} 12%,white);
+      padding:3px 10px;border-radius:999px;letter-spacing:0}
+    .ms-list{margin-top:5px;display:flex;flex-direction:column;gap:3px}
+    .ms-item{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:#374151}
+    .ms-box{flex-shrink:0;width:15px;height:15px;border-radius:4px;border:1.5px solid #d1d5db;background:#fff;
+      display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800;margin-top:1px}
+    .ms-box.ms-on{background:#10b981;border-color:#10b981}
+    .ms-done{color:#9ca3af;text-decoration:line-through}
     .goal-card{border:1px solid #ececf2;border-left:5px solid ${accent};border-radius:12px;padding:16px 18px;
       margin-bottom:14px;page-break-inside:avoid;box-shadow:0 1px 3px rgba(0,0,0,.04)}
     .goal-head{display:flex;align-items:flex-start;gap:14px}
     .goal-name{font-size:15px;font-weight:800;color:#1e1b4b}
     .goal-desc{font-size:12px;color:#6b7280;margin-top:2px}
-    .goal-bar{height:7px;background:#f1f2f6;border-radius:4px;margin-top:10px;overflow:hidden}
-    .goal-bar-fill{height:100%;border-radius:4px}
-    .goal-meta{font-size:11px;color:#9ca3af;margin-top:6px;font-weight:600}
     .goal-tag{flex-shrink:0;font-size:10px;font-weight:800;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
     .goal-section-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:12px;color:${accent}}
     .goal-text{font-size:13px;color:#374151;margin-top:4px;white-space:pre-wrap;line-height:1.6}
