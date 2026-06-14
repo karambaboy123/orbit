@@ -345,25 +345,30 @@ ${(()=>{
       </div>
     </div>
 
-    <!-- Radar/Spiderweb chart -->
-    ${S.goals.length>=2?`<div class="card overflow-hidden">
+    <!-- Radar/Spiderweb chart + Groeiverloop -->
+    ${S.goals.length>=2?(()=>{const growthChart=buildGrowthChart(S.goals,560,240);return `<div class="card overflow-hidden">
       <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('radar-chart')">
         <div class="flex items-center gap-3"><span class="text-lg">🕸️</span><div>
-          <div class="font-bold text-sm">Vaardigheidsradar</div>
-          <div class="text-xs text-gray-500">Spiderweb — visueel overzicht van al je niveaus</div>
+          <div class="font-bold text-sm">Vaardigheidsradar &amp; groeiverloop</div>
+          <div class="text-xs text-gray-500">Visueel overzicht van je niveaus${growthChart?' en je ontwikkeling over tijd':''}</div>
         </div></div>
         <span id="acc-ic-radar-chart" class="text-gray-400 text-xs">▼</span>
       </button>
       <div id="acc-body-radar-chart" class="hidden border-t border-gray-100 p-5">
+        <div class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 text-center">Vaardigheidsradar</div>
         <div class="max-w-xs mx-auto">
           ${buildRadarChart(S.goals)}
         </div>
         ${S.goals.length>10?`<div class="text-xs text-gray-400 text-center mt-2">Toont de eerste 10 van ${S.goals.length} doelen</div>`:''}
         <div class="mt-4 flex flex-wrap gap-2 justify-center">
-          ${S.goals.slice(0,10).map(g=>`<div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${lvlColor(g.level||1)}"></span><span class="text-xs text-gray-600">${g.name.slice(0,20)}: <strong>${g.level||1}</strong></span></div>`).join('')}
+          ${S.goals.slice(0,10).map(g=>`<div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${lvlColor(g.level||1)}"></span><span class="text-xs text-gray-600">${esc(g.name.slice(0,20))}: <strong>${g.level||1}</strong></span></div>`).join('')}
         </div>
+        ${growthChart?`<div class="mt-6 pt-5 border-t border-gray-100">
+          <div class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 text-center">Groeiverloop per leerdoel</div>
+          ${growthChart}
+        </div>`:`<div class="mt-6 pt-5 border-t border-gray-100 text-xs text-gray-400 text-center">Pas je niveaus aan (met reden) om hier je groeiverloop over tijd te zien.</div>`}
       </div>
-    </div>`:''}
+    </div>`;})():''}
 
     <!-- Filter -->
     ${S.goals.length>3?`<div class="flex flex-wrap gap-2 items-center">
