@@ -56,7 +56,6 @@ const SP_PROMPT=`Je bent een expert prompt engineer. Lever EXACT dit Markdown fo
 
 /* ── SETTINGS AI functions ──────────────────────────────── */
 function saveAnalyseTpl(){const v=document.getElementById('set-analyse-tpl')?.value||'';localStorage.setItem('pb_analyse_prompt_tpl',v);toast('✅ Analyse-prompt opgeslagen!');}
-function savePortfolioTpl(){const v=document.getElementById('set-portfolio-tpl')?.value||'';localStorage.setItem('pb_portfolio_prompt_tpl',v);toast('✅ Portfolio-prompt opgeslagen!');}
 function saveGem(){const k=document.getElementById('gkey').value.trim();S.geminiKey=k;localStorage.setItem('pb_gemini',k);toast(k?'✅ Opgeslagen!':'✅ Sleutel gewist');render();}
 async function testGem(){
   const k=document.getElementById('gkey').value.trim();if(!k){toast('⚠️ Vul een sleutel in');return;}

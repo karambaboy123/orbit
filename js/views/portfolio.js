@@ -19,24 +19,6 @@ const PRESET_GOALS=[
 ];
 const GOAL_CATS=PRESET_GOALS.map(x=>x.cat);
 
-const PORTFOLIO_STYLES=[
-  {id:'linkedin',    l:'LinkedIn profiel',      desc:'Sterk profiel met skills en resultaten'},
-  {id:'cv',          l:'Professioneel CV',      desc:'Klassiek CV met competenties en projecten'},
-  {id:'creatief',    l:'Creatief portfolio',    desc:'Verhalend en persoonlijk, voor creatieven'},
-  {id:'pitch',       l:'Elevator pitch',        desc:'Korte krachtige samenvatting'},
-  {id:'academisch',  l:'Academisch verslag',    desc:'Formeel, met leerdoelen en onderbouwing'},
-  {id:'stage',       l:'Stageverslag',          desc:'Reflectief, gericht op leeruitkomsten'},
-  {id:'competentie', l:'Competentieprofiel',    desc:'Per competentie uitgewerkt met bewijzen'},
-  {id:'sollicitatie',l:'Sollicitatiebrief',     desc:'Overtuigend, gericht op één functie'},
-  {id:'leerportfolio',l:'Leerportfolio',        desc:'Groei en leertraject per vaardigheid'},
-  {id:'reflectie',   l:'Reflectieverslag',      desc:'Diepgaande zelfreflectie op leerproces'},
-  {id:'bewijs',      l:'Bewijsdossier',         desc:'Concrete bewijzen per competentie'},
-  {id:'persoonlijk', l:'Persoonlijk verslag',   desc:'Informeel, authentiek en verhaalvorm'},
-  {id:'presentatie', l:'Presentatiescript',     desc:'Script voor een korte persoonlijke pitch'},
-  {id:'hbo',         l:'HBO Reflectieverslag',  desc:'Specifiek voor HBO-studenten, STAR-methode'},
-  {id:'blog',        l:'Blog / artikel',        desc:'Toegankelijk en enthousiasmerend voor lezers'},
-  {id:'mentor',      l:'Voor een mentor/coach', desc:'Eerlijk, gericht op groei en feedback'},
-];
 const PORTFOLIO_COLORS=[
   {id:'indigo', l:'Indigo',   hex:'#4f46e5'},
   {id:'emerald',l:'Groen',    hex:'#10b981'},
@@ -87,10 +69,6 @@ function lvlLabel(n){
 let _pgPickerCat='',_pgPickerSearch='',_pgPickerOpen=false;
 let _analysisProposals=[];
 let _newGoalProposals=[];
-let _portfolioStyle='linkedin';
-let _portfolioColor='indigo';
-let _portfolioCustomPrompt='';
-let _portfolioSections={goals:true,projects:true,milestones:true,reflection:true,radar:false};
 let _pdfColor=localStorage.getItem('pb_pdf_color')||'indigo';
 
 function vPortfolio(){
@@ -210,8 +188,8 @@ function vPortfolio(){
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-discover')">🧭 Nieuwe doelen ontdekken</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-analyse')">🔬 Groei analyseren</button>
         <button class="btn bs text-sm" onclick="toggleAcc('portfolio-bijlagen')">📎 Bijlagen & links</button>
-        <button class="btn bs text-sm" onclick="toggleAcc('portfolio-maker')">📄 Portfolio maken</button>
-        <button class="btn bs text-sm" onclick="exportPortfolioPDF()">📄 PDF exporteren</button>
+        <button class="btn bs text-sm" onclick="exportPOP()">📋 POP maken</button>
+        <button class="btn bs text-sm" onclick="exportPortfolioPDF()">📄 Portfolio uitdraaien</button>
         <button class="btn bs text-sm" style="color:#ef4444" onclick="clearAllGrowth()">🗑️ Alle groei wissen</button>
         <button class="btn bp text-sm" onclick="_pgPickerOpen=!_pgPickerOpen;render()">➕ Nieuw doel</button>
       </div>
@@ -362,75 +340,6 @@ ${(()=>{
           <div class="flex gap-2">
             <button class="btn bg text-sm" onclick="processAnalysisDump()">🔬 Verwerk antwoord</button>
             <button class="btn bs text-sm" onclick="document.getElementById('analysis-dump').value=''">Wis</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Portfolio maker accordion -->
-    <div class="card overflow-hidden">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('portfolio-maker')">
-        <div class="flex items-center gap-3"><span class="text-lg">📄</span><div>
-          <div class="font-bold text-sm">Portfolio maken</div>
-          <div class="text-xs text-gray-500">Kies stijl, kleur & inhoud → genereer prompt → stuur naar AI</div>
-        </div></div>
-        <span id="acc-ic-portfolio-maker" class="text-gray-400 text-xs">▼</span>
-      </button>
-      <div id="acc-body-portfolio-maker" class="hidden border-t border-gray-100 p-5 space-y-5">
-
-        <!-- Stijl -->
-        <div>
-          <label class="lbl">📐 Stijl</label>
-          <div class="grid grid-cols-4 gap-2 mt-1">
-            ${PORTFOLIO_STYLES.map(s=>`<div data-sid="${s.id}" onclick="setPortfolioStyle('${s.id}')"
-              class="ps-card border-2 rounded-lg p-2 cursor-pointer transition-all text-center hover:border-indigo-300 ${_portfolioStyle===s.id?'border-indigo-500 bg-indigo-50':'border-gray-200'}">
-              <div class="font-semibold text-xs">${s.l}</div>
-              <div class="text-xs text-gray-400 mt-0.5 leading-tight">${s.desc}</div>
-            </div>`).join('')}
-          </div>
-        </div>
-
-        <!-- Kleur -->
-        <div>
-          <label class="lbl">🎨 Kleurschema voor het portfolio</label>
-          <div class="flex flex-wrap gap-2 mt-1">
-            ${PORTFOLIO_COLORS.map(c=>`<button data-cid="${c.id}" onclick="setPortfolioColor('${c.id}')"
-              class="pc-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 text-xs font-semibold transition-all"
-              style="background:${c.hex}20;color:${c.hex};border-color:${_portfolioColor===c.id?c.hex:'#e5e7eb'};${_portfolioColor===c.id?'outline:2px solid '+c.hex:''}">
-              <span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${c.hex}"></span>${c.l}
-            </button>`).join('')}
-          </div>
-        </div>
-
-        <!-- Inhoud -->
-        <div>
-          <label class="lbl">📦 Wat moet erin?</label>
-          <div class="flex flex-wrap gap-4 mt-1">
-            ${[['goals','🎯 Leerdoelen & niveaus'],['projects','📋 Gemaakte projecten'],['milestones','🏁 Behaalde mijlpalen'],['reflection','💭 Reflectie per doel'],['radar','🕸️ Spiderweb/radar beschrijving']].map(([k,l])=>`<label class="flex items-center gap-2 cursor-pointer text-sm">
-              <input type="checkbox" ${_portfolioSections[k]?'checked':''} onchange="_portfolioSections['${k}']=this.checked" style="accent-color:#4f46e5">
-              ${l}</label>`).join('')}
-          </div>
-        </div>
-
-        <!-- Eigen prompt toevoegen -->
-        <div>
-          <label class="lbl">✏️ Extra instructies / eigen prompt (optioneel)</label>
-          <textarea class="inp text-sm w-full" rows="3"
-            placeholder="Bijv: schrijf het in de jij-vorm, voeg concrete voorbeelden toe, maak het max 500 woorden, focus op stage-geschiktheid..."
-            oninput="_portfolioCustomPrompt=this.value">${_portfolioCustomPrompt||''}</textarea>
-          <div class="text-xs text-gray-400 mt-1">💡 In Instellingen kun je standaard portfolio-prompts opslaan die je altijd kunt terugladen</div>
-        </div>
-
-        <button class="btn bp text-sm" onclick="generatePortfolioPrompt()">⚡ Genereer portfolio-prompt</button>
-
-        <div id="portfolio-prompt-out" class="hidden space-y-3">
-          <div class="flex items-center justify-between">
-            <label class="lbl mb-0">📄 Portfolio-prompt — kopieer naar jouw AI</label>
-            <button onclick="document.getElementById('portfolio-prompt-txt').select();document.execCommand('copy');toast('✅ Gekopieerd!')" class="btn bs text-xs">📋 Alles kopiëren</button>
-          </div>
-          <textarea id="portfolio-prompt-txt" class="inp text-sm w-full" rows="12" style="font-family:monospace"></textarea>
-          <div class="flex gap-2 flex-wrap">
-            ${SITES.map(s=>`<button onclick="sendPortfolioToAI('${s.id}')" class="btn text-white text-xs py-2 px-3 rounded-lg font-bold hover:opacity-90" style="background:${s.c}">${s.l} 🚀</button>`).join('')}
           </div>
         </div>
       </div>
@@ -790,108 +699,6 @@ function clearAllGrowth(){
   },null,'Alle groei wissen');
 }
 
-/* ── Portfolio prompt genereren ── */
-function generatePortfolioPrompt(){
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
-  const style=PORTFOLIO_STYLES.find(s=>s.id===_portfolioStyle)||PORTFOLIO_STYLES[0];
-  const color=PORTFOLIO_COLORS.find(c=>c.id===_portfolioColor)||PORTFOLIO_COLORS[0];
-  const sec=_portfolioSections;
-  const customBase=localStorage.getItem('pb_portfolio_prompt_tpl')||'';
-  let prompt=customBase||`Maak een ${style.l} voor mij op basis van de onderstaande informatie. Schrijf het volledig uit in het Nederlands, professioneel en overtuigend.\n\n`;
-  prompt+=`**Stijl:** ${style.l} — ${style.desc}\n`;
-  prompt+=`**Kleurschema:** ${color.l} (${color.hex}) — gebruik dit als accent door de hele opmaak\n\n`;
-  prompt+=`**Belangrijkste opdracht:** beschrijf niet alleen WAT ik gedaan heb, maar vooral HOE ik gegroeid ben, WAAROM die groei heeft plaatsgevonden en welke ontwikkeling daarin zichtbaar is. Leg per leerdoel een duidelijke lijn van mijn leerproces: waar ik begon, welke acties/ervaringen tot groei hebben geleid, wat ik daarvan geleerd heb en hoe ik dit in de toekomst ga toepassen. Reflectie en persoonlijke ontwikkeling staan centraal — gebruik concrete voorbeelden uit mijn groeigeschiedenis en werk hieronder.\n\n`;
-  if(sec.goals){
-    prompt+=`## Mijn leerdoelen & vaardigheidsniveaus (schaal 1-100)\n\n`;
-    S.goals.forEach(g=>{
-      prompt+=`- **${g.name}** — niveau ${g.level||1}/100 (${lvlLabel(g.level||1)})`;
-      if(g.desc)prompt+=`\n  *${g.desc}*`;
-      prompt+='\n';
-    });
-    prompt+='\n';
-  }
-  if(sec.projects){
-    const projs=S.tasks.filter(t=>t.analysis&&!t.archived).slice(0,8);
-    if(projs.length){
-      prompt+=`## Gemaakte projecten & opdrachten\n\n`;
-      projs.forEach(t=>{
-        const name=t.name||t.input?.goal||'Project';
-        const pct=taskPct(t);
-        prompt+=`- **${name}** — ${pct}% afgerond\n`;
-      });
-      prompt+='\n';
-    }
-  }
-  if(sec.milestones){
-    const allMs=S.goals.flatMap(g=>(g.milestones||[]).filter(m=>m.done).map(m=>({goal:g.name,label:m.label})));
-    if(allMs.length){
-      prompt+=`## Behaalde mijlpalen\n\n`;
-      allMs.slice(0,15).forEach(m=>prompt+=`- ${m.label} *(${m.goal})*\n`);
-      prompt+='\n';
-    }
-  }
-  if(sec.reflection){
-    const goalsWithNotes=S.goals.filter(g=>g.notes||(g.history&&g.history.length));
-    if(goalsWithNotes.length){
-      prompt+=`## Reflectie & groeitraject per leerdoel\n\n`;
-      prompt+=`Voor elk leerdoel hieronder staat het startniveau, het huidige niveau, mijn eigen aantekeningen en de stappen waarin ik gegroeid ben (met reden). Gebruik dit om per leerdoel te beschrijven: waar ik begon, welke ontwikkeling ik heb doorgemaakt, waarom die groei heeft plaatsgevonden, wat ik ervan geleerd heb en wat dit zegt over mijn persoonlijke ontwikkeling.\n\n`;
-      goalsWithNotes.forEach(g=>{
-        const hist=g.history||[];
-        const startLevel=hist.length?hist[0].oldLevel:(g.level||1);
-        prompt+=`### ${g.name}\n`;
-        prompt+=`Startniveau: ${startLevel}/100 → Huidig niveau: ${g.level||1}/100 (${lvlLabel(g.level||1)})\n`;
-        if(g.notes)prompt+=`Eigen aantekeningen/reflectie: ${g.notes}\n`;
-        if(hist.length){
-          prompt+=`Groeistappen (van begin tot nu):\n`;
-          hist.forEach(h=>{
-            prompt+=`- ${h.oldLevel} → ${h.newLevel} (${h.delta>=0?'+':''}${h.delta}): ${h.reason} *(${h.date})*\n`;
-          });
-        }
-        prompt+='\n';
-      });
-    }
-  }
-  const werkGoals=S.goals.filter(g=>(g.werkItems&&g.werkItems.length)||(g.linkedTasks&&g.linkedTasks.length));
-  if(werkGoals.length){
-    prompt+=`## Gekoppeld werk per leerdoel\n\n`;
-    werkGoals.forEach(g=>{
-      prompt+=`### ${g.name}\n`;
-      (g.werkItems||[]).forEach(w=>prompt+=`- **${w.title}**: ${w.body.slice(0,150)}${w.body.length>150?'...':''}\n`);
-      (g.linkedTasks||[]).forEach(tid=>{
-        const t=S.tasks.find(x=>x.id===tid);
-        if(t)prompt+=`- Opdracht: **${t.name||t.input?.goal||'Opdracht'}** (${taskPct(t)}% afgerond)\n`;
-      });
-      prompt+='\n';
-    });
-  }
-  if(sec.radar&&S.goals.length>=2){
-    prompt+=`## Vaardigheidsradar — beschrijving voor portfolio\n\n`;
-    prompt+=`De onderstaande gegevens vertegenwoordigen een spiderweb/radardiagram van mijn vaardigheidsniveaus. Beschrijf dit visueel in het portfolio (stel dat de lezer het diagram ziet):\n\n`;
-    S.goals.slice(0,10).forEach(g=>{
-      const pct=g.level||1;
-      const bar='█'.repeat(Math.round(pct/10))+'░'.repeat(10-Math.round(pct/10));
-      prompt+=`- **${g.name}**: ${bar} ${pct}/100 (${lvlLabel(pct)})\n`;
-    });
-    prompt+=`\nGeef een korte narratieve beschrijving van dit diagram: wat valt op, waar zijn sterke punten, waar is nog ruimte voor groei?\n\n`;
-  }
-  if(_portfolioCustomPrompt){prompt+=`\n## Extra instructies\n${_portfolioCustomPrompt}\n`;}
-  prompt+=`\n---\n\nMaak op basis van bovenstaande informatie een volledig uitgewerkt ${style.l}. Maak het sterk, concreet en authentiek. Schrijf in het Nederlands. Zorg dat het direct bruikbaar is.\n\n`;
-  prompt+=`Let hierbij specifiek op:\n`;
-  prompt+=`- Beschrijf per leerdoel/onderdeel niet alleen het resultaat, maar ook de groei: waar begon ik, wat is er veranderd en hoe is dat te zien?\n`;
-  prompt+=`- Leg uit WAAROM die groei heeft plaatsgevonden — welke acties, ervaringen, projecten of inzichten hebben hieraan bijgedragen?\n`;
-  prompt+=`- Maak het leerproces zichtbaar: wat heb ik geleerd, welke inzichten heb ik opgedaan en hoe pas ik dat in de toekomst toe?\n`;
-  prompt+=`- Zorg voor een persoonlijke, reflectieve toon (ik-vorm) die laat zien dat ik bewust nadenk over mijn eigen ontwikkeling, naast een professionele presentatie van mijn vaardigheden.`;
-  document.getElementById('portfolio-prompt-txt').value=prompt;
-  document.getElementById('portfolio-prompt-out').classList.remove('hidden');
-  toast('✅ Portfolio-prompt gegenereerd!');
-}
-function sendPortfolioToAI(siteId){
-  const s=SITES.find(x=>x.id===siteId);if(!s)return;
-  const txt=document.getElementById('portfolio-prompt-txt')?.value||'';
-  window.open(s.url,'_blank','noopener');
-  navigator.clipboard?.writeText(txt).catch(()=>fbCopy(txt,''));
-  toast('✅ '+s.l+' geopend & prompt gekopieerd!',3000);
-}
 
 /* ══════════════════════════════════════════════════════════
    SPIDERWEB / RADAR CHART (SVG, geen externe library)
@@ -982,17 +789,6 @@ function buildGrowthChart(goals,width=560,height=240){
   <div style="display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:10px">${legend}</div>`;
 }
 
-/* ══════════════════════════════════════════════════════════
-   PORTFOLIO: setPortfolioStyle / setPortfolioColor (no re-render)
-   ══════════════════════════════════════════════════════════ */
-function setPortfolioStyle(id){
-  _portfolioStyle=id;
-  document.querySelectorAll('.ps-card').forEach(el=>{
-    const sid=el.dataset.sid;
-    if(sid===id){el.classList.add('border-indigo-500','bg-indigo-50');el.classList.remove('border-gray-200');}
-    else{el.classList.remove('border-indigo-500','bg-indigo-50');el.classList.add('border-gray-200');}
-  });
-}
 /* ── PDF kleurkeuze (export-modal) ── */
 function renderPdfColorPicker(){
   const el=document.getElementById('pdf-color-picker');if(!el)return;
@@ -1009,15 +805,6 @@ function setPdfColor(id){
     const c=PORTFOLIO_COLORS.find(x=>x.id===cid);if(!c)return;
     if(cid===id){el.style.borderColor=c.hex;el.style.outline='2px solid '+c.hex;}
     else{el.style.borderColor='#e5e7eb';el.style.outline='';}
-  });
-}
-function setPortfolioColor(id){
-  _portfolioColor=id;
-  document.querySelectorAll('.pc-btn').forEach(el=>{
-    const cid=el.dataset.cid;
-    const c=PORTFOLIO_COLORS.find(x=>x.id===cid);if(!c)return;
-    if(cid===id){el.style.borderColor=c.hex;el.classList.add('ring-2');el.style.outline='2px solid '+c.hex;}
-    else{el.style.borderColor='';el.classList.remove('ring-2');el.style.outline='';}
   });
 }
 

@@ -183,15 +183,34 @@ function exportChecklistPDF(id){
   exportPDF(t.name||'Checklist',html);
 }
 /* ── Portfolio PDF: stap 1 — vraag persoonlijke gegevens ── */
-function exportPortfolioPDF(){
-  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
-  const saved=_safeJSON('pb_portfolio_personal',{});
+let _pdfMode='portfolio';
+function _openPdfModal(saved){
   document.getElementById('pdf-naam').value=saved.naam||'';
   document.getElementById('pdf-opleiding').value=saved.opleiding||'';
   document.getElementById('pdf-klas').value=saved.klas||'';
   document.getElementById('pdf-periode').value=saved.periode||'';
   renderPdfColorPicker();
   document.getElementById('pdf-export-modal').classList.remove('hidden');
+}
+function _setPdfModalTitle(emoji,txt){
+  const el=document.getElementById('pdf-modal-title');
+  if(el)el.innerHTML=`<span data-ic="upload" data-ic-size="18">${emoji}</span> ${txt}`;
+}
+function exportPortfolioPDF(){
+  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  _pdfMode='portfolio';
+  _setPdfModalTitle('📄','Portfolio uitdraaien (PDF)');
+  _openPdfModal(_safeJSON('pb_portfolio_personal',{}));
+}
+function exportPOP(){
+  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  _pdfMode='pop';
+  _setPdfModalTitle('📋','POP — Persoonlijk ontwikkelplan (PDF)');
+  _openPdfModal(_safeJSON('pb_portfolio_personal',{}));
+}
+function runPdfExport(){
+  if(_pdfMode==='pop')generatePOPPDF();
+  else generatePortfolioPDF();
 }
 
 /* Render een 'mijn werk'/bijlage-item (tekst, link of verslag) als nette kaart */
@@ -452,6 +471,178 @@ function generatePortfolioPDF(){
     .link-card-desc{font-size:11px;color:#6b7280;margin-top:2px}
   `;
   exportPDF('Portfolio',html,extraStyle,true);
+}
+
+/* ── POP (Persoonlijk Ontwikkelingsplan): toekomstgericht plan als PDF ── */
+function generatePOPPDF(){
+  if(!S.goals.length){toast('⚠️ Voeg eerst leerdoelen toe');return;}
+  const personal={
+    naam:document.getElementById('pdf-naam')?.value?.trim()||'',
+    opleiding:document.getElementById('pdf-opleiding')?.value?.trim()||'',
+    klas:document.getElementById('pdf-klas')?.value?.trim()||'',
+    periode:document.getElementById('pdf-periode')?.value?.trim()||'',
+  };
+  _safeSave('pb_portfolio_personal',personal);
+  document.getElementById('pdf-export-modal').classList.add('hidden');
+
+  const color=PORTFOLIO_COLORS.find(c=>c.id===_pdfColor)||PORTFOLIO_COLORS[0];
+  const accent=color.hex;
+  const datum=new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
+
+  const logoSvg=(clr,w=90)=>`<svg viewBox="0 0 100 100" width="${w}" height="${w}" xmlns="http://www.w3.org/2000/svg" style="color:${clr}">
+    <path d="M 88 23 A 47 13 -35 0 0 12 77" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="50" cy="50" r="31" fill="none" stroke="currentColor" stroke-width="10.5"/>
+    <path d="M 88 23 A 47 13 -35 0 1 12 77" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="12" cy="77" r="8" fill="currentColor"/>
+    <circle cx="88" cy="23" r="5" fill="currentColor"/>
+  </svg>`;
+  const ringBadge=(lv,lc)=>`<svg viewBox="0 0 36 36" width="50" height="50" style="flex-shrink:0">
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#eef0f4" stroke-width="3"/>
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="${lc}" stroke-width="3" stroke-linecap="round"
+      stroke-dasharray="${(lv/100*97.4).toFixed(1)} 97.4" transform="rotate(-90 18 18)"/>
+    <text x="18" y="17" text-anchor="middle" font-size="11" font-weight="800" fill="${lc}" font-family="'Plus Jakarta Sans',sans-serif">${lv}</text>
+    <text x="18" y="25.5" text-anchor="middle" font-size="5.5" font-weight="700" fill="#9ca3af" font-family="'Plus Jakarta Sans',sans-serif">/100</text>
+  </svg>`;
+
+  const avgLevel=Math.round(S.goals.reduce((a,g)=>a+(g.level||1),0)/S.goals.length);
+  const nextTarget=lv=>lv<20?20:lv<40?40:lv<60?60:lv<80?80:100;
+  const sorted=[...S.goals].sort((a,b)=>(a.level||1)-(b.level||1));
+  const focus=sorted.slice(0,Math.min(4,sorted.length));
+  const openByGoal=S.goals.map(g=>({name:g.name,items:(g.milestones||[]).filter(m=>!m.done)})).filter(x=>x.items.length);
+  const totalOpen=openByGoal.reduce((a,x)=>a+x.items.length,0);
+
+  /* ── Voorpagina ── */
+  let html=`<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <div class="cover">
+    <div class="cover-shape cover-shape-1"></div>
+    <div class="cover-shape cover-shape-2"></div>
+    <div class="cover-card">
+      <div class="cover-logo">${logoSvg('#fff',90)}</div>
+      <div class="cover-eyebrow">PERSOONLIJK ONTWIKKELINGSPLAN · ORBIT</div>
+      <h1>Ontwikkelplan</h1>
+      <div class="cover-sub">Waar ik sta &amp; waar ik naartoe groei</div>
+      ${(personal.naam||personal.opleiding||personal.klas)?`<div class="cover-info">
+        ${personal.naam?`<div class="cover-naam">${esc(personal.naam)}</div>`:''}
+        ${(personal.opleiding||personal.klas)?`<div class="cover-sub2">${esc([personal.opleiding,personal.klas].filter(Boolean).join(' · '))}</div>`:''}
+      </div>`:''}
+      ${personal.periode?`<div class="cover-periode">${esc(personal.periode)}</div>`:''}
+    </div>
+    <div class="cover-date">Gegenereerd op ${datum} · Orbit AI Workflow Tool</div>
+  </div>`;
+
+  /* ── Inleiding ── */
+  html+=`<div class="section-hd"><span class="section-ic">${ic('thought',18)}</span><h2>Inleiding</h2></div>
+  <div class="intro-card"><p>Dit persoonlijk ontwikkelingsplan beschrijft waar ${personal.naam?`<strong>${esc(personal.naam)}</strong>`:'ik'} nu sta op <strong>${S.goals.length} leerdoel${S.goals.length===1?'':'en'}</strong> (gemiddeld niveau <strong>${avgLevel}/100</strong>) en welke concrete stappen er nog gezet worden om verder te groeien. De focus ligt op de leerdoelen waar op dit moment de meeste ontwikkeling mogelijk is.</p></div>`;
+
+  /* ── Mijn startpunt ── */
+  html+=`<div class="section-hd"><span class="section-ic">${ic('dashboard',18)}</span><h2>Mijn startpunt</h2></div>
+  <div class="start-list">${[...S.goals].sort((a,b)=>(b.level||1)-(a.level||1)).map(g=>{const lc=lvlColor(g.level||1);return `<div class="start-row">
+    <span class="start-name">${esc(g.name)}</span>
+    <span class="start-bar"><span class="start-fill" style="width:${g.level||1}%;background:${lc}"></span></span>
+    <span class="start-lvl" style="color:${lc}">${g.level||1} · ${lvlLabel(g.level||1)}</span>
+  </div>`;}).join('')}</div>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(15)}"></span>Starter 1–20</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(30)}"></span>Beginner 21–40</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(50)}"></span>Gemiddeld 41–60</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(70)}"></span>Gevorderd 61–80</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${lvlColor(90)}"></span>Expert 81–100</span>
+  </div>`;
+
+  /* ── Focuspunten ── */
+  html+=`<div class="section-hd"><span class="section-ic">${ic('target',18)}</span><h2>Focuspunten — hier wil ik groeien</h2></div>`;
+  focus.forEach(g=>{
+    const lc=lvlColor(g.level||1);
+    const tgt=nextTarget(g.level||1);
+    const open=(g.milestones||[]).filter(m=>!m.done);
+    html+=`<div class="goal-card">
+      <div class="goal-head">
+        ${ringBadge(g.level||1,lc)}
+        <div style="flex:1;min-width:0">
+          <div class="goal-name">${esc(g.name)}</div>
+          ${g.desc?`<div class="goal-desc">${esc(g.desc)}</div>`:''}
+          <div class="pop-target">Nu <strong>${lvlLabel(g.level||1)}</strong> (${g.level||1}) → streven naar <strong>${lvlLabel(tgt)}</strong> (${tgt})</div>
+        </div>
+      </div>
+      ${open.length?`<div class="goal-section-lbl">${ic('milestone',13)} Volgende stappen</div><div class="ms-list">${open.map(m=>`<div class="ms-item"><span class="ms-box"></span><span>${esc(m.label)}</span></div>`).join('')}</div>`:`<div class="pop-empty">Nog geen concrete acties — voeg mijlpalen toe aan dit leerdoel om je volgende stappen te plannen.</div>`}
+      ${g.notes?`<div class="goal-section-lbl">${ic('thought',13)} Mijn reflectie</div><div class="goal-text">${esc(g.notes)}</div>`:''}
+    </div>`;
+  });
+
+  /* ── Actieplan ── */
+  html+=`<div class="section-hd"><span class="section-ic">${ic('check',18)}</span><h2>Actieplan — al mijn volgende stappen</h2></div>`;
+  if(totalOpen){
+    html+=`<div class="intro-card" style="border-left-color:${accent}"><p>${totalOpen} openstaande actiepunt${totalOpen===1?'':'en'} verdeeld over ${openByGoal.length} leerdoel${openByGoal.length===1?'':'en'}. Vink ze af naarmate je ze afrondt.</p></div>`;
+    openByGoal.forEach(x=>{
+      html+=`<div class="action-block"><div class="action-goal">${esc(x.name)}</div><div class="ms-list">${x.items.map(m=>`<div class="ms-item"><span class="ms-box"></span><span>${esc(m.label)}</span></div>`).join('')}</div></div>`;
+    });
+  } else {
+    html+=`<div class="pop-empty">Er staan nog geen mijlpalen open. Voeg per leerdoel concrete mijlpalen toe in Orbit — die verschijnen hier automatisch als actiepunten.</div>`;
+  }
+
+  html+=`<div class="pdf-footer">
+    <div class="pdf-footer-logo">${logoSvg(accent,22)}</div>
+    <div>Gemaakt met <strong>Orbit</strong> — AI Workflow Tool</div>
+  </div>`;
+
+  const extraStyle=`
+    body{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+    h1,h2,h3{font-family:'Plus Jakarta Sans','Segoe UI',sans-serif}
+    .cover{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+      min-height:96vh;page-break-after:always;overflow:hidden;border-radius:18px;
+      background:linear-gradient(135deg,${accent} 0%,color-mix(in srgb,${accent} 55%,#1e1b4b) 100%);color:#fff}
+    .cover-shape{position:absolute;border-radius:50%;background:rgba(255,255,255,0.08)}
+    .cover-shape-1{width:340px;height:340px;top:-120px;left:-100px}
+    .cover-shape-2{width:260px;height:260px;bottom:-100px;right:-80px;background:rgba(255,255,255,0.06)}
+    .cover-card{position:relative;z-index:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.25);
+      border-radius:20px;padding:48px 56px;max-width:520px}
+    .cover-logo{margin-bottom:14px}
+    .cover-eyebrow{font-size:11px;letter-spacing:.22em;color:rgba(255,255,255,.75);font-weight:700;margin-bottom:10px}
+    .cover h1{font-size:46px;border:none;color:#fff;margin:0 0 6px;padding:0;font-weight:800;letter-spacing:.02em}
+    .cover-sub{color:rgba(255,255,255,.85);font-size:13px;letter-spacing:.06em}
+    .cover-info{margin-top:34px;padding-top:24px;border-top:1px solid rgba(255,255,255,.25)}
+    .cover-naam{font-size:22px;font-weight:800;color:#fff}
+    .cover-sub2{font-size:13px;color:rgba(255,255,255,.8);margin-top:4px}
+    .cover-periode{margin-top:14px;display:inline-block;padding:5px 16px;border-radius:999px;background:rgba(255,255,255,.18);font-weight:600;font-size:12px}
+    .cover-date{position:relative;z-index:1;margin-top:40px;color:rgba(255,255,255,.7);font-size:11px}
+    .section-hd{display:flex;align-items:center;gap:10px;margin-top:28px;margin-bottom:14px;padding-bottom:8px;
+      border-bottom:2px solid color-mix(in srgb,${accent} 22%,transparent);break-after:avoid;page-break-after:avoid}
+    .section-hd h2{margin:0;padding:0;border:none;font-size:18px;color:${accent};font-weight:800}
+    .section-ic{font-size:18px;display:inline-flex;width:32px;height:32px;align-items:center;justify-content:center;
+      border-radius:9px;background:color-mix(in srgb,${accent} 14%,white)}
+    .intro-card{margin-top:8px;padding:16px 20px;border-radius:12px;border-left:4px solid ${accent};
+      background:color-mix(in srgb,${accent} 7%,white);break-inside:avoid;page-break-inside:avoid}
+    .intro-card p{margin:0;font-size:13.5px;color:#374151;line-height:1.7}
+    .start-list{display:flex;flex-direction:column;gap:7px;break-inside:avoid;page-break-inside:avoid}
+    .start-row{display:flex;align-items:center;gap:12px}
+    .start-name{flex:0 0 38%;font-size:13px;font-weight:700;color:#1e1b4b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .start-bar{flex:1;height:8px;background:#f1f2f6;border-radius:4px;overflow:hidden}
+    .start-fill{display:block;height:100%;border-radius:4px}
+    .start-lvl{flex:0 0 110px;text-align:right;font-size:11px;font-weight:700}
+    .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;padding:10px 14px;border-radius:10px;
+      background:#f9fafb;border:1px solid #f1f2f6;break-inside:avoid;page-break-inside:avoid}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#4b5563}
+    .legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+    .goal-card{border:1px solid #ececf2;border-left:5px solid ${accent};border-radius:12px;padding:16px 18px;
+      margin-bottom:14px;page-break-inside:avoid;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+    .goal-head{display:flex;align-items:flex-start;gap:14px}
+    .goal-name{font-size:15px;font-weight:800;color:#1e1b4b}
+    .goal-desc{font-size:12px;color:#6b7280;margin-top:2px}
+    .pop-target{margin-top:8px;display:inline-block;font-size:11.5px;color:${accent};font-weight:600;
+      background:color-mix(in srgb,${accent} 10%,white);padding:4px 10px;border-radius:999px}
+    .goal-section-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:12px;color:${accent}}
+    .goal-text{font-size:13px;color:#374151;margin-top:4px;white-space:pre-wrap;line-height:1.6}
+    .ms-list{margin-top:5px;display:flex;flex-direction:column;gap:3px}
+    .ms-item{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:#374151}
+    .ms-box{flex-shrink:0;width:15px;height:15px;border-radius:4px;border:1.5px solid #cbd5e1;background:#fff;margin-top:1px}
+    .pop-empty{font-size:12px;color:#9ca3af;font-style:italic;margin-top:8px}
+    .action-block{margin-bottom:12px;break-inside:avoid;page-break-inside:avoid}
+    .action-goal{font-size:13px;font-weight:800;color:#1e1b4b;margin-bottom:4px}
+    .pdf-footer{margin-top:40px;padding-top:16px;border-top:1px solid #ececf2;display:flex;align-items:center;
+      justify-content:center;gap:8px;color:#9ca3af;font-size:11px}
+    .pdf-footer-logo svg{display:block}
+  `;
+  exportPDF('POP',html,extraStyle,true);
 }
 
 /* ── GLOBAL SEARCH ──────────────────────────────────────── */

@@ -288,18 +288,6 @@ function vSettings(){
             <button class="btn bs text-sm" onclick="localStorage.removeItem('pb_analyse_prompt_tpl');document.getElementById('set-analyse-tpl').value='';toast('✅ Gereset naar standaard')">↺ Reset</button>
           </div>
         </div>
-        <!-- Portfolio prompt template -->
-        <div class="space-y-2 border-t border-gray-100 pt-4">
-          <div class="font-semibold text-sm">${ic('doc',14)} Portfolio-prompt basistemplate</div>
-          <div class="text-xs text-gray-500">Dit is de opening van de portfolio-prompt. De app voegt daarna automatisch je doelen, projecten en reflecties toe. Laat leeg voor de standaard.</div>
-          <textarea id="set-portfolio-tpl" class="inp text-sm w-full" rows="5"
-            placeholder="Laat leeg voor standaard. Bijv: Jij bent een professionele schrijver. Maak een stageverslag voor mij op basis van..."
-            >${localStorage.getItem('pb_portfolio_prompt_tpl')||''}</textarea>
-          <div class="flex gap-2">
-            <button class="btn bp text-sm" onclick="savePortfolioTpl()">💾 Opslaan</button>
-            <button class="btn bs text-sm" onclick="localStorage.removeItem('pb_portfolio_prompt_tpl');document.getElementById('set-portfolio-tpl').value='';toast('✅ Gereset naar standaard')">↺ Reset</button>
-          </div>
-        </div>
       </div>
     </div>
 

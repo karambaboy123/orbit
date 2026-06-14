@@ -188,7 +188,7 @@
 <div id="pdf-export-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.5)">
   <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
     <div class="flex items-center justify-between">
-      <div class="font-bold text-lg flex items-center gap-2"><span data-ic="upload" data-ic-size="18">📄</span> Portfolio PDF exporteren</div>
+      <div id="pdf-modal-title" class="font-bold text-lg flex items-center gap-2"><span data-ic="upload" data-ic-size="18">📄</span> Portfolio uitdraaien (PDF)</div>
       <button onclick="document.getElementById('pdf-export-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 text-2xl font-bold leading-none">×</button>
     </div>
     <div class="text-sm text-gray-500">Vul (optioneel) je gegevens in voor op de voorpagina. Laat leeg om dit over te slaan.</div>
@@ -205,7 +205,7 @@
       </div>
     </div>
     <div class="flex gap-3">
-      <button onclick="generatePortfolioPDF()" class="btn bp flex-1 flex items-center justify-center gap-1.5"><span data-ic="save" data-ic-size="15">📄</span> Genereer PDF</button>
+      <button onclick="runPdfExport()" class="btn bp flex-1 flex items-center justify-center gap-1.5"><span data-ic="save" data-ic-size="15">📄</span> Genereer PDF</button>
       <button onclick="document.getElementById('pdf-export-modal').classList.add('hidden')" class="btn bs">Annuleer</button>
     </div>
   </div>
