@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Orbit — Introductie</title>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%;overflow:hidden;background:#0c0a1d;font-family:'Segoe UI',system-ui,sans-serif;color:#fff}
@@ -191,6 +191,22 @@
   </div>
 </section>
 
+<!-- Scene 5b: werkruimtes + POP -->
+<section class="scene" data-dur="2800">
+  <h2 class="rise d1"><i data-lucide="layers"></i>Voor school én werk — apart</h2>
+  <p class="sub rise d2">Houd je leerdoelen per plek gescheiden in eigen werkruimtes. En draai naast je portfolio ook een POP (ontwikkelplan) uit.</p>
+  <div class="mock rise d3">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+      <span style="padding:5px 14px;border-radius:999px;background:#4f46e5;color:#fff;font-size:13px;font-weight:700">School</span>
+      <span style="padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.08);color:#c7d2fe;font-size:13px;border:1px solid rgba(255,255,255,.15)">Werk</span>
+      <span style="padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.08);color:#c7d2fe;font-size:13px;border:1px solid rgba(255,255,255,.15)">Stage</span>
+      <span style="padding:5px 14px;border-radius:999px;border:1px dashed rgba(255,255,255,.25);color:#a5b4fc;font-size:13px">+ werkruimte</span>
+    </div>
+    <div class="mock-row rise d4"><div class="chip" style="background:#4f46e5"><i data-lucide="file-text"></i></div><div><div class="mock-title">Portfolio uitdraaien</div><div class="mock-sub">Wat je hebt bereikt — als nette PDF</div></div></div>
+    <div class="mock-row rise d5"><div class="chip" style="background:#7c3aed"><i data-lucide="route"></i></div><div><div class="mock-title">POP maken</div><div class="mock-sub">Waar je naartoe groeit — focuspunten &amp; actieplan</div></div></div>
+  </div>
+</section>
+
 <!-- Scene 6: opdrachten & AI tools -->
 <section class="scene" data-dur="2800">
   <h2 class="rise d1"><i data-lucide="zap"></i>En al je opdrachten erbij</h2>
@@ -249,6 +265,7 @@
 <div class="dots" id="dots"></div>
 
 <script>
+function drawIcons(){try{if(window.lucide)lucide.createIcons();}catch(e){}}
 const scenes=[...document.querySelectorAll('.scene')];
 const dots=document.getElementById('dots');
 scenes.forEach(()=>{const d=document.createElement('div');d.className='dot';dots.appendChild(d);});
@@ -277,7 +294,7 @@ const playBtn=document.getElementById('play');
 playBtn.onclick=function(){
   playing=!playing;last=null;
   this.innerHTML=playing?'<i data-lucide="pause"></i>':'<i data-lucide="play"></i>';
-  lucide.createIcons();
+  drawIcons();
 };
 document.getElementById('next').onclick=()=>show(cur+1);
 document.getElementById('prev').onclick=()=>show(cur-1);
@@ -286,7 +303,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight')show(cur+1);
   if(e.key==='ArrowLeft')show(cur-1);
 });
-lucide.createIcons();
+drawIcons();
 show(0);tick();
 </script>
 </body>
