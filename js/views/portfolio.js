@@ -171,8 +171,8 @@ function vPortfolio(){
     <div class="font-bold text-sm text-emerald-800">🔬 Groeivoorstellen — keur goed of verwijder</div>
     ${_analysisProposals.map((p,i)=>`<div class="flex items-center gap-3 p-3 rounded-lg border ${p.accepted===true?'border-emerald-300 bg-emerald-50':p.accepted===false?'border-red-100 bg-red-50 opacity-50':'border-gray-200 bg-white'}">
       <div class="flex-1 min-w-0">
-        <div class="font-semibold text-sm">${p.goalName}</div>
-        <div class="text-xs text-gray-500 mt-0.5">${p.reason}</div>
+        <div class="font-semibold text-sm">${esc(p.goalName)}</div>
+        <div class="text-xs text-gray-500 mt-0.5">${esc(p.reason)}</div>
         <div class="flex items-center gap-2 mt-1">
           <span class="text-xs text-gray-400">${p.oldLevel} → ${p.newLevel}</span>
           <span class="text-xs font-bold px-2 py-0.5 rounded-full text-white" style="background:${p.delta>=0?'#10b981':'#ef4444'}">${p.delta>=0?'+':''}${p.delta}</span>
@@ -194,10 +194,10 @@ function vPortfolio(){
     <div class="font-bold text-sm text-violet-800">🧭 Voorgestelde nieuwe leerdoelen — keur goed of verwijder</div>
     ${_newGoalProposals.map((p,i)=>`<div class="flex items-center gap-3 p-3 rounded-lg border ${p.accepted===true?'border-emerald-300 bg-emerald-50':p.accepted===false?'border-red-100 bg-red-50 opacity-50':'border-gray-200 bg-white'}">
       <div class="flex-1 min-w-0">
-        <div class="font-semibold text-sm">${p.name}</div>
-        <div class="text-xs text-gray-500 mt-0.5">${p.reason}</div>
+        <div class="font-semibold text-sm">${esc(p.name)}</div>
+        <div class="text-xs text-gray-500 mt-0.5">${esc(p.reason)}</div>
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">${p.category}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">${esc(p.category)}</span>
           <span class="text-xs text-gray-400">Startniveau: ${p.level}/100 (${lvlLabel(p.level)})</span>
         </div>
       </div>
