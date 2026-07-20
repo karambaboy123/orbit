@@ -12,7 +12,9 @@ function vGoalDetail(){
       <span class="text-xs font-bold px-2 py-0.5 rounded-full text-white flex-shrink-0 mt-0.5" style="background:${h.delta>=0?'#10b981':'#ef4444'}">${h.delta>=0?'+':''}${h.delta}</span>
       <div class="flex-1 min-w-0">
         <div class="text-xs text-gray-700">${esc(h.reason)}</div>
-        <div class="text-xs text-gray-400 mt-0.5">${h.oldLevel} → ${h.newLevel} · ${h.date}</div>
+        <div class="text-xs text-gray-400 mt-0.5">${h.oldLevel} → ${h.newLevel} · ${h.date}
+          <button onclick="editHistoryDate('${g.id}',${(g.history||[]).length-1-i})" class="text-gray-300 hover:text-indigo-500 ml-1" title="Datum aanpassen">✏️</button>
+        </div>
       </div>
       <button onclick="undoHistory('${g.id}',${(g.history||[]).length-1-i})" class="text-gray-300 hover:text-red-400 text-xs font-bold flex-shrink-0" title="Ongedaan maken">↩</button>
     </div>`).join('');
@@ -204,6 +206,19 @@ function undoHistory(gid,i){
   orbitConfirm(`Wil je deze groei ongedaan maken? (${g.name}: ${h.newLevel} → ${h.oldLevel})`,()=>{
     g.level=h.oldLevel;g.history.splice(i,1);saveGoals();render();toast('↩ Ongedaan gemaakt');
   },null,'Ongedaan maken');
+}
+function editHistoryDate(gid,i){
+  const g=S.goals.find(x=>x.id===gid);if(!g||!g.history)return;
+  const h=g.history[i];if(!h)return;
+  orbitPrompt('Nieuwe datum voor deze groei-entry (jjjj-mm-dd):',h.date,val=>{
+    const inp=document.getElementById('orbit-modal-input');if(inp)inp.type='text';
+    if(!val)return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(val)){toast('⚠️ Ongeldige datum — gebruik het formaat jjjj-mm-dd');return;}
+    h.date=val;
+    g.history.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+    saveGoals();render();toast('✅ Datum aangepast');
+  },'Datum aanpassen');
+  const inp=document.getElementById('orbit-modal-input');if(inp)inp.type='date';
 }
 function deleteGoal(id){orbitConfirm('Doel verwijderen?',()=>{S.goals=S.goals.filter(x=>x.id!==id);saveGoals();nav('portfolio');},null,'Doel verwijderen');}
 function toggleMilestone(gid,i,done){

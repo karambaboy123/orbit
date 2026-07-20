@@ -10,6 +10,7 @@ let _backupDb                 = null;
 let _backupToastedThisSession = false;
 let _backupBadge              = false; // cached: last backup >7 days old?
 let _backupInProgress         = false; // prevent re-entrant snapshots
+let _lastAutoBackupDate       = null;  // cached: ISO-datum van laatste auto-backup (voor Home-reminder)
 
 /* ── Open / init DB ─────────────────────────────────────── */
 function backupOpenDB(){
@@ -84,6 +85,7 @@ async function backupSnapshot(reason='auto'){
       _backupPrune(db).then(()=>{
         localStorage.setItem('pb_change_count','0');
         _backupBadge=false;
+        _lastAutoBackupDate=snapshot.date;
         _updateBackupBadge();
         if(!_backupToastedThisSession){
           _backupToastedThisSession=true;
@@ -342,6 +344,7 @@ async function backupInit(){
 
   // Badge: is laatste backup >7 dagen oud?
   const all=await backupList();
+  _lastAutoBackupDate=all.length?all[0].date:null;
   if(!all.length){
     _backupBadge=true;
   } else {
@@ -356,4 +359,7 @@ async function backupInit(){
   if(!alreadyToday){
     await backupSnapshot('daily');
   }
+
+  // Home-reminder was mogelijk al gerenderd vóórdat deze data beschikbaar was — ververs
+  if(S.view==='home')render();
 }

@@ -95,6 +95,24 @@ function lvlLabel(n){
   if(n>=80)return'Expert';if(n>=60)return'Gevorderd';if(n>=40)return'Gemiddeld';if(n>=20)return'Beginner';return'Starter';
 }
 
+/* ── Portfolio header dropdowns ── */
+function togglePortfolioDD(id){
+  const target=document.getElementById('pdd-'+id);
+  const wasOpen=target&&!target.classList.contains('hidden');
+  closePortfolioDDs();
+  if(target&&!wasOpen){
+    target.classList.remove('hidden');
+    setTimeout(()=>document.addEventListener('click',_pddOutsideClick),0);
+  }
+}
+function closePortfolioDDs(){
+  document.querySelectorAll('[id^="pdd-"]').forEach(el=>el.classList.add('hidden'));
+  document.removeEventListener('click',_pddOutsideClick);
+}
+function _pddOutsideClick(e){
+  if(!e.target.closest('[id^="pdd-"]')&&!e.target.closest('button[onclick^="togglePortfolioDD"]'))closePortfolioDDs();
+}
+
 /* ── Portfolio state ── */
 let _pgPickerCat='',_pgPickerSearch='',_pgPickerOpen=false;
 let _analysisProposals=[];
@@ -106,7 +124,6 @@ function vPortfolio(){
   const goals=wsGoals();
   const shown=catFilter?goals.filter(g=>g.category===catFilter):goals;
   const avgLevel=goals.length?Math.round(goals.reduce((a,g)=>a+(g.level||1),0)/goals.length):0;
-  const activeWsName=(S.workspaces.find(w=>w.id===S.activeWs)||{}).name||'Werkruimte';
 
   const cards=shown.map(g=>{
     const lc=lvlColor(g.level||1);
@@ -216,23 +233,26 @@ function vPortfolio(){
     <div class="flex items-center justify-between flex-wrap gap-3">
       <div><h1 class="text-2xl font-bold">🎯 Portfolio & Leerdoelen</h1>
         <p class="text-gray-400 text-sm mt-0.5">Volg je groei per vaardigheid op een schaal van 1 tot 100</p></div>
-      <div class="flex gap-2 flex-wrap">
-        <button class="btn bs text-sm" onclick="toggleAcc('portfolio-discover')">🧭 Nieuwe doelen ontdekken</button>
-        <button class="btn bs text-sm" onclick="toggleAcc('portfolio-analyse')">🔬 Groei analyseren</button>
-        <button class="btn bs text-sm" onclick="toggleAcc('portfolio-bijlagen')">📎 Bijlagen & links</button>
-        <button class="btn bs text-sm" style="color:#ef4444" onclick="clearAllGrowth()">🗑️ Alle groei wissen</button>
+      <div class="flex gap-2 flex-wrap items-center">
+        <div class="relative">
+          <button class="btn bs text-sm" onclick="togglePortfolioDD('acties')">⚙️ Acties ▾</button>
+          <div id="pdd-acties" class="hidden absolute right-0 z-20" style="top:calc(100% + 4px);min-width:230px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px">
+            <button class="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-gray-50" onclick="closePortfolioDDs();toggleAcc('portfolio-discover')">🧭 Nieuwe doelen ontdekken</button>
+            <button class="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-gray-50" onclick="closePortfolioDDs();toggleAcc('portfolio-analyse')">🔬 Groei analyseren</button>
+            <button class="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-gray-50" onclick="closePortfolioDDs();toggleAcc('portfolio-bijlagen')">📎 Bijlagen & links</button>
+            <div class="border-t border-gray-100 my-1"></div>
+            <button class="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-red-50" style="color:#ef4444" onclick="closePortfolioDDs();clearAllGrowth()">🗑️ Alle groei wissen</button>
+          </div>
+        </div>
+        <div class="relative">
+          <button class="btn bs text-sm" onclick="togglePortfolioDD('export')">📤 Exporteren ▾</button>
+          <div id="pdd-export" class="hidden absolute right-0 z-20" style="top:calc(100% + 4px);min-width:200px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:6px">
+            <button class="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-gray-50" onclick="closePortfolioDDs();exportPortfolioPDF()">📄 Portfolio uitdraaien</button>
+            <button class="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-gray-50" onclick="closePortfolioDDs();exportPOP()">📋 POP maken</button>
+          </div>
+        </div>
         <button class="btn bp text-sm" onclick="_pgPickerOpen=!_pgPickerOpen;render()">➕ Nieuw doel</button>
       </div>
-    </div>
-
-    <!-- Exporteren-balk -->
-    <div class="card p-4 flex items-center gap-3 flex-wrap" style="border:1.5px solid color-mix(in srgb,var(--p) 30%,transparent);background:color-mix(in srgb,var(--p) 5%,var(--card))">
-      <div class="flex-1 min-w-0">
-        <div class="font-bold text-sm">📤 Exporteren</div>
-        <div class="text-xs text-gray-500">Maak een professionele PDF van werkruimte "<strong>${esc(activeWsName)}</strong>"</div>
-      </div>
-      <button class="btn bp px-5 py-2.5 font-semibold" onclick="exportPortfolioPDF()">📄 Portfolio uitdraaien</button>
-      <button class="btn bp px-5 py-2.5 font-semibold" style="background:#7c3aed" onclick="exportPOP()">📋 POP maken</button>
     </div>
 
     <!-- Werkruimte-switcher -->
@@ -534,6 +554,7 @@ function openManualLevel(gid){
   document.getElementById('ml-val').style.color=lc;
   document.getElementById('ml-slider').style.accentColor=lc;
   document.getElementById('ml-reason').value='';
+  document.getElementById('ml-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('manual-modal').classList.remove('hidden');
 }
 function mlSliderInput(v){
@@ -546,10 +567,12 @@ function saveManualLevel(){
   const g=S.goals.find(x=>x.id===_manualLevelGid);if(!g)return;
   const val=+document.getElementById('ml-slider').value;
   const reason=document.getElementById('ml-reason').value.trim()||'Handmatig bijgewerkt';
+  const date=document.getElementById('ml-date').value||new Date().toISOString().slice(0,10);
   const old=g.level||1;
   g.level=val;
   g.history=g.history||[];
-  g.history.push({date:new Date().toISOString().slice(0,10),oldLevel:old,newLevel:val,delta:val-old,reason});
+  g.history.push({date,oldLevel:old,newLevel:val,delta:val-old,reason});
+  g.history.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
   saveGoals();
   document.getElementById('manual-modal').classList.add('hidden');
   S.gid=_manualLevelGid;render();toast('✅ Niveau bijgewerkt naar '+val+'!');

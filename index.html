@@ -155,6 +155,10 @@
       <label class="lbl">Reden (wat heb je geleerd / gedaan?)</label>
       <textarea id="ml-reason" class="inp text-sm w-full" rows="3" placeholder="Bijv: Ik heb dit weekend een project afgerond en meerdere concepten toegepast..."></textarea>
     </div>
+    <div>
+      <label class="lbl">Datum (wanneer heb je dit gedaan?)</label>
+      <input type="date" id="ml-date" class="inp text-sm w-full">
+    </div>
     <div class="flex gap-3">
       <button onclick="saveManualLevel()" class="btn bp flex-1 flex items-center justify-center gap-1.5"><span data-ic="save" data-ic-size="15">💾</span> Opslaan</button>
       <button onclick="document.getElementById('manual-modal').classList.add('hidden')" class="btn bs">Annuleer</button>

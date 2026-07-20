@@ -760,6 +760,7 @@ function orbitPrompt(msg,defaultVal,onOk,title){
   document.getElementById('orbit-modal-msg').textContent=msg;
   document.getElementById('orbit-modal-input-wrap').classList.remove('hidden');
   const inp=document.getElementById('orbit-modal-input');
+  inp.type='text';
   inp.value=defaultVal||'';
   const okBtn='<button class="btn bp text-sm px-4" id="orbit-modal-ok-btn">OK</button>';
   document.getElementById('orbit-modal-btns').innerHTML=

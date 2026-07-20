@@ -15,6 +15,19 @@ function render(){
     .filter(el=>!el.classList.contains('hidden'))
     .map(el=>el.id.replace('acc-body-',''));
 
+  // Onthoud scrollpositie zodat je niet steeds terug bovenaan begint
+  const _scroller=document.querySelector('#main')?.parentElement;
+  const _scrollTop=_scroller?_scroller.scrollTop:0;
+
+  // Onthoud het actieve invoerveld (id, waarde, cursorpositie) zodat typen niet onderbroken wordt
+  const _active=document.activeElement;
+  let _focus=null;
+  if(_active&&_active.id&&(_active.tagName==='INPUT'||_active.tagName==='TEXTAREA'||_active.tagName==='SELECT')
+     &&document.getElementById('main')?.contains(_active)){
+    _focus={id:_active.id,tag:_active.tagName,value:_active.value,
+      selStart:_active.selectionStart,selEnd:_active.selectionEnd};
+  }
+
   const el=document.getElementById('main');
   switch(S.view){
     case 'home':        el.innerHTML=vHome(); break;
@@ -33,6 +46,22 @@ function render(){
     case 'help':        el.innerHTML=vHelp(); break;
     default: el.innerHTML=vDash();
   }
+
+  // Herstel scrollpositie direct (nav() zet 'm evt. daarna zelf terug naar 0 bij paginawissel)
+  if(_scroller)_scroller.scrollTop=_scrollTop;
+
+  // Herstel focus + cursor/waarde van het veld waar je in aan het typen was
+  if(_focus){
+    const elF=document.getElementById(_focus.id);
+    if(elF){
+      elF.value=_focus.value;
+      elF.focus();
+      if(_focus.tag!=='SELECT'&&typeof elF.setSelectionRange==='function'){
+        try{elF.setSelectionRange(_focus.selStart,_focus.selEnd);}catch(e){}
+      }
+    }
+  }
+
   renderHist();
   // Apply icon style after DOM is ready + herstel open accordions
   requestAnimationFrame(()=>{

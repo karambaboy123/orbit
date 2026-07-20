@@ -1,4 +1,29 @@
 /* ── HOME PAGE ───────────────────────────────────────────── */
+function _backupReminderHTML(){
+  const localExport=localStorage.getItem('pb_last_local_export');
+  const autoBackup=typeof _lastAutoBackupDate!=='undefined'?_lastAutoBackupDate:null;
+  const dates=[localExport,autoBackup].filter(Boolean);
+  if(!dates.length){
+    return `<div class="card p-4 flex items-center gap-3 flex-wrap" style="background:#fffbeb;border:1px solid #fde68a">
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold text-sm" style="color:#92400e">📦 Nog geen backup gemaakt</div>
+        <div class="text-xs mt-0.5" style="color:#92400e">Maak een lokale export zodat je data niet kwijt kan raken.</div>
+      </div>
+      <button class="btn bp text-xs flex-shrink-0" onclick="nav('settings')">⚙️ Naar Instellingen</button>
+    </div>`;
+  }
+  const latest=dates.reduce((a,b)=>a>b?a:b);
+  const days=Math.floor((Date.now()-new Date(latest).getTime())/86400000);
+  if(days<7)return'';
+  return `<div class="card p-4 flex items-center gap-3 flex-wrap" style="background:#fffbeb;border:1px solid #fde68a">
+    <div class="flex-1 min-w-0">
+      <div class="font-semibold text-sm" style="color:#92400e">📦 Laatste backup ${days} dag${days===1?'':'en'} geleden</div>
+      <div class="text-xs mt-0.5" style="color:#92400e">Maak een verse export om dataverlies te voorkomen.</div>
+    </div>
+    <button class="btn bp text-xs flex-shrink-0" onclick="nav('settings')">⚙️ Naar Instellingen</button>
+  </div>`;
+}
+
 function vHome(){
   const isDark=document.body.classList.contains('theme-dark');
 
@@ -14,6 +39,8 @@ function vHome(){
   ];
 
   return `<div class="space-y-10">
+
+    ${_backupReminderHTML()}
 
     <!-- ── Hero ── -->
     <div class="text-center pt-10 pb-6">
