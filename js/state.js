@@ -74,7 +74,6 @@ const S = {
   reviews:   _safeJSON('pb_reviews',  []),
   attachments: _safeJSON('pb_attachments', []),
   tid: null, gid: null, nid: null,
-  geminiKey: localStorage.getItem('pb_gemini')||'',
 };
 if(!S.presets){S.presets=DFLT_PRESETS.map(p=>({...p}));localStorage.setItem('pb_presets',JSON.stringify(S.presets));}
 if(!S.templates){S.templates=DFLT_TMPLS.map(t=>({...t}));localStorage.setItem('pb_templates',JSON.stringify(S.templates));}

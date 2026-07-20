@@ -101,6 +101,5 @@ async function submitNewTask(){
   const task=mkTask('task',inp,goal.slice(0,40));
   if(dl)task.deadline=dl;
   saveT();
-  const msg=`Opdracht: ${goal}${inp.audience?'\nDoelgroep: '+inp.audience:''}${inp.tone?'\nToon: '+inp.tone:''}${inp.outputFormat?'\nOutput: '+inp.outputFormat:''}${inp.context?'\n\nContext:\n'+inp.context:''}`;
-  await runAnalysis(task,SP_TASK,msg,'btn-nt');
+  await runAnalysis(task,'btn-nt');
 }

@@ -1,11 +1,3 @@
-/* ── GEMINI API ─────────────────────────────────────────── */
-async function callGemini(sys,msg){
-  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${S.geminiKey}`;
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:'user',parts:[{text:msg}]}],generationConfig:{maxOutputTokens:4096,temperature:.7}})});
-  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||`Gemini fout (${r.status})`);}
-  return (await r.json()).candidates[0].content.parts[0].text;
-}
-
 /* ── LOCAL GENERATOR ────────────────────────────────────── */
 const CATS={marketing:['marketing','reclame','advertentie','campagne','social media','brand','merk','verkoop','promotie'],schrijven:['schrijf','schrijven','tekst','brief','email','e-mail','artikel','blog','verslag','rapport','document'],plan:['plan','plannen','project','stappenplan','roadmap','strategie','aanpak','begroting'],analyse:['analyseer','analyse','onderzoek','evalueer','beoordeel','vergelijk','data'],technisch:['website','app','applicatie','code','software','programmeer','ontwikkel','bouw','design'],presentatie:['presentatie','pitch','slides','deck','spreken'],hr:['sollicitatie','cv','vacature','medewerker','team','hr','personeel','training']};
 const SUBS={marketing:['Definieer de doelgroep en buyer persona','Bepaal het marketingkanaal en de kernboodschap','Maak een content- en publicatieplanning','Stel KPI\'s en een budget op','Produceer de marketingmaterialen','Meet en optimaliseer de resultaten'],schrijven:['Bepaal het doel en de kernboodschap','Maak een structuur (outline)','Schrijf de eerste ruwe versie','Verbeter inhoud en structuur','Controleer taal, stijl en toon','Haal feedback op en doe de laatste revisie'],plan:['Definieer het einddoel en de scope','Verdeel het project in fases','Maak een tijdlijn met deadlines','Bepaal benodigde middelen en budgetten','Identificeer risico\'s','Stel een voortgangsrapportage op'],analyse:['Definieer de onderzoeksvraag','Verzamel relevante data en bronnen','Analyseer de data en zoek patronen','Trek conclusies','Formuleer aanbevelingen','Presenteer de bevindingen'],technisch:['Definieer requirements en functionaliteiten','Ontwerp architectuur en gebruikersflow','Kies de technische stack','Bouw de kernfunctionaliteiten','Test grondig','Deploy en documenteer'],presentatie:['Bepaal het doel en de centrale boodschap','Maak een logische structuur','Schrijf de kernpunten per slide','Voeg visuele elementen toe','Oefen hardop','Verwerk feedback'],hr:['Analyseer de functie-eisen','Schrijf een kernachtige samenvatting','Beschrijf ervaringen concreet met resultaten','Pas het document aan op de situatie','Controleer spelling en opmaak'],default:['Analyseer de situatie en definieer het einddoel','Verzamel benodigde informatie','Maak een concrete aanpak','Voer de hoofdtaken stap voor stap uit','Controleer het resultaat','Lever het eindresultaat op']};
@@ -31,17 +23,13 @@ function genPrompt({promptGoal='',tool='',complexity='',keywords=''}){
 function extractPrompt(md){const m=md?.match(/##\s*(?:\d+\.\s*)?(?:Verbeterde prompt|Hoofdprompt)[^`]*```(?:\w*\n)?([\s\S]*?)```/i);return m?m[1].trim():null;}
 
 /* ── RUN ANALYSIS ───────────────────────────────────────── */
-async function runAnalysis(task,sys,msg,btnId){
+async function runAnalysis(task,btnId){
   const btn=document.getElementById(btnId);
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Bezig...';}
   let analysis,mode='local';
-  if(S.geminiKey){try{analysis=await callGemini(sys,msg);mode='ai';}catch(e){toast('⚠️ Gemini: '+e.message+' — lokaal gebruikt',4000);}}
-  if(!analysis){
-    if(task.type==='task')analysis=genTask(task.input);
-    else if(task.type==='prompt')analysis=genPrompt(task.input);
-    else analysis='# Analyse\n\nGeen analyse beschikbaar.';
-    mode='local';
-  }
+  if(task.type==='task')analysis=genTask(task.input);
+  else if(task.type==='prompt')analysis=genPrompt(task.input);
+  else analysis='# Analyse\n\nGeen analyse beschikbaar.';
   task.analysis=analysis; task.mode=mode;
   if(!task.name){
     const lbl=task.input.goal||task.input.promptGoal||'Opdracht';
@@ -50,23 +38,10 @@ async function runAnalysis(task,sys,msg,btnId){
   saveT(); S.tid=task.id; nav('analysis',task.id);
 }
 
-/* ── SP PROMPTS (Gemini) ────────────────────────────────── */
-const SP_TASK=`Je bent een senior prompt engineer. Analyseer de opdracht en lever EXACT dit Markdown format:\n\n# Opdrachtanalyse\n\n## 1. Samenvatting\n[uitleg]\n\n## 2. Ontbrekende informatie\n- [punt]\n\n## 3. Subopdrachten\n1. [subopdracht]\n\n## 4. Checklist\n\n### Fase 1: Voorbereiden\n- [ ] [taak]\n\n### Fase 2: Uitwerken\n- [ ] [taak]\n\n### Fase 3: Controleren\n- [ ] [taak]\n\n## 5. Verbeterde prompt\n\`\`\`\n[complete prompt]\n\`\`\`\n\n## 6. Advies\n[tip]`;
-const SP_PROMPT=`Je bent een expert prompt engineer. Lever EXACT dit Markdown format:\n\n# Prompt Generator\n\n## Hoofdprompt\n\`\`\`\n[complete geoptimaliseerde prompt]\n\`\`\`\n\n## Waarom effectief\n[uitleg]\n\n## Variatie 1: [naam]\n\`\`\`\n[tekst]\n\`\`\`\n\n## Variatie 2: [naam]\n\`\`\`\n[tekst]\n\`\`\`\n\n## Variatie 3: [naam]\n\`\`\`\n[tekst]\n\`\`\`\n\n## Checklist voor gebruik\n\n### Voorbereiding\n- [ ] [actie]\n\n### Gebruik\n- [ ] [actie]\n\n### Verfijning\n- [ ] [actie]`;
-
 /* ── SETTINGS AI functions ──────────────────────────────── */
 function saveAnalyseTpl(){const v=document.getElementById('set-analyse-tpl')?.value||'';localStorage.setItem('pb_analyse_prompt_tpl',v);toast('✅ Analyse-prompt opgeslagen!');}
-function saveGem(){const k=document.getElementById('gkey').value.trim();S.geminiKey=k;localStorage.setItem('pb_gemini',k);toast(k?'✅ Opgeslagen!':'✅ Sleutel gewist');render();}
-async function testGem(){
-  const k=document.getElementById('gkey').value.trim();if(!k){toast('⚠️ Vul een sleutel in');return;}
-  const orig=S.geminiKey;S.geminiKey=k;
-  try{const r=await callGemini('Reply with exactly: OK','test');toast('✅ Werkt! Antwoord: '+r.trim().slice(0,20));localStorage.setItem('pb_gemini',k);}
-  catch(e){S.geminiKey=orig;toast('❌ '+e.message,5000);}
-}
-/* ── BACKUP & SYNC ───────────────────────────────────────── */
-const GH_BACKUP_REPO='karambaboy123/orbit-data';
-const GH_BACKUP_FILE='orbit-backup.json';
 
+/* ── BACKUP & EXPORT/IMPORT (lokaal) ────────────────────── */
 function _chk(id){const el=document.getElementById(id);return!el||el.checked;}
 function getFullExportData(sel){
   // sel=true → respect checkboxes; sel=false/undefined → export everything
@@ -122,68 +97,6 @@ function handleImport(input){
   };
   reader.readAsText(file); input.value='';
 }
-function saveGhToken(){
-  const t=document.getElementById('gh-token')?.value?.trim()||'';
-  localStorage.setItem('pb_gh_token',t);
-  toast(t?'✅ Token opgeslagen!':'✅ Token gewist');
-}
-function toggleGhTokenVis(){
-  const el=document.getElementById('gh-token');if(el)el.type=el.type==='password'?'text':'password';
-}
-async function syncToGitHub(){
-  const token=localStorage.getItem('pb_gh_token');
-  if(!token){toast('⚠️ Sla eerst een GitHub token op');toggleAcc('backup');return;}
-  const btn=document.getElementById('gh-sync-btn');
-  if(btn){btn.disabled=true;btn.innerHTML=ic('cloud',13)+' Bezig...';}
-  try{
-    const content=btoa(unescape(encodeURIComponent(JSON.stringify(getFullExportData(),null,2))));
-    const headers={Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'};
-    const url=`https://api.github.com/repos/${GH_BACKUP_REPO}/contents/${GH_BACKUP_FILE}`;
-    let sha=null;
-    const getRes=await fetch(url,{headers});
-    if(getRes.ok){sha=(await getRes.json()).sha;}
-    const putRes=await fetch(url,{method:'PUT',headers,
-      body:JSON.stringify({message:`Orbit backup — ${new Date().toLocaleString('nl-NL')}`,content,...(sha?{sha}:{})})});
-    if(!putRes.ok){const e=await putRes.json();throw new Error(e.message);}
-    const now=new Date().toLocaleString('nl-NL');
-    localStorage.setItem('pb_last_sync',now);
-    const lbl=document.getElementById('gh-last-sync');if(lbl)lbl.textContent=now;
-    toast('✅ Backup opgeslagen in orbit-data repo!');
-  }catch(e){toast('❌ GitHub backup mislukt: '+e.message,7000);}
-  finally{if(btn){btn.disabled=false;btn.innerHTML=ic('cloudup',13)+' Backup naar GitHub';}}
-}
-async function _doRestoreFromGitHub(){
-  const token=localStorage.getItem('pb_gh_token');
-  const btn=document.getElementById('gh-restore-btn');
-  if(btn){btn.disabled=true;btn.innerHTML=ic('cloud',13)+' Bezig...';}
-  try{
-    const headers={Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'};
-    const res=await fetch(`https://api.github.com/repos/${GH_BACKUP_REPO}/contents/${GH_BACKUP_FILE}`,{headers});
-    if(!res.ok)throw new Error('Geen backup gevonden in orbit-data repo');
-    const file=await res.json();
-    const raw=decodeURIComponent(escape(atob(file.content.replace(/\n/g,''))));
-    const data=JSON.parse(raw);
-    if(data.tasks)    {S.tasks=data.tasks;saveT();}
-    if(data.goals)    {S.goals=data.goals;localStorage.setItem('pb_goals',JSON.stringify(S.goals));}
-    if(data.notes)    {S.notes=data.notes;localStorage.setItem('pb_notes',JSON.stringify(S.notes));}
-    if(data.reviews)  {S.reviews=data.reviews;localStorage.setItem('pb_reviews',JSON.stringify(S.reviews));}
-    if(data.promptLib){S.promptLib=data.promptLib;saveL();}
-    if(data.templates){S.templates=data.templates;saveTemplates();}
-    if(data.presets)  {S.presets=data.presets;savePresets();}
-    if(data.colorPresets){localStorage.setItem('pb_color_presets',JSON.stringify(data.colorPresets));}
-    if(data.customColors!==undefined){_customColors=data.customColors;localStorage.setItem('pb_custom_colors',JSON.stringify(_customColors));}
-    if(data.theme)    applyTheme(data.theme);
-    if(data.font)     applyFont(data.font);
-    if(data.iconStyle){_iconStyle=data.iconStyle;saveIconStyle();}
-    render(); toast('✅ Data hersteld van GitHub!');
-  }catch(e){toast('❌ Herstel mislukt: '+e.message,7000);}
-  finally{if(btn){btn.disabled=false;btn.innerHTML=ic('clouddown',13)+' Herstel van GitHub';}}
-}
-function restoreFromGitHub(){
-  const token=localStorage.getItem('pb_gh_token');
-  if(!token){toast('⚠️ Sla eerst een GitHub token op');return;}
-  orbitConfirm('Dit vervangt al je huidige data met de GitHub backup. Doorgaan?',_doRestoreFromGitHub,null,'Herstel van GitHub');
-}
 
 /* ── WEEK PLANNING (review view) ────────────────────────── */
 async function generateWeekPlanning(revId){
@@ -196,25 +109,20 @@ async function generateWeekPlanning(revId){
   const btn=document.getElementById('gen-planning-btn');
   if(btn){btn.disabled=true;btn.textContent='⏳ Bezig...';}
   try{
-    const context=`Mijn reflectie: ${r.reflection||'—'}\nDoelen volgende week: ${r.nextGoals||'—'}\nOpen opdrachten:\n${open.map(t=>`- ${t.name||t.input?.goal||'Opdracht'} (${taskPct(t)}% af${t.deadline?', deadline '+t.deadline:''})`).join('\n')||'—'}\nDeadlines komende week:\n${upcoming.map(t=>`- ${t.name||t.input?.goal} → ${t.deadline}`).join('\n')||'Geen'}\nActieve leerdoelen:\n${goals.map(g=>`- ${g.name} (niveau ${g.level||1}/100)`).join('\n')||'Geen'}`;
-    const prompt=`Maak een concrete dag-voor-dag weekplanning voor de week van ${nextWeek.label} op basis van:\n\n${context}\n\nGeef voor maandag t/m vrijdag 2-4 concrete, uitvoerbare taken per dag. Gebruik checkboxformat (- [ ]). Houd rekening met de deadlines. Sluit af met een sectie "## Tips voor de week" met 2-3 praktische tips.\n\nFormat:\n## Weekplanning: ${nextWeek.label}\n\n### Maandag\n- [ ] ...\n\n### Dinsdag\n- [ ] ...\n\n(etc.)\n\n## Tips voor de week\n- ...`;
     let result;
-    if(S.geminiKey){result=await callGemini(prompt,'weekplanning');}
-    else{
-      // Lokale fallback
-      const days=['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag'];
-      const all=[...upcoming,...open.filter(t=>!upcoming.includes(t))];
-      let md=`## Weekplanning: ${nextWeek.label}\n\n`;
-      days.forEach((d,i)=>{
-        md+=`### ${d}\n`;
-        const dt=all.filter((_,idx)=>idx%5===i).slice(0,3);
-        if(dt.length)dt.forEach(t=>{md+=`- [ ] ${t.name||t.input?.goal||'Taak'}${t.deadline&&t.deadline<=nextWeek.sunStr?' ⚠️ deadline!':''}\n`;});
-        else md+=`- [ ] Voortgang boeken op openstaande taken\n`;
-        md+='\n';
-      });
-      md+=`## Tips voor de week\n- Plan je zwaarste taken vroeg in de week\n- Neem elke dag een korte pauze van 15 minuten\n- Controleer dagelijks je prioriteiten`;
-      result=md;
-    }
+    // Lokale planning op basis van open taken, deadlines en leerdoelen
+    const days=['Maandag','Dinsdag','Woensdag','Donderdag','Vrijdag'];
+    const all=[...upcoming,...open.filter(t=>!upcoming.includes(t))];
+    let md=`## Weekplanning: ${nextWeek.label}\n\n`;
+    days.forEach((d,i)=>{
+      md+=`### ${d}\n`;
+      const dt=all.filter((_,idx)=>idx%5===i).slice(0,3);
+      if(dt.length)dt.forEach(t=>{md+=`- [ ] ${t.name||t.input?.goal||'Taak'}${t.deadline&&t.deadline<=nextWeek.sunStr?' ⚠️ deadline!':''}\n`;});
+      else md+=`- [ ] Voortgang boeken op openstaande taken\n`;
+      md+='\n';
+    });
+    md+=`## Tips voor de week\n- Plan je zwaarste taken vroeg in de week\n- Neem elke dag een korte pauze van 15 minuten\n- Controleer dagelijks je prioriteiten`;
+    result=md;
     r.planning=result;r.planningGeneratedAt=new Date().toISOString();
     saveReviews();render();toast('✅ Weekplanning gegenereerd!');
   }catch(e){toast('❌ '+e.message,5000);}

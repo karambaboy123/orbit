@@ -58,7 +58,6 @@ function _backupGetData(){
     attachments:  S.attachments,
     workspaces:   S.workspaces,
     activeWs:     S.activeWs,
-    geminiKey:    S.geminiKey,
     theme:        _baseMode,
     font:         typeof _curFont!=='undefined'?_curFont:null,
     iconStyle:    typeof _iconStyle!=='undefined'?_iconStyle:null,

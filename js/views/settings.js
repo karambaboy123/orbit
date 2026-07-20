@@ -149,34 +149,7 @@ function vSettings(){
         <span id="acc-ic-local" class="text-gray-400 text-xs ml-4">▼</span>
       </button>
       <div id="acc-body-local" class="hidden border-t border-gray-100 p-4">
-        <p class="text-sm text-gray-600">Genereert gestructureerde analyses, checklists en prompts zonder internet of API sleutel. Altijd beschikbaar als fallback wanneer Gemini niet actief is.</p>
-      </div>
-    </div>
-
-    <!-- Accordion 2: Gemini AI -->
-    <div class="card overflow-hidden">
-      <button class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left" onclick="toggleAcc('gemini')">
-        <div class="flex items-center gap-3"><span class="text-xl" style="color:#4285f4">${ic('ai',20)}</span><div><div class="font-bold text-sm">Gemini AI (Google)</div><div class="text-xs text-gray-500">Optioneel gratis · voor betere analyses${S.geminiKey?' · <span style="color:#10b981;font-weight:700">Actief</span>':''}</div></div></div>
-        <span id="acc-ic-gemini" class="text-gray-400 text-xs ml-4">▼</span>
-      </button>
-      <div id="acc-body-gemini" class="hidden border-t border-gray-100 p-5 space-y-4">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-          <div class="font-semibold text-blue-900 mb-2">${ic('key',14)} Gratis sleutel ophalen:</div>
-          <ol class="list-decimal list-inside text-blue-800 space-y-1 text-xs">
-            <li>Ga naar <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-medium">aistudio.google.com/app/apikey</a></li>
-            <li>Log in met Google-account</li>
-            <li>Klik <strong>"Create API key"</strong> en kopieer de sleutel (<code>AIza...</code>)</li>
-          </ol>
-          <div class="mt-2 text-xs text-blue-600 font-semibold">${ic('check',13)} Volledig gratis — geen betaalkaart nodig</div>
-        </div>
-        <div><label class="lbl">Gemini API Sleutel</label>
-          <div class="flex gap-2"><input id="gkey" type="password" class="inp flex-1" placeholder="AIza..." value="${S.geminiKey}">
-          <button class="btn bs" onclick="const e=document.getElementById('gkey');e.type=e.type==='password'?'text':'password'">${ic('eye',14)}</button></div></div>
-        <div class="flex gap-3">
-          <button class="btn bp" onclick="saveGem()">${ic('save',14)} Opslaan</button>
-          <button class="btn bs" onclick="testGem()">${ic('lab',14)} Test verbinding</button>
-          ${S.geminiKey?`<button class="btn bs" style="color:#ef4444" onclick="S.geminiKey='';localStorage.removeItem('pb_gemini');render();toast('Sleutel verwijderd')">${ic('delete',14)} Verwijder</button>`:''}
-        </div>
+        <p class="text-sm text-gray-600">Genereert gestructureerde analyses, checklists en prompts zonder internet of API sleutel.</p>
       </div>
     </div>
 
@@ -343,39 +316,11 @@ function vSettings(){
           </div>
         </div>
 
-        <!-- GitHub Sync -->
-        <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 space-y-3">
-          <div class="flex items-center gap-2 font-semibold text-sm text-indigo-700">${ic('cloud',15)} GitHub Sync</div>
-          <p class="text-xs text-gray-600">Sla je backup automatisch op in je privé GitHub-repo <code class="bg-white px-1 rounded text-indigo-600">orbit-data</code>. Zo ben je nooit je data kwijt.</p>
-
-          <!-- Token input -->
-          <div class="space-y-1">
-            <label class="text-xs font-medium text-gray-600">GitHub Personal Access Token (PAT)</label>
-            <div class="flex gap-1">
-              <input id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                class="inp flex-1 text-xs font-mono" style="height:34px;padding:0 10px"
-                value="${localStorage.getItem('pb_gh_token')||''}">
-              <button class="btn bs px-3" style="height:34px" onclick="toggleGhTokenVis()" title="Toon/verberg">${ic('eye',13)}</button>
-              <button class="btn" style="height:34px;background:var(--p);color:#fff;border-radius:8px;padding:0 12px;font-size:12px" onclick="saveGhToken()">Opslaan</button>
-            </div>
-            <p class="text-xs text-gray-400">
-              Maak een token via <a href="https://github.com/settings/tokens/new?scopes=repo&description=Orbit+Backup" target="_blank" class="underline text-indigo-500">GitHub → Settings → Tokens</a> · Kies scope: <strong>repo</strong>
-            </p>
-          </div>
-
-          <!-- Sync buttons -->
-          <div class="flex gap-2 flex-wrap items-center">
-            <button id="gh-sync-btn" class="btn" style="background:var(--p);color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px" onclick="syncToGitHub()">${ic('cloudup',13)} Backup naar GitHub</button>
-            <button id="gh-restore-btn" class="btn bs" style="display:flex;align-items:center;gap:6px;font-size:12px" onclick="restoreFromGitHub()">${ic('clouddown',13)} Herstel van GitHub</button>
-          </div>
-          <div class="text-xs text-gray-400">Laatste sync: <span id="gh-last-sync">${localStorage.getItem('pb_last_sync')||'nog nooit'}</span></div>
-        </div>
-
         <!-- Danger zone -->
         <div class="pt-1">
           <button class="btn bs text-xs" style="color:#ef4444" onclick="orbitConfirm('Alle opdrachten permanent wissen?',()=>{S.tasks=[];saveT();nav('dashboard')},null,'Wis opdrachten')">${ic('trash',13)} Wis alle opdrachten</button>
         </div>
-        <div class="text-xs text-gray-400">Alles wordt lokaal opgeslagen in je browser (localStorage). Gebruik export of GitHub Sync als back-up.</div>
+        <div class="text-xs text-gray-400">Alles wordt lokaal opgeslagen in je browser (localStorage). Gebruik export als back-up.</div>
       </div>
     </div>
   </div>`;

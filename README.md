@@ -65,7 +65,6 @@ Dé plek om je ontwikkeling als student bij te houden en te bewijzen.
 | **Lettertype** | 15+ Google Fonts om uit te kiezen |
 | **Backup & herstel** | Exporteer ál je data als bestand met één klik en importeer hem later weer — ideaal bij wisselen van apparaat of browser |
 | **Sjablonen & presets** | Beheer je eigen opdracht-sjablonen en AI-presets, elk met eigen prompt en variabelen |
-| **Gemini AI (optioneel)** | Voeg een gratis Google Gemini-sleutel toe voor automatische weekplanningen en slimmere analyses — zonder sleutel werkt alles lokaal |
 
 ---
 

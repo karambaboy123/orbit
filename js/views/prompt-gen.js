@@ -109,16 +109,7 @@ async function submitPromptGen(){
   const kw=document.getElementById('pg-kw')?.value?.trim()||'';
   const btn=document.getElementById('btn-pg');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Genereren...';}
-  // Genereer lokaal (of via Gemini)
-  let variants=genPromptVariants(goal,tool,kw);
-  if(S.geminiKey){
-    try{
-      const sys=SP_PROMPT;
-      const msg=`Prompt voor: ${goal}\nTool: ${tool}${kw?'\nVereisten: '+kw:''}`;
-      const raw=await callGemini(sys,msg);
-      variants=parseGeminiPrompts(raw,goal)||variants;
-    }catch(e){toast('⚠️ Gemini: '+e.message+' — lokaal gebruikt',4000);}
-  }
+  const variants=genPromptVariants(goal,tool,kw);
   _pgResult={goal,variants};
   if(btn){btn.disabled=false;btn.innerHTML='⚡ Genereer 3 varianten';}
   nav('prompt-gen');
@@ -136,34 +127,12 @@ function genPromptVariants(goal,tool,kw){
   return[{name:'🎯 Hoofdprompt (rol + structuur)',text:v1},{name:'📋 Stap-voor-stap aanpak',text:v2},{name:'⚖️ Analyse + aanbeveling',text:v3}];
 }
 
-function parseGeminiPrompts(raw,goal){
-  // Probeer varianten uit Gemini markdown te halen
-  const blocks=raw.match(/```[\s\S]*?```/g)||[];
-  if(blocks.length>=2){
-    const names=['🎯 Hoofdprompt','📋 Variatie 2','⚖️ Variatie 3'];
-    return blocks.slice(0,3).map((b,i)=>({name:names[i]||'Variant '+(i+1),text:b.replace(/```\w*\n?/g,'').trim()}));
-  }
-  return null;
-}
-
 async function improvePrompt(){
   const inp=document.getElementById('pg-improve-input')?.value?.trim();
   if(!inp){toast('⚠️ Voer een prompt in om te verbeteren');return;}
   const btn=document.getElementById('btn-improve');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Verbeteren...';}
-  let improved='';
-  if(S.geminiKey){
-    try{
-      improved=await callGemini(
-        'Jij bent een expert prompt engineer. Verbeter de gegeven prompt: maak hem duidelijker, specifieker, effectiever en completer. Geef ALLEEN de verbeterde prompt terug, zonder uitleg.',
-        inp
-      );
-    }catch(e){toast('⚠️ Gemini: '+e.message,4000);}
-  }
-  if(!improved){
-    // Lokale verbetering
-    improved=`Jij bent een expert op dit gebied. ${inp.replace(/^(schrijf|maak|geef|doe)/i,'')}\n\nBelangrijke vereisten:\n- Wees concreet en specifiek\n- Gebruik een gestructureerde aanpak\n- Lever de output in het Nederlands\n- Sluit af met concrete aanbevelingen\n\nZorg dat de output direct bruikbaar is.`;
-  }
+  const improved=`Jij bent een expert op dit gebied. ${inp.replace(/^(schrijf|maak|geef|doe)/i,'')}\n\nBelangrijke vereisten:\n- Wees concreet en specifiek\n- Gebruik een gestructureerde aanpak\n- Lever de output in het Nederlands\n- Sluit af met concrete aanbevelingen\n\nZorg dat de output direct bruikbaar is.`;
   const res=document.getElementById('pg-improved-result');
   const out=document.getElementById('pg-improved-out');
   if(out)out.value=improved;

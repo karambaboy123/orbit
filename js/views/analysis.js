@@ -33,7 +33,7 @@ function vAnalysis(){
         <div class="flex items-center gap-3 text-xs mt-1">
           <span class="text-gray-400">${date}</span>
           ${t.deadline?`<span class="${dlColor}">📅 ${new Date(t.deadline+'T12:00:00').toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'})}</span>`:''}
-          ${t.mode==='ai'?`<span class="ma">🤖 Gemini AI</span>`:`<span class="ml">⚡ Lokaal</span>`}
+          <span class="ml">⚡ Lokaal</span>
         </div>
       </div>
       <div class="flex gap-2 flex-shrink-0">
@@ -73,9 +73,6 @@ function bindChecks(){
 
 async function rerun(tid){
   const t=S.tasks.find(x=>x.id===tid);if(!t)return;
-  let sp,msg;
-  if(t.type==='task'){sp=SP_TASK;msg=`Opdracht: ${t.input.goal}${t.input.audience?'\nDoelgroep: '+t.input.audience:''}${t.input.context?'\n\nContext:\n'+t.input.context:''}`;}
-  else{sp=SP_PROMPT;msg=`Prompt voor: ${t.input.promptGoal}\nTool: ${t.input.tool||''}`;}
   t.checks={};saveT();S.tid=tid;
-  await runAnalysis(t,sp,msg,null);
+  await runAnalysis(t,null);
 }

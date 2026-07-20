@@ -67,7 +67,7 @@ function vDash(){
   return `<div class="space-y-5">
     <div class="flex items-center justify-between">
       <div><h1 class="text-2xl font-bold">Dashboard</h1><p class="text-gray-400 text-sm mt-0.5">Alle opdrachten op één plek</p></div>
-      ${S.geminiKey?`<span class="ma">🤖 Gemini actief</span>`:`<span class="ml">⚡ Lokale generator</span>`}
+      <span class="ml">⚡ Lokale generator</span>
     </div>
 
     <!-- Stats -->
@@ -118,7 +118,6 @@ function vDash(){
       </div>
     </div>`:''}
 
-    ${!S.geminiKey?`<div class="card p-4 bg-blue-50 border-blue-200"><div class="font-semibold text-blue-900 mb-1">🚀 Gratis upgrade: Gemini AI</div><div class="text-sm text-blue-800">Voeg een gratis Gemini API sleutel toe voor betere AI-analyses.</div><button class="btn bp text-xs mt-2" onclick="nav('settings')">⚙️ Instellen</button></div>`:''}
   </div>`;
 }
 
